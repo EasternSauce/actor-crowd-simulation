@@ -45,6 +45,13 @@ case class NearbyProbe(x: Int, y: Int)
 case object CharacterInfo
 case class CollisionProbe(x: Int, y: Int, w: Int, h: Int)
 
+class Door() {
+  var x = Globals.LEVEL_WIDTH/2 - 20
+  var y = Globals.LEVEL_HEIGHT-40
+  var w = 30.0f
+  var h = 30.0f
+}
+
 class Character(val name: String, val characterList: ListBuffer[Character]) {
   var x: Float = Random.nextInt(Globals.LEVEL_WIDTH - Globals.CHARACTER_SIZE)
   var y: Float = Random.nextInt(Globals.LEVEL_HEIGHT - Globals.CHARACTER_SIZE)
@@ -162,6 +169,8 @@ class SimulationSlickGame(gameName: String) extends BasicGame(gameName) {
   var mutableActorList = new ListBuffer[ActorRef]()
   var characterList: ListBuffer[Character] = ListBuffer[Character]()
 
+  var doorImage: Image = _
+
   for(_ <- 1 to 7)
   {
     val randomNameIndex = Random.nextInt(listOfNames.length)
@@ -173,12 +182,16 @@ class SimulationSlickGame(gameName: String) extends BasicGame(gameName) {
     mutableActorList += actor
   }
 
+  val doorList: ListBuffer[Door] = ListBuffer[Door]()
+
+  doorList += new Door()
+
   var actorList: List[ActorRef] = mutableActorList.toList
 
   var timer = 0
 
   override def init(gc: GameContainer): Unit = {
-
+    doorImage = new Image("door.png")
   }
 
   override def update(gc: GameContainer, i: Int): Unit = {
@@ -200,6 +213,9 @@ class SimulationSlickGame(gameName: String) extends BasicGame(gameName) {
 
 //    val mutableResponses = ListBuffer[(String, Float, Float)]()
 
+    doorList.foreach(door => {
+      g.drawImage(doorImage, Globals.LEVEL_X + door.x, Globals.LEVEL_Y + door.y)
+    })
 
     characterList.foreach(character => {
       g.setColor(Color.cyan)
