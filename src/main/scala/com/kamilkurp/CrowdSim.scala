@@ -5,10 +5,8 @@ import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
 import scala.util.Random
 import org.newdawn.slick._
 
-import scala.concurrent.Await
-import akka.pattern.ask
-import akka.util.Timeout
 
+import scala.collection.mutable.ListBuffer
 import scala.language.postfixOps
 
 
@@ -41,49 +39,98 @@ class Greeter(message: String, printerActor: ActorRef) extends Actor {
 }
 
 case class Hello(sender: String)
-case class Move(delta: Int, actorList: List[ActorRef])
+case class UpdatePosition(delta: Int, actorList: List[ActorRef])
 case object PrintPosition
 case class NearbyProbe(x: Int, y: Int)
 case object CharacterInfo
+case class CollisionProbe(x: Int, y: Int, w: Int, h: Int)
 
-class Character(val name: String) extends Actor with ActorLogging {
-  var x: Double = Random.nextInt(Globals.LEVEL_WIDTH - Globals.CHARACTER_SIZE)
-  var y: Double = Random.nextInt(Globals.LEVEL_HEIGHT - Globals.CHARACTER_SIZE)
-  var currentVelocityX: Double = 0.0
-  var currentVelocityY: Double = 0.0
+class Character(val name: String, val characterList: ListBuffer[Character]) {
+  var x: Float = Random.nextInt(Globals.LEVEL_WIDTH - Globals.CHARACTER_SIZE)
+  var y: Float = Random.nextInt(Globals.LEVEL_HEIGHT - Globals.CHARACTER_SIZE)
+  var w: Float = Globals.CHARACTER_SIZE
+  var h: Float = Globals.CHARACTER_SIZE
+
+  var currentVelocityX: Float = 0.0f
+  var currentVelocityY: Float = 0.0f
   var timer: Int = 0
-  var speed: Double = 0.25
-  override def receive: Receive = {
-    case Hello(sender) => log.info(sender + " says hello to " + name)
-    case Move(delta, actorList) =>
-      timer = timer + delta
-      if(timer > 300) {
-        val inPlace = if (Random.nextInt(100) < 30) true else false
+  var speed: Float = 0.25f
 
-        timer = 0
-        if (inPlace) {
-          currentVelocityX = 0
-          currentVelocityY = 0
-        }
-        else {
-          currentVelocityX = (Random.nextInt(3) - 1) * speed
-          currentVelocityY = (Random.nextInt(3) - 1) * speed
-        }
+  def update(delta: Int): Unit = {
+    timer = timer + delta
+    if(timer > 300) {
+      val inPlace = if (Random.nextInt(100) < 30) true else false
 
+      timer = 0
+      if (inPlace) {
+        currentVelocityX = 0
+        currentVelocityY = 0
+      }
+      else {
+        currentVelocityX = (Random.nextInt(3) - 1) * speed
+
+        currentVelocityY = (Random.nextInt(3) - 1) * speed
       }
 
-      move(currentVelocityX, currentVelocityY)
-      actorList.foreach(actor => actor ! NearbyProbe(x.intValue(), y.intValue()))
-    case NearbyProbe(thatX, thatY) if Math.abs(thatX - x) <= 25 && Math.abs(thatY - y) <= 25 && sender != self => {
-      sender ! Hello(name)
     }
-    case CharacterInfo => sender ! (name, x, y)
+
+
+    var collided = false
+
+    characterList.filter(character => character != this).foreach(character => {
+      if (checkCollision(character.x, character.y, character.w, character.h)) collided = true
+    })
+
+    if (!collided) move(currentVelocityX, currentVelocityY)
+
   }
 
-  def move(x: Double, y: Double): Unit = {
-    if (this.x + x >= 0 && this.x + x < Globals.LEVEL_WIDTH - Globals.CHARACTER_SIZE) this.x += x
+  def move(x: Float, y: Float): Unit = {
+     this.x += x
     if (this.y + y >= 0 && this.y + y < Globals.LEVEL_HEIGHT - Globals.CHARACTER_SIZE) this.y += y
   }
+
+  def checkCollision(thatX: Float, thatY: Float, thatW: Float, thatH: Float): Boolean = {
+    var collision = false
+
+    if (this.x + currentVelocityX < 0 || this.x + currentVelocityX > Globals.LEVEL_WIDTH - Globals.CHARACTER_SIZE) collision = true
+    if (this.y + currentVelocityY < 0 || this.y + currentVelocityY > Globals.LEVEL_WIDTH - Globals.CHARACTER_SIZE) collision = true
+
+
+    if (x + currentVelocityX < thatX + thatW &&
+      x + currentVelocityX + w > thatX &&
+      y + currentVelocityY < thatY + thatH &&
+      h + y + currentVelocityY > thatY) {
+      // collision detected!
+      println("collision detected! rect: " + x + " " + y + " " + w  + " " + h + "with rect: "+ thatX + " " + thatY + " " + thatW  + " " + thatH)
+      collision = true
+    }
+
+    collision
+  }
+
+}
+
+class CharacterActor(val name: String, val character: Character) extends Actor with ActorLogging {
+
+  val char: Character = character
+
+
+  override def receive: Receive = {
+    case Hello(sender) => log.info(sender + " says hello to " + name)
+    case UpdatePosition(delta, actorList) =>
+
+
+    case NearbyProbe(thatX, thatY) if Math.abs(thatX - char.x) <= 25 && Math.abs(thatY - char.y) <= 25 && sender != self => {
+      sender ! Hello(name)
+    }
+    case CharacterInfo => sender ! (name, char.x, char.y)
+
+    case CollisionProbe(thatX, thatY, thatW, thatH) =>
+
+  }
+
+
 }
 
 
@@ -113,13 +160,16 @@ class SimulationSlickGame(gameName: String) extends BasicGame(gameName) {
   import scala.collection.mutable.ListBuffer
 
   var mutableActorList = new ListBuffer[ActorRef]()
+  var characterList: ListBuffer[Character] = ListBuffer[Character]()
 
-  for(_ <- 1 to 10)
+  for(_ <- 1 to 7)
   {
     val randomNameIndex = Random.nextInt(listOfNames.length)
     val randomName = listOfNames(randomNameIndex)
     listOfNames = listOfNames.take(randomNameIndex) ++ listOfNames.drop(randomNameIndex+1)
-    val actor = system.actorOf(Props(new Character(randomName)))
+    val character = new Character(randomName, characterList)
+    characterList += character
+    val actor = system.actorOf(Props(new CharacterActor(randomName, character)))
     mutableActorList += actor
   }
 
@@ -132,11 +182,14 @@ class SimulationSlickGame(gameName: String) extends BasicGame(gameName) {
   }
 
   override def update(gc: GameContainer, i: Int): Unit = {
-      actorList.foreach(actor => actor ! PrintPosition)
+//      actorList.foreach(actor => actor ! PrintPosition)
 
-      actorList.foreach(actor => {
-        actor ! Move(i, actorList)
-      })
+    characterList.foreach(character => {
+      character.update(i)
+    })
+//      actorList.foreach(actor => {
+//        actor ! UpdatePosition(i, actorList)
+//      })
   }
 
   override def render(gc: GameContainer, g: Graphics): Unit = {
@@ -145,36 +198,17 @@ class SimulationSlickGame(gameName: String) extends BasicGame(gameName) {
     g.setColor(Color.gray)
     g.fillRect(Globals.LEVEL_X, Globals.LEVEL_Y, Globals.LEVEL_WIDTH, Globals.LEVEL_HEIGHT)
 
-    g.setColor(Color.orange)
+//    val mutableResponses = ListBuffer[(String, Float, Float)]()
 
 
-    val mutableResponses = ListBuffer[(String, Double, Double)]()
-
-    actorList.foreach(actor => {
-      implicit val timeout: Timeout = Timeout(5 seconds)
-      val future = actor ? CharacterInfo
-      val result = Await.result(future, timeout.duration).asInstanceOf[(String, Double, Double)]
-
-      mutableResponses += result
-    })
-
-    val responses = mutableResponses.toList
-
-    responses.foreach(response => {
-      val x = Globals.LEVEL_X + response._2.intValue()
-      val y = Globals.LEVEL_Y + response._3.intValue()
-      val w = Globals.CHARACTER_SIZE
-      val h = Globals.CHARACTER_SIZE
+    characterList.foreach(character => {
       g.setColor(Color.cyan)
-      g.fillRect(x, y, w, h)
+      g.fillRect(Globals.LEVEL_X + character.x, Globals.LEVEL_Y + character.y, character.w, character.h)
     })
 
-    responses.foreach(response => {
-      val x = Globals.LEVEL_X + response._2.intValue()
-      val y = Globals.LEVEL_Y + response._3.intValue()
-
+    characterList.foreach(character => {
       g.setColor(Color.darkGray)
-      g.drawString(response._1, x - 10, y - 25)
+      g.drawString(character.name, Globals.LEVEL_X + character.x - 10, Globals.LEVEL_Y + character.y - 25)
     })
 
 
@@ -183,7 +217,6 @@ class SimulationSlickGame(gameName: String) extends BasicGame(gameName) {
 }
 
 object CrowdSim extends App {
-
   import org.newdawn.slick.AppGameContainer
 
   var gameContainer = new AppGameContainer(new SimulationSlickGame("Simple Slick Game"))
