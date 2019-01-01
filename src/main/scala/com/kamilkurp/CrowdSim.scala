@@ -1,10 +1,10 @@
 package com.kamilkurp
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
+import com.kamilkurp.ControlScheme.ControlScheme
 
 import scala.util.Random
 import org.newdawn.slick._
-
 
 import scala.language.postfixOps
 import scala.collection.mutable.ListBuffer
@@ -12,6 +12,64 @@ import scala.collection.mutable.ListBuffer
 
 object Globals {
   val CHARACTER_SIZE: Int = 40
+
+  private def intersects(entity: Entity, thatX: Float, thatY: Float, thatW: Float, thatH: Float): Boolean = {
+
+    if (entity.x + entity.currentVelocityX < thatX + thatW &&
+      entity.x + entity.currentVelocityX + entity.w > thatX &&
+      entity.y + entity.currentVelocityY < thatY + thatH &&
+      entity.h + entity.y + entity.currentVelocityY > thatY) true
+    else false
+
+  }
+
+  def isColliding(room: Room, entity: Entity): Boolean = {
+    var collided = false
+
+    if (entity.x + entity.currentVelocityX < 0 || entity.x + entity.currentVelocityX > room.w - entity.w) collided = true
+    if (entity.y + entity.currentVelocityY < 0 || entity.y + entity.currentVelocityY > room.h - entity.h) collided = true
+
+    room.characterList.filter(character => character != entity).foreach(character => {
+      if (intersects(entity, character.x, character.y, character.w, character.h)) {
+        collided = true
+        entity.onCollision(character)
+        character.onCollision(entity)
+      }
+    })
+
+    room.doorList.foreach(door => {
+      if (intersects(entity, door.x, door.y, door.w, door.h)) {
+        //println("door collision! x: " + door.x + " y: " + door.y + " w: " + door.w + " h: " + door.h + " collided with x: " + entity.x + " y: " + entity.y + " w: " + entity.w + " h: " + entity.h )
+        entity.onCollision(door)
+        door.onCollision(entity)
+      }
+    })
+
+
+    collided
+  }
+
+  def isRectOccupied(room: Room, x: Float, y: Float, w: Float, h: Float): Boolean = {
+    var occupied = false
+
+    if (x < 0 || x > room.w - w) occupied = true
+    if (y < 0 || y > room.h - h) occupied = true
+
+    room.characterList.foreach(character => {
+      if (intersects(character, x, y, w, h)) {
+        occupied = true
+      }
+    })
+
+    room.doorList.foreach(door => {
+      if (intersects(door, x, y, w, h)) {
+        occupied = true
+      }
+    })
+
+    occupied
+  }
+
 }
 
 object Greeter {
@@ -26,7 +84,7 @@ class Greeter(message: String, printerActor: ActorRef) extends Actor {
 
   var greeting = ""
 
-  def receive = {
+  def receive: PartialFunction[Any, Unit] = {
     case WhoToGreet(who) =>
       greeting = message + ", " + who
     case Greet           =>
@@ -42,29 +100,65 @@ case object CharacterInfo
 case class CollisionProbe(x: Int, y: Int, w: Int, h: Int)
 
 abstract class Entity() {
+  var x: Float
+  var y: Float
+  var w: Float
+  var h: Float
+  var currentVelocityX: Float
+  var currentVelocityY: Float
   val name: String
   var room: Room
   def onCollision(entity: Entity)
   def changeRoom(room: Room, newX: Float, newY: Float)
 }
 
-abstract class Door(val name: String, var room: Room) extends Entity{
-  var x: Int = room.w/2 - 20
-  var y: Int = room.h-40
-  var w = 48.0f
-  var h = 77.0f
+class Door(val name: String, var room: Room) extends Entity{
+  override var x: Float = room.w/2 - 20
+  override var y: Float = room.h-40
+  override var w = 48.0f
+  override var h = 77.0f
+  override var currentVelocityX = 0.0f
+  override var currentVelocityY = 0.0f
+  var leadingToDoor: Door = _
 
   override def changeRoom(room: Room, newX: Float, newY: Float): Unit = {
 
   }
+
+  def connectWith(door: Door): Unit = {
+    leadingToDoor = door
+    door.leadingToDoor = this
+  }
+
+  override def onCollision(entity: Entity): Unit = {
+    var foundSpot: (Float, Float) = null
+    for (gridX <- Seq(-10-entity.w,(w-entity.w)/w,w+10)){
+      for (gridY <- Seq(-10-entity.h,(h-entity.h)/h,h+10)){
+        val potentialSpotX = leadingToDoor.x + gridX
+        val potentialSpotY = leadingToDoor.y + gridY
+        if (!Globals.isRectOccupied(leadingToDoor.room, potentialSpotX, potentialSpotY, entity.w, entity.h)) {
+          foundSpot = (potentialSpotX, potentialSpotY)
+        }
+      }
+    }
+    if( foundSpot != null) {
+      println("found a spot on " + foundSpot._1 + " " + foundSpot._2)
+      println("leading door x" + leadingToDoor.x + " y " + leadingToDoor.y)
+
+      entity.changeRoom(leadingToDoor.room, foundSpot._1, foundSpot._2)
+      println("x: "+ entity.x + " y: " + entity.y)
+    }
+  }
+
+
 }
 
 class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
-  def addCharacter(character: Character) = {
+  def addCharacter(character: Character): characterList.type = {
     characterList += character
   }
 
-  def removeCharacter(character: Character) = {
+  def removeCharacter(character: Character): characterList.type = {
     characterList -= character
   }
 
@@ -95,92 +189,108 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
     })
   }
 
-  def update(delta: Int): Unit = {
+  def update(gc: GameContainer, delta: Int): Unit = {
     characterList.foreach(character => {
-      character.update(delta)
+      character.update(gc, delta)
     })
   }
 }
 
+object ControlScheme extends Enumeration {
+  type ControlScheme = Value
+  val Manual, Static, Random = Value
+}
 
-class Character(val name: String, var room: Room) extends Entity {
-  var w: Float = Globals.CHARACTER_SIZE
-  var h: Float = Globals.CHARACTER_SIZE
-  var x: Float = Random.nextInt(room.w - w.toInt)
-  var y: Float = Random.nextInt(room.h - h.toInt)
+class Character(val name: String, var room: Room, val controlScheme: ControlScheme) extends Entity {
+  override var w: Float = Globals.CHARACTER_SIZE
+  override var h: Float = Globals.CHARACTER_SIZE
+  override var x: Float = Random.nextInt(room.w - w.toInt)
+  override var y: Float = Random.nextInt(room.h - h.toInt)
 
-  var currentVelocityX: Float = 0.0f
-  var currentVelocityY: Float = 0.0f
+  override var currentVelocityX: Float = 0.0f
+  override var currentVelocityY: Float = 0.0f
+
+  var controls: (Int, Int, Int, Int) = _
+
   var timer: Int = 0
   var speed: Float = 0.25f
 
-  def update(delta: Int): Unit = {
+  def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int)) {
+    this(name, room, controlScheme)
+    this.controls = controls
+  }
+
+  def update(gc: GameContainer, delta: Int): Unit = {
     timer = timer + delta
-    if(timer > 300) {
-      val inPlace = if (Random.nextInt(100) < 30) true else false
 
-      timer = 0
-      if (inPlace) {
-        currentVelocityX = 0
-        currentVelocityY = 0
-      }
-      else {
-        currentVelocityX = (Random.nextInt(3) - 1) * speed
-        currentVelocityY = (Random.nextInt(3) - 1) * speed
+    if (controlScheme == ControlScheme.Random) {
+      if(timer > 300) {
+        val inPlace = if (Random.nextInt(100) < 30) true else false
+
+        timer = 0
+        if (inPlace) {
+          currentVelocityX = 0
+          currentVelocityY = 0
+        }
+        else {
+          currentVelocityX = (Random.nextInt(3) - 1) * speed
+          currentVelocityY = (Random.nextInt(3) - 1) * speed
+        }
+
       }
 
+      if (!Globals.isColliding(room, this)) {
+        this.x += currentVelocityX
+        this.y += currentVelocityY
+      }
     }
-
-
-    var collided = false
-
-    room.characterList.filter(character => character != this).foreach(character => {
-      if (checkCollision(character.x, character.y, character.w, character.h)) {
-        collided = true
-        onCollision(character)
-        character.onCollision(this)
+    else if (controlScheme == ControlScheme.Manual) {
+      val offset = speed * delta
+      val oldX = x
+      val oldY = y
+      if (gc.getInput.isKeyDown(controls._1)) {
+        x += -offset
       }
-    })
-
-    room.doorList.foreach(door => {
-      if (checkCollision(door.x, door.y, door.w, door.h)) {
-        println("door collision! x: " + door.x + " y: " + door.y + " w: " + door.w + " h: " + door.h + " collided with x: " + x + " y: " + y + " w: " + w + " h: " + h )
-        onCollision(door)
-        door.onCollision(this)
+      if (gc.getInput.isKeyDown(controls._2)) {
+        x += offset
       }
-    })
+      if (gc.getInput.isKeyDown(controls._3)) {
+        y += -offset
+      }
+      if (gc.getInput.isKeyDown(controls._4)) {
+        y += offset
+      }
 
-    if (this.x + currentVelocityX < 0 || this.x + currentVelocityX > room.w - this.w) collided = true
-    if (this.y + currentVelocityY < 0 || this.y + currentVelocityY > room.h - this.h) collided = true
+      if (Globals.isColliding(room, this)) {
+        println("reverting from " + x + " " + y + " to " + oldX + " " + oldY)
 
-    if (!collided) {
-      this.x += currentVelocityX
-      this.y += currentVelocityY
+        x = oldX
+        y = oldY
+
+      }
+      println("aaa: " + x + " " + y)
+
+
     }
 
   }
 
-  def checkCollision(thatX: Float, thatY: Float, thatW: Float, thatH: Float): Boolean = {
 
-    if (x + currentVelocityX < thatX + thatW &&
-      x + currentVelocityX + w > thatX &&
-      y + currentVelocityY < thatY + thatH &&
-      h + y + currentVelocityY > thatY) true
-    else false
-
-  }
 
   override def onCollision(entity: Entity): Unit = {
-    println("this character " + name + " collided with " + entity.name)
+    //println("this character " + name + " collided with " + entity.name)
   }
 
   def changeRoom(newRoom: Room, newX: Float, newY: Float): Unit = {
     room.removeCharacter(this)
     newRoom.addCharacter(this)
 
+    println("changed room to " + newRoom.name)
     room = newRoom
     x = newX
     y = newY
+
+    println("new coords: " + x + " " + y)
 
   }
 }
@@ -256,21 +366,28 @@ class SimulationSlickGame(gameName: String) extends BasicGame(gameName) {
     val room2 = new Room("other room", 200, -800, 700, 500)
 
 
-    for(_ <- 1 to 7)
+    for(_ <- 1 to 1)
     {
       val randomNameIndex = Random.nextInt(listOfNames.length)
       val randomName = listOfNames(randomNameIndex)
       listOfNames = listOfNames.take(randomNameIndex) ++ listOfNames.drop(randomNameIndex+1)
-      val character = new Character(randomName, room1)
+      val character = new Character(randomName, room1, ControlScheme.Random)
       room1.characterList += character
       val actor = system.actorOf(Props(new CharacterActor(randomName, character)))
       mutableActorList += actor
     }
 
+    val playerName = "Player"
+    val character = new Character(playerName, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S))
+    room1.characterList += character
 
-    room1.doorList += new Door("some door", room1) {
-      override def onCollision(entity: Entity): Unit = entity.changeRoom(room2, 50, 50)
-    }
+    val door1 = new Door("some door", room1)
+    val door2 = new Door("some other door", room2)
+
+    room1.doorList += door1
+    room2.doorList += door2
+
+    door1.connectWith(door2)
 
     roomList += room1
     roomList += room2
@@ -293,12 +410,12 @@ class SimulationSlickGame(gameName: String) extends BasicGame(gameName) {
     }
 
     roomList.foreach(room => {
-      room.update(i)
+      room.update(gc, i)
     })
 
-    roomList.foreach(room => {
-      println(room.name + "size : " + room.characterList.length)
-    })
+    //roomList.foreach(room => {
+      //println(room.name + "size : " + room.characterList.length)
+    //})
   }
 
 
