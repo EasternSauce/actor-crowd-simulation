@@ -1,5 +1,6 @@
 package com.kamilkurp
 
+import akka.actor.ActorRef
 import com.kamilkurp.ControlScheme.ControlScheme
 import org.newdawn.slick.GameContainer
 
@@ -19,6 +20,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var timer: Int = 0
   var speed: Float = 0.25f
 
+  var actor: ActorRef = _
 
   var isFree = false
   while (!isFree) {
@@ -51,8 +53,26 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
           currentVelocityY = 0
         }
         else {
-          currentVelocityX = (Random.nextInt(3) - 1) * speed
-          currentVelocityY = (Random.nextInt(3) - 1) * speed
+          val door = this.room.evacuationDoor
+
+          if (door != null) {
+            if (this.x > door.x) {
+              currentVelocityX = -speed
+            }
+            else {
+              currentVelocityX = speed
+            }
+            if (this.y > door.y) {
+              currentVelocityY = -speed
+            }
+            else {
+              currentVelocityY = speed
+            }
+          }
+
+
+          //currentVelocityX = (Random.nextInt(3) - 1) * speed
+          //currentVelocityY = (Random.nextInt(3) - 1) * speed
         }
 
       }
@@ -114,5 +134,9 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     room = newRoom
     x = newX
     y = newY
+  }
+
+  def setActor(actor: ActorRef): Unit = {
+    this.actor = actor
   }
 }

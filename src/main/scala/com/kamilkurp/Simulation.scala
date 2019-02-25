@@ -53,6 +53,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       room1.characterList += character
       val actor = system.actorOf(Props(new CharacterActor(randomName, character)))
       mutableActorList += actor
+
+      character.setActor(actor)
     }
 
     val playerName = "Player"
@@ -62,21 +64,22 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     val doorAB = new Door("Door AB", room1, 180, 830)
     val doorBA = new Door("Door BA", room2, 180, 0)
     doorAB.connectWith(doorBA)
+    room1.evacuationDoor = doorAB
 
     val doorBC = new Door("Door BC", room2, 1160, 215)
     val doorCB = new Door("Door CB", room3, 0, 215)
     doorBC.connectWith(doorCB)
+    room2.evacuationDoor = doorBC
 
     val doorCD = new Door("Door CD", room3, 0, 1215)
     val doorDC = new Door("Door DC", room4, 460, 215)
     doorCD.connectWith(doorDC)
+    room3.evacuationDoor = doorCD
 
     roomList += (room1, room2, room3, room4)
   }
 
   override def update(gc: GameContainer, i: Int): Unit = {
-    //      actorList.foreach(actor => actor ! PrintPosition)
-
     if (gc.getInput.isKeyDown(Input.KEY_DOWN)) {
       CameraView.y = CameraView.y + (1.0f * i.toFloat)
     }
@@ -93,10 +96,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     roomList.foreach(room => {
       room.update(gc, i)
     })
-
-    //roomList.foreach(room => {
-      //println(room.name + "size : " + room.characterList.length)
-    //})
   }
 
 

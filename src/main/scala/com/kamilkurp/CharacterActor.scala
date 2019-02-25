@@ -9,6 +9,8 @@ case class NearbyProbe(x: Int, y: Int)
 case object CharacterInfo
 case class CollisionProbe(x: Int, y: Int, w: Int, h: Int)
 
+case class SomeoneNearby(name: String, x: Float, y: Float, w: Float, h: Float)
+
 class CharacterActor(val name: String, val character: Character) extends Actor with ActorLogging {
 
   val char: Character = character
@@ -24,7 +26,8 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
     }
     case CharacterInfo => sender ! (name, char.x, char.y)
 
-    case CollisionProbe(thatX, thatY, thatW, thatH) =>
+    case SomeoneNearby(name: String, x: Float, y: Float, w: Float, h: Float) => println(this.name + " encounters " + name + " at " + x + ", " + y)
+
 
   }
 
