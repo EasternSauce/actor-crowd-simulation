@@ -85,7 +85,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       }
 
       val collisionDetails = Globals.manageCollisions(room, this)
-      
+
       if (!collisionDetails.colX) {
         this.x += currentVelocityX
       }
