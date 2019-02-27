@@ -27,41 +27,41 @@ object Globals {
 
   private def intersects(entity: Entity, thatX: Float, thatY: Float, thatW: Float, thatH: Float): Boolean = {
 
-    if (intersectsX(entity, thatX, thatY, thatW, thatH) && intersectsY(entity, thatX, thatY, thatW, thatH)) true
+    if (intersectsX(entity, thatX, thatY, thatW, thatH) || intersectsY(entity, thatX, thatY, thatW, thatH)) true
     else false
 
   }
 
-  def isColliding(room: Room, entity: Entity): CollisionDetails = {
+  def manageCollisions(room: Room, entity: Entity): CollisionDetails = {
     val collisionDetails: CollisionDetails = new CollisionDetails(false, false)
 
     if (entity.x + entity.currentVelocityX < 0 || entity.x + entity.currentVelocityX > room.w - entity.w) collisionDetails.colX = true
     if (entity.y + entity.currentVelocityY < 0 || entity.y + entity.currentVelocityY > room.h - entity.h) collisionDetails.colY = true
 
     room.characterList.filter(character => character != entity).foreach(character => {
-      val intX = intersectsX(entity, character.x, character.y, character.w, character.h)
-      val intY = intersectsY(entity, character.x, character.y, character.w, character.h)
-      if (intX && intY) {
-        entity.onCollision(character)
-        character.onCollision(entity)
+      var collided = false
+
+      if (intersectsX(entity, character.x, character.y, character.w, character.h)) {
+        collisionDetails.colX = true
+        collided = true
+      }
+      if (intersectsY(entity, character.x, character.y, character.w, character.h)) {
+        collisionDetails.colY = true
+        collided = true
       }
 
-      if (intX) {
-        collisionDetails.colX = true
-      }
-      if (intY) {
-        collisionDetails.colY = true
+      if (collided) {
+        entity.onCollision(character)
+        character.onCollision(entity)
       }
     })
 
     room.doorList.foreach(door => {
       if (intersects(entity, door.x, door.y, door.w, door.h)) {
-        //println("door collision! x: " + door.x + " y: " + door.y + " w: " + door.w + " h: " + door.h + " collided with x: " + entity.x + " y: " + entity.y + " w: " + entity.w + " h: " + entity.h )
         entity.onCollision(door)
         door.onCollision(entity)
       }
     })
-
 
     collisionDetails
   }

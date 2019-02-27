@@ -27,8 +27,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   var mutableActorList = new ListBuffer[ActorRef]()
 
 
-
-
   var actorList: List[ActorRef] = mutableActorList.toList
 
   var timer = 0
@@ -42,13 +40,11 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     val room4 = new Room("Room D", 800, 2100, 500, 500)
 
 
-
-    for(_ <- 1 to 10)
-    {
+    for (_ <- 1 to 10) {
 
       val randomNameIndex = Random.nextInt(listOfNames.length)
       val randomName = listOfNames(randomNameIndex)
-      listOfNames = listOfNames.take(randomNameIndex) ++ listOfNames.drop(randomNameIndex+1)
+      listOfNames = listOfNames.take(randomNameIndex) ++ listOfNames.drop(randomNameIndex + 1)
       val character = new Character(randomName, room1, ControlScheme.Random)
       room1.characterList += character
       val actor = system.actorOf(Props(new CharacterActor(randomName, character)))

@@ -5,6 +5,10 @@ import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 import scala.collection.mutable.ListBuffer
 
 class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
+  val characterList: ListBuffer[Character] = ListBuffer[Character]()
+  val doorList: ListBuffer[Door] = ListBuffer[Door]()
+  var evacuationDoor: Door = _
+
   def addCharacter(character: Character): characterList.type = {
     characterList += character
   }
@@ -12,11 +16,6 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
   def removeCharacter(character: Character): characterList.type = {
     characterList -= character
   }
-
-  val characterList: ListBuffer[Character] = ListBuffer[Character]()
-  val doorList: ListBuffer[Door] = ListBuffer[Door]()
-
-  var evacuationDoor: Door = _
 
   def init(): Unit = {
 
@@ -41,8 +40,8 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
       g.drawString(character.name, x + character.x - 10 - offsetX, y + character.y - 25 - offsetY)
     })
 
-    for(character1 <- characterList) {
-      for(character2 <- characterList) {
+    for (character1 <- characterList) {
+      for (character2 <- characterList) {
         if (Math.abs(character1.x - character2.x) <= 50
           && Math.abs(character1.y - character2.y) <= 50
           && character1 != character2 && character1.name != "Player" && character2.name != "Player") {

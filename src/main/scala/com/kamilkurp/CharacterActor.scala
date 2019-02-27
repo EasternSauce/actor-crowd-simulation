@@ -3,10 +3,11 @@ package com.kamilkurp
 import akka.actor.{Actor, ActorLogging, ActorRef}
 
 case class Hello(sender: String)
+
 case class UpdatePosition(delta: Int, actorList: List[ActorRef])
-case object PrintPosition
+
 case class NearbyProbe(x: Int, y: Int)
-case object CharacterInfo
+
 case class CollisionProbe(x: Int, y: Int, w: Int, h: Int)
 
 case class SomeoneNearby(name: String, x: Float, y: Float, w: Float, h: Float)
@@ -33,3 +34,7 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
 
 
 }
+
+case object PrintPosition
+
+case object CharacterInfo

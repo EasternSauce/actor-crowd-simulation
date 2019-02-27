@@ -12,7 +12,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   override var h: Float = Globals.CHARACTER_SIZE
   override var x: Float = _
   override var y: Float = _
-
   override var currentVelocityX: Float = 0.0f
   override var currentVelocityY: Float = 0.0f
 
@@ -28,7 +27,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     x = Random.nextInt(room.w - w.toInt)
     y = Random.nextInt(room.h - h.toInt)
 
-    val collisionDetails = Globals.isColliding(room, this)
+    val collisionDetails = Globals.manageCollisions(room, this)
     if (!collisionDetails.colX || !collisionDetails.colY) {
       isFree = true
     }
@@ -45,47 +44,48 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     timer = timer + delta
 
     if (controlScheme == ControlScheme.Random) {
-      if(timer > 50) {
-        val inPlace = Random.nextInt(100) < 30
+      //if (timer > 50) {
+      val inPlace = Random.nextInt(100) < 30
 
-        timer = 0
-        if (inPlace) {
-          currentVelocityX = 0
-          currentVelocityY = 0
+      timer = 0
+      if (inPlace) {
+        currentVelocityX = 0
+        currentVelocityY = 0
+      }
+      else {
+        val door = this.room.evacuationDoor
+
+        if (door != null) {
+          val normalVector = new Vector2f(door.x - this.x, door.y - this.y)
+          normalVector.normalise()
+
+          currentVelocityX = normalVector.x
+          currentVelocityY = normalVector.y
+
+          //            if (this.x > door.x) {
+          //              currentVelocityX = -speed
+          //            }
+          //            else {
+          //              currentVelocityX = speed
+          //            }
+          //            if (this.y > door.y) {
+          //              currentVelocityY = -speed
+          //            }
+          //            else {
+          //              currentVelocityY = speed
+          //            }
         }
-        else {
-          val door = this.room.evacuationDoor
-
-          if (door != null) {
-            val normalVector = new Vector2f(door.x - this.x, door.y - this.y)
-            normalVector.normalise()
-
-            currentVelocityX = normalVector.x
-            currentVelocityY = normalVector.y
-
-//            if (this.x > door.x) {
-//              currentVelocityX = -speed
-//            }
-//            else {
-//              currentVelocityX = speed
-//            }
-//            if (this.y > door.y) {
-//              currentVelocityY = -speed
-//            }
-//            else {
-//              currentVelocityY = speed
-//            }
-          }
 
 
-          //currentVelocityX = (Random.nextInt(3) - 1) * speed
-          //currentVelocityY = (Random.nextInt(3) - 1) * speed
-        }
+        //currentVelocityX = (Random.nextInt(3) - 1) * speed
+        //currentVelocityY = (Random.nextInt(3) - 1) * speed
+
+        //  }
 
       }
 
-      val collisionDetails = Globals.isColliding(room, this)
-
+      val collisionDetails = Globals.manageCollisions(room, this)
+      
       if (!collisionDetails.colX) {
         this.x += currentVelocityX
       }
@@ -117,23 +117,16 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
         moved = true
       }
 
-      val collisionDetails = Globals.isColliding(room, this)
+      val collisionDetails = Globals.manageCollisions(room, this)
       if (collisionDetails.colX) x = oldX
       if (collisionDetails.colY) y = oldY
-        //println("reverting from " + x + " " + y + " to " + oldX + " " + oldY)
-
-        //x = oldX
-        //y = oldY
-
-      //}
 
       if (moved) {
-        CameraView.x = room.x + x - Globals.WINDOW_X/2 + w/2
-        CameraView.y = room.y + y - Globals.WINDOW_Y/2 + h/2
+        CameraView.x = room.x + x - Globals.WINDOW_X / 2 + w / 2
+        CameraView.y = room.y + y - Globals.WINDOW_Y / 2 + h / 2
       }
     }
   }
-
 
 
   override def onCollision(entity: Entity): Unit = {
