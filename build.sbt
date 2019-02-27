@@ -1,8 +1,8 @@
-name := "akka-quickstart-scala"
+name := "actor-crowd-simulation"
 
-version := "1.0"
+version := "0.1"
 
-scalaVersion := "2.12.6"
+scalaVersion := "2.12.8"
 
 lazy val akkaVersion = "2.5.18"
 
