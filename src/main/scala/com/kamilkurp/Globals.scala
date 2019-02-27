@@ -5,27 +5,52 @@ object Globals {
   val WINDOW_X: Int = 1440
   val WINDOW_Y: Int = 900
 
-  private def intersects(entity: Entity, thatX: Float, thatY: Float, thatW: Float, thatH: Float): Boolean = {
+  private def intersectsX(entity: Entity, thatX: Float, thatY: Float, thatW: Float, thatH: Float): Boolean = {
 
     if (entity.x + entity.currentVelocityX < thatX + thatW &&
       entity.x + entity.currentVelocityX + entity.w > thatX &&
+      entity.y < thatY + thatH &&
+      entity.h + entity.y > thatY) true
+    else false
+
+  }
+
+  private def intersectsY(entity: Entity, thatX: Float, thatY: Float, thatW: Float, thatH: Float): Boolean = {
+
+    if (entity.x < thatX + thatW &&
+      entity.x + entity.w > thatX &&
       entity.y + entity.currentVelocityY < thatY + thatH &&
       entity.h + entity.y + entity.currentVelocityY > thatY) true
     else false
 
   }
 
-  def isColliding(room: Room, entity: Entity): Boolean = {
-    var collided = false
+  private def intersects(entity: Entity, thatX: Float, thatY: Float, thatW: Float, thatH: Float): Boolean = {
 
-    if (entity.x + entity.currentVelocityX < 0 || entity.x + entity.currentVelocityX > room.w - entity.w) collided = true
-    if (entity.y + entity.currentVelocityY < 0 || entity.y + entity.currentVelocityY > room.h - entity.h) collided = true
+    if (intersectsX(entity, thatX, thatY, thatW, thatH) && intersectsY(entity, thatX, thatY, thatW, thatH)) true
+    else false
+
+  }
+
+  def isColliding(room: Room, entity: Entity): CollisionDetails = {
+    val collisionDetails: CollisionDetails = new CollisionDetails(false, false)
+
+    if (entity.x + entity.currentVelocityX < 0 || entity.x + entity.currentVelocityX > room.w - entity.w) collisionDetails.colX = true
+    if (entity.y + entity.currentVelocityY < 0 || entity.y + entity.currentVelocityY > room.h - entity.h) collisionDetails.colY = true
 
     room.characterList.filter(character => character != entity).foreach(character => {
-      if (intersects(entity, character.x, character.y, character.w, character.h)) {
-        collided = true
+      val intX = intersectsX(entity, character.x, character.y, character.w, character.h)
+      val intY = intersectsY(entity, character.x, character.y, character.w, character.h)
+      if (intX && intY) {
         entity.onCollision(character)
         character.onCollision(entity)
+      }
+
+      if (intX) {
+        collisionDetails.colX = true
+      }
+      if (intY) {
+        collisionDetails.colY = true
       }
     })
 
@@ -38,8 +63,10 @@ object Globals {
     })
 
 
-    collided
+    collisionDetails
   }
+
+  class CollisionDetails(var colX: Boolean, var colY: Boolean)
 
   def isRectOccupied(room: Room, x: Float, y: Float, w: Float, h: Float): Boolean = {
     var occupied = false

@@ -3,6 +3,7 @@ package com.kamilkurp
 import akka.actor.ActorRef
 import com.kamilkurp.ControlScheme.ControlScheme
 import org.newdawn.slick.GameContainer
+import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
@@ -27,11 +28,11 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     x = Random.nextInt(room.w - w.toInt)
     y = Random.nextInt(room.h - h.toInt)
 
-    if (!Globals.isColliding(room, this)) {
+    val collisionDetails = Globals.isColliding(room, this)
+    if (!collisionDetails.colX || !collisionDetails.colY) {
       isFree = true
     }
   }
-
 
   def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int)) {
     this(name, room, controlScheme)
@@ -44,8 +45,8 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     timer = timer + delta
 
     if (controlScheme == ControlScheme.Random) {
-      if(timer > 300) {
-        val inPlace = if (Random.nextInt(100) < 30) true else false
+      if(timer > 50) {
+        val inPlace = Random.nextInt(100) < 30
 
         timer = 0
         if (inPlace) {
@@ -56,18 +57,24 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
           val door = this.room.evacuationDoor
 
           if (door != null) {
-            if (this.x > door.x) {
-              currentVelocityX = -speed
-            }
-            else {
-              currentVelocityX = speed
-            }
-            if (this.y > door.y) {
-              currentVelocityY = -speed
-            }
-            else {
-              currentVelocityY = speed
-            }
+            val normalVector = new Vector2f(door.x - this.x, door.y - this.y)
+            normalVector.normalise()
+
+            currentVelocityX = normalVector.x
+            currentVelocityY = normalVector.y
+
+//            if (this.x > door.x) {
+//              currentVelocityX = -speed
+//            }
+//            else {
+//              currentVelocityX = speed
+//            }
+//            if (this.y > door.y) {
+//              currentVelocityY = -speed
+//            }
+//            else {
+//              currentVelocityY = speed
+//            }
           }
 
 
@@ -77,8 +84,12 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
       }
 
-      if (!Globals.isColliding(room, this)) {
+      val collisionDetails = Globals.isColliding(room, this)
+
+      if (!collisionDetails.colX) {
         this.x += currentVelocityX
+      }
+      if (!collisionDetails.colY) {
         this.y += currentVelocityY
       }
     }
@@ -106,13 +117,15 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
         moved = true
       }
 
-      if (Globals.isColliding(room, this)) {
-        println("reverting from " + x + " " + y + " to " + oldX + " " + oldY)
+      val collisionDetails = Globals.isColliding(room, this)
+      if (collisionDetails.colX) x = oldX
+      if (collisionDetails.colY) y = oldY
+        //println("reverting from " + x + " " + y + " to " + oldX + " " + oldY)
 
-        x = oldX
-        y = oldY
+        //x = oldX
+        //y = oldY
 
-      }
+      //}
 
       if (moved) {
         CameraView.x = room.x + x - Globals.WINDOW_X/2 + w/2
