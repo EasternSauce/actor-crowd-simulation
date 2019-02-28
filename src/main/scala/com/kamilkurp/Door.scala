@@ -1,6 +1,8 @@
 package com.kamilkurp
 
-class Door(val name: String, var room: Room, var x: Float, var y: Float) extends Entity {
+import org.newdawn.slick.Image
+
+class Door(val name: String, var room: Room, var x: Float, var y: Float, var image: Image) extends Entity {
   override var w = 40.0f
   override var h = 70.0f
   override var currentVelocityX = 0.0f

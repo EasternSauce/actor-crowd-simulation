@@ -27,12 +27,11 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
 
 
     doorList.foreach(door => {
-      g.drawImage(doorImage, x + door.x - offsetX, y + door.y - offsetY)
+      g.drawImage(door.image, x + door.x - offsetX, y + door.y - offsetY)
     })
 
     characterList.foreach(character => {
-      g.setColor(Color.cyan)
-      g.fillRect(x + character.x - offsetX, y + character.y - offsetY, character.w, character.h)
+      g.drawImage(character.image, x + character.x - offsetX, y + character.y - offsetY)
     })
 
     characterList.foreach(character => {

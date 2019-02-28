@@ -1,5 +1,7 @@
 package com.kamilkurp
 
+import org.newdawn.slick.Image
+
 abstract class Entity() {
   val name: String
   var x: Float
@@ -9,6 +11,7 @@ abstract class Entity() {
   var currentVelocityX: Float
   var currentVelocityY: Float
   var room: Room
+  var image: Image
 
   def onCollision(entity: Entity)
 

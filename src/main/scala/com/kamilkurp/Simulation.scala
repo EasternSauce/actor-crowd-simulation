@@ -21,6 +21,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     "Arica", "Alfonso", "Madalene", "Alvina", "Eliana", "Jarrod", "Thora")
 
   var doorImage: Image = _
+  var characterImage: Image = _
 
   var roomList: ListBuffer[Room] = new ListBuffer[Room]
 
@@ -33,6 +34,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   override def init(gc: GameContainer): Unit = {
     doorImage = new Image("door.png")
+    characterImage = new Image("character.png")
 
     val room1 = new Room("Room A", 100, 100, 400, 900)
     val room2 = new Room("Room B", 100, 1100, 1200, 500)
@@ -45,7 +47,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       val randomNameIndex = Random.nextInt(listOfNames.length)
       val randomName = listOfNames(randomNameIndex)
       listOfNames = listOfNames.take(randomNameIndex) ++ listOfNames.drop(randomNameIndex + 1)
-      val character = new Character(randomName, room1, ControlScheme.Random)
+      val character = new Character(randomName, room1, ControlScheme.Random, characterImage)
       room1.characterList += character
       val actor = system.actorOf(Props(new CharacterActor(randomName, character)))
       mutableActorList += actor
@@ -54,21 +56,21 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     }
 
     val playerName = "Player"
-    val character = new Character(playerName, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S))
+    val character = new Character(playerName, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S), characterImage)
     room1.characterList += character
 
-    val doorAB = new Door("Door AB", room1, 180, 830)
-    val doorBA = new Door("Door BA", room2, 180, 0)
+    val doorAB = new Door("Door AB", room1, 180, 830, doorImage)
+    val doorBA = new Door("Door BA", room2, 180, 0, doorImage)
     doorAB.connectWith(doorBA)
     room1.evacuationDoor = doorAB
 
-    val doorBC = new Door("Door BC", room2, 1160, 215)
-    val doorCB = new Door("Door CB", room3, 0, 215)
+    val doorBC = new Door("Door BC", room2, 1160, 215, doorImage)
+    val doorCB = new Door("Door CB", room3, 0, 215, doorImage)
     doorBC.connectWith(doorCB)
     room2.evacuationDoor = doorBC
 
-    val doorCD = new Door("Door CD", room3, 0, 1215)
-    val doorDC = new Door("Door DC", room4, 460, 215)
+    val doorCD = new Door("Door CD", room3, 0, 1215, doorImage)
+    val doorDC = new Door("Door DC", room4, 460, 215, doorImage)
     doorCD.connectWith(doorDC)
     room3.evacuationDoor = doorCD
 
