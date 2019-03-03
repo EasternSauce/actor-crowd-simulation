@@ -42,7 +42,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     val room4 = new Room("Room D", 800, 2100, 500, 500)
 
 
-    for (_ <- 1 to 10) {
+    for (_ <- 1 to 20) {
 
       val randomNameIndex = Random.nextInt(listOfNames.length)
       val randomName = listOfNames(randomNameIndex)
@@ -59,17 +59,17 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     val character = new Character(playerName, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S), characterImage)
     room1.characterList += character
 
-    val doorAB = new Door("Door AB", room1, 180, 830, doorImage)
-    val doorBA = new Door("Door BA", room2, 180, 0, doorImage)
+    val doorAB = new Door("Door AB", room1, 170, 845, doorImage)
+    val doorBA = new Door("Door BA", room2, 180, 10, doorImage)
     doorAB.connectWith(doorBA)
     room1.evacuationDoor = doorAB
 
     val doorBC = new Door("Door BC", room2, 1160, 215, doorImage)
-    val doorCB = new Door("Door CB", room3, 0, 215, doorImage)
+    val doorCB = new Door("Door CB", room3, 10, 215, doorImage)
     doorBC.connectWith(doorCB)
     room2.evacuationDoor = doorBC
 
-    val doorCD = new Door("Door CD", room3, 0, 1215, doorImage)
+    val doorCD = new Door("Door CD", room3, 10, 1215, doorImage)
     val doorDC = new Door("Door DC", room4, 460, 215, doorImage)
     doorCD.connectWith(doorDC)
     room3.evacuationDoor = doorCD

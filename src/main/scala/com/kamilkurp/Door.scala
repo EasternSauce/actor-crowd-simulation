@@ -3,8 +3,8 @@ package com.kamilkurp
 import org.newdawn.slick.Image
 
 class Door(val name: String, var room: Room, var x: Float, var y: Float, var image: Image) extends Entity {
-  override var w = 40.0f
-  override var h = 70.0f
+  override var w = 24.0f
+  override var h = 42.0f
   override var currentVelocityX = 0.0f
   override var currentVelocityY = 0.0f
   var leadingToDoor: Door = _
@@ -32,11 +32,10 @@ class Door(val name: String, var room: Room, var x: Float, var y: Float, var ima
       }
     }
     if (foundSpot != null) {
-      println("found a spot on " + foundSpot._1 + " " + foundSpot._2)
-      println("leading door x" + leadingToDoor.x + " y " + leadingToDoor.y)
+      println("leading to door: " + leadingToDoor.x + " " + leadingToDoor.y)
+      println("found spot on " + foundSpot._1 + " " + foundSpot._2)
 
       entity.changeRoom(leadingToDoor.room, foundSpot._1, foundSpot._2)
-      println("x: " + entity.x + " y: " + entity.y)
     }
   }
 
