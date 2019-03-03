@@ -42,12 +42,12 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     val room4 = new Room("Room D", 800, 2100, 500, 500)
 
 
-    for (_ <- 1 to 20) {
+    for (_ <- 1 to 15) {
 
       val randomNameIndex = Random.nextInt(listOfNames.length)
       val randomName = listOfNames(randomNameIndex)
       listOfNames = listOfNames.take(randomNameIndex) ++ listOfNames.drop(randomNameIndex + 1)
-      val character = new Character(randomName, room1, ControlScheme.Random, characterImage)
+      val character = new Character(randomName, room1, ControlScheme.Agent, characterImage)
       room1.characterList += character
       val actor = system.actorOf(Props(new CharacterActor(randomName, character)))
       mutableActorList += actor

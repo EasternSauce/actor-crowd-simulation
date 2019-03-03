@@ -20,7 +20,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var controls: (Int, Int, Int, Int) = _
 
   var timer: Int = 0
-  var speed: Float = 0.25f
+  var speed: Float = 0.5f
 
   var slow: Float = 0.0f
   var slowTimer: Int = 0
@@ -56,118 +56,96 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     timer = timer + delta
     slowTimer = slowTimer + delta
 
-    if (controlScheme == ControlScheme.Random) {
+    if (controlScheme == ControlScheme.Agent) updateAgent
+    else if (controlScheme == ControlScheme.Manual) updateManual(gc)
 
-      val door = this.room.evacuationDoor
+    val collisionDetails = Globals.manageCollisions(room, this)
+    if (!collisionDetails.colX) {
+      this.x += currentVelocityX
+    }
+    if (!collisionDetails.colY) {
+      this.y += currentVelocityY
+    }
+  }
 
-      if(slowTimer > 3000) {
-        slow = 0f
-      }
+  private def updateAgent: Unit = {
+    val door = this.room.evacuationDoor
 
-      if (knowsWayOut) {
-        if (door != null) {
-          if (timer > 500) {
-            deviationX = 0.3f * Random.nextFloat() - 0.15f
-            deviationY = 0.3f * Random.nextFloat() - 0.15f
-            timer = 0
-          }
+    if (slowTimer > 3000) {
+      slow = 0f
+    }
+
+    if (knowsWayOut && door != null) {
+      if (door != null) {
+        if (timer > 500) {
+          deviationX = 0.3f * Random.nextFloat() - 0.15f
+          deviationY = 0.3f * Random.nextFloat() - 0.15f
+          timer = 0
 
           val normalVector = new Vector2f(door.x - this.x, door.y - this.y)
           normalVector.normalise()
 
-          currentVelocityX = (normalVector.x + deviationX) * speed * (1f - slow) * delta
-          currentVelocityY = (normalVector.y + deviationY) * speed * (1f - slow) * delta
-
+          currentVelocityX = (normalVector.x + deviationX) * speed * (1f - slow)
+          currentVelocityY = (normalVector.y + deviationY) * speed * (1f - slow)
         }
-      }
-
-      if (!knowsWayOut || (knowsWayOut && door == null)) {
-        if (timer > 500) {
-          val inPlace = Random.nextInt(100) < 30
-
-          timer = 0
-          if (inPlace) {
-            currentVelocityX = 0
-            currentVelocityY = 0
-          }
-          else {
-            currentVelocityX = (Random.nextInt(3) - 1) * speed * (1f - slow) * delta * 0.2f
-            currentVelocityY = (Random.nextInt(3) - 1) * speed * (1f - slow) * delta * 0.2f
-          }
-
-        }
-      }
-
-
-
-
-
-
-      //  }
-
-      //      }
-
-      val collisionDetails = Globals.manageCollisions(room, this)
-
-      if (!collisionDetails.colX) {
-        this.x += currentVelocityX
-      }
-      if (!collisionDetails.colY) {
-        this.y += currentVelocityY
       }
     }
-    else if (controlScheme == ControlScheme.Manual) {
-      var moved = false
+    else {
+      if (timer > 500) {
+        val inPlace = Random.nextInt(100) < 60
 
-      if (gc.getInput.isKeyDown(controls._1)) {
-        currentVelocityX = -speed * delta
-        moved = true
-      }
-      else if (gc.getInput.isKeyDown(controls._2)) {
-        currentVelocityX = speed * delta
-        moved = true
-      }
-      else {
-        currentVelocityX = 0
-      }
-      if (gc.getInput.isKeyDown(controls._3)) {
-        currentVelocityY = -speed * delta
-        moved = true
-      }
-      else if (gc.getInput.isKeyDown(controls._4)) {
-        currentVelocityY = speed * delta
-        moved = true
-      }
-      else {
-        currentVelocityY = 0
-      }
+        timer = 0
+        if (inPlace) {
+          currentVelocityX = 0
+          currentVelocityY = 0
+        }
+        else {
+          currentVelocityX = (Random.nextInt(3) - 1) * speed * (1f - slow) * 0.8f
+          currentVelocityY = (Random.nextInt(3) - 1) * speed * (1f - slow) * 0.8f
+        }
 
-
-      val collisionDetails = Globals.manageCollisions(room, this)
-      if (!collisionDetails.colX) {
-        this.x += currentVelocityX
-      }
-      if (!collisionDetails.colY) {
-        this.y += currentVelocityY
-      }
-
-      if (moved) {
-        CameraView.x = room.x + x - Globals.WINDOW_X / 2 + w / 2
-        CameraView.y = room.y + y - Globals.WINDOW_Y / 2 + h / 2
       }
     }
   }
 
-  def applySlow(): Unit = {
-    slowTimer = 0
-    slow = 0.2f
+  private def updateManual(gc: GameContainer): Unit = {
+    var moved = false
+
+    if (gc.getInput.isKeyDown(controls._1)) {
+      currentVelocityX = -speed
+      moved = true
+    }
+    else if (gc.getInput.isKeyDown(controls._2)) {
+      currentVelocityX = speed
+      moved = true
+    }
+    else {
+      currentVelocityX = 0
+    }
+    if (gc.getInput.isKeyDown(controls._3)) {
+      currentVelocityY = -speed
+      moved = true
+    }
+    else if (gc.getInput.isKeyDown(controls._4)) {
+      currentVelocityY = speed
+      moved = true
+    }
+    else {
+      currentVelocityY = 0
+    }
+
+    if (moved) {
+      CameraView.x = room.x + x - Globals.WINDOW_X / 2 + w / 2
+      CameraView.y = room.y + y - Globals.WINDOW_Y / 2 + h / 2
+    }
   }
 
   override def onCollision(entity: Entity): Unit = {
     //println("this character " + name + " collided with " + entity.name)
 
     if (entity.getClass == classOf[Character]) {
-      applySlow()
+      slowTimer = 0
+      slow = 0.2f
     }
   }
 

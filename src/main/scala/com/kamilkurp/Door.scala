@@ -32,9 +32,6 @@ class Door(val name: String, var room: Room, var x: Float, var y: Float, var ima
       }
     }
     if (foundSpot != null) {
-      println("leading to door: " + leadingToDoor.x + " " + leadingToDoor.y)
-      println("found spot on " + foundSpot._1 + " " + foundSpot._2)
-
       entity.changeRoom(leadingToDoor.room, foundSpot._1, foundSpot._2)
     }
   }
