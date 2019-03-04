@@ -1,19 +1,20 @@
 package com.kamilkurp
 
+import com.kamilkurp.entities.Door
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
 import scala.collection.mutable.ListBuffer
 
 class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
-  val characterList: ListBuffer[Character] = ListBuffer[Character]()
+  val characterList: ListBuffer[entities.Character] = ListBuffer[entities.Character]()
   val doorList: ListBuffer[Door] = ListBuffer[Door]()
   var evacuationDoor: Door = _
 
-  def addCharacter(character: Character): characterList.type = {
+  def addCharacter(character: entities.Character): characterList.type = {
     characterList += character
   }
 
-  def removeCharacter(character: Character): characterList.type = {
+  def removeCharacter(character: entities.Character): characterList.type = {
     characterList -= character
   }
 
@@ -32,6 +33,10 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
 
     characterList.foreach(character => {
       g.drawImage(character.image, x + character.x - offsetX, y + character.y - offsetY)
+      g.setColor(Color.red)
+      if (character.behaviorSet.contains("runToExit")) {
+        g.fillRect(x + character.x - offsetX, y + character.y - offsetY, 5, 5)
+      }
     })
 
     characterList.foreach(character => {
@@ -45,6 +50,21 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
           && Math.abs(character1.y - character2.y) <= 50
           && character1 != character2 && character1.name != "Player" && character2.name != "Player") {
           character1.actor ! SomeoneNearby(character2.name, character2.x, character2.y, character2.w, character2.h)
+        }
+
+        if (Math.abs(character1.x - character2.x) <= 70
+          && Math.abs(character1.y - character2.y) <= 70
+          && character1 != character2 && character1.name != "Player" && character2.name != "Player"
+          && !character1.behaviorSet.contains("runToExit") && character2.behaviorSet.contains("runToExit")) {
+          character1.actor ! OutOfTheWay(character2.name, character2.x, character2.y, character2.w, character2.h)
+        }
+
+        if (Math.abs(character1.x - character2.x) <= 400
+          && Math.abs(character1.y - character2.y) <= 400
+          && character1 != character2 && character1.name != "Player" && character2.name != "Player"
+          && !character1.behaviorSet.contains("runToExit") && character2.behaviorSet.contains("runToExit")
+          && character1.room == character2.room) {
+          character1.actor ! SomeoneEvacuating(character2.name, character2.x, character2.y, character2.w, character2.h)
         }
       }
     }

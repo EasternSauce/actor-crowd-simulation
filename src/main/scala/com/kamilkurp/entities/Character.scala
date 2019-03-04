@@ -1,13 +1,17 @@
-package com.kamilkurp
+package com.kamilkurp.entities
 
 import akka.actor.ActorRef
 import com.kamilkurp.ControlScheme.ControlScheme
-import org.newdawn.slick.{GameContainer, Image}
+import com.kamilkurp._
+import com.kamilkurp.behaviors.{FollowingBehavior, RelaxedBehavior, RunToExitBehavior}
 import org.newdawn.slick.geom.Vector2f
+import org.newdawn.slick.{GameContainer, Image}
 
+import scala.collection.mutable
 import scala.util.Random
 
 class Character(val name: String, var room: Room, val controlScheme: ControlScheme, var image: Image) extends Entity {
+
   override var w: Float = Globals.CHARACTER_SIZE
   override var h: Float = Globals.CHARACTER_SIZE
   override var x: Float = _
@@ -15,7 +19,13 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   override var currentVelocityX: Float = 0.0f
   override var currentVelocityY: Float = 0.0f
 
-  var knowsWayOut: Boolean = _
+  var followingBehavior: FollowingBehavior = new FollowingBehavior(this)
+  var runToExitBehavior: RunToExitBehavior = new RunToExitBehavior(this)
+  var relaxedBehavior: RelaxedBehavior = new RelaxedBehavior(this)
+
+
+  var behaviorSet: mutable.HashSet[String] = new mutable.HashSet[String]()
+  behaviorSet.add("relaxed")
 
   var controls: (Int, Int, Int, Int) = _
 
@@ -32,6 +42,11 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var deviationX: Float = 0
   var deviationY: Float = 0
 
+  var moveAway: Boolean = false
+  var moveAwayX: Float = 0
+  var moveAwayY: Float = 0
+  var moveAwayTimer: Int = 0
+
   var isFree = false
   while (!isFree) {
     x = Random.nextInt(room.w - w.toInt)
@@ -43,7 +58,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     }
   }
 
-  knowsWayOut = Random.nextInt(100) < 60
+  if (Random.nextInt(100) < 60) behaviorSet += "runToExit"
 
   def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int), image: Image) {
     this(name, room, controlScheme, image)
@@ -55,6 +70,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   def update(gc: GameContainer, delta: Int): Unit = {
     timer = timer + delta
     slowTimer = slowTimer + delta
+    moveAwayTimer = moveAwayTimer + delta
 
     if (controlScheme == ControlScheme.Agent) updateAgent
     else if (controlScheme == ControlScheme.Manual) updateManual(gc)
@@ -69,41 +85,45 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
   private def updateAgent: Unit = {
-    val door = this.room.evacuationDoor
-
     if (slowTimer > 3000) {
       slow = 0f
     }
 
-    if (knowsWayOut && door != null) {
-      if (door != null) {
-        if (timer > 500) {
-          deviationX = 0.3f * Random.nextFloat() - 0.15f
-          deviationY = 0.3f * Random.nextFloat() - 0.15f
-          timer = 0
+    if (moveAwayTimer > 500) {
+      moveAway = false
+    }
 
-          val normalVector = new Vector2f(door.x - this.x, door.y - this.y)
-          normalVector.normalise()
-
-          currentVelocityX = (normalVector.x + deviationX) * speed * (1f - slow)
-          currentVelocityY = (normalVector.y + deviationY) * speed * (1f - slow)
-        }
-      }
+    if (behaviorSet.contains("following")) {
+//      if (moveAway) {
+//        if (timer > 500) {
+//          deviationX = 0.3f * Random.nextFloat() - 0.15f
+//          deviationY = 0.3f * Random.nextFloat() - 0.15f
+//          timer = 0
+//        }
+//
+//        val normalVector = new Vector2f(moveAwayX - this.x, moveAwayY - this.y)
+//        normalVector.normalise()
+//
+//        println("before negating " + normalVector.x + " " + normalVector.y)
+//        normalVector.negateLocal()
+//        println("after negating " + normalVector.x + " " + normalVector.y)
+//
+//
+//
+//
+//        currentVelocityX = (normalVector.x + deviationX) * speed * (1f - slow)
+//        currentVelocityY = (normalVector.y + deviationY) * speed * (1f - slow)
+//      }
+//      else {
+        followingBehavior.perform()
+//      }
     }
     else {
-      if (timer > 500) {
-        val inPlace = Random.nextInt(100) < 60
-
-        timer = 0
-        if (inPlace) {
-          currentVelocityX = 0
-          currentVelocityY = 0
-        }
-        else {
-          currentVelocityX = (Random.nextInt(3) - 1) * speed * (1f - slow) * 0.8f
-          currentVelocityY = (Random.nextInt(3) - 1) * speed * (1f - slow) * 0.8f
-        }
-
+      if (behaviorSet.contains("runToExit")) {
+        runToExitBehavior.perform()
+      }
+      else if (behaviorSet.contains("relaxed")) {
+        relaxedBehavior.perform()
       }
     }
   }
@@ -139,6 +159,14 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       CameraView.y = room.y + y - Globals.WINDOW_Y / 2 + h / 2
     }
   }
+
+  def moveAwayFrom(x: Float, y: Float): Unit = {
+    moveAway = true
+    moveAwayX = x
+    moveAwayY = y
+    moveAwayTimer = 0
+  }
+
 
   override def onCollision(entity: Entity): Unit = {
     //println("this character " + name + " collided with " + entity.name)

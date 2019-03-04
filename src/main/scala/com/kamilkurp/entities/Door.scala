@@ -1,5 +1,6 @@
-package com.kamilkurp
+package com.kamilkurp.entities
 
+import com.kamilkurp.{Globals, Room}
 import org.newdawn.slick.Image
 
 class Door(val name: String, var room: Room, var x: Float, var y: Float, var image: Image) extends Entity {

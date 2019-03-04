@@ -1,5 +1,6 @@
-package com.kamilkurp
+package com.kamilkurp.entities
 
+import com.kamilkurp.Room
 import org.newdawn.slick.Image
 
 abstract class Entity() {

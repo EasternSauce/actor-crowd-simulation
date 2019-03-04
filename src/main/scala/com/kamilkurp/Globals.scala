@@ -1,5 +1,7 @@
 package com.kamilkurp
 
+import com.kamilkurp.entities.Entity
+
 object Globals {
   val CHARACTER_SIZE: Int = 40
   val WINDOW_X: Int = 1440

@@ -1,6 +1,7 @@
 package com.kamilkurp
 
 import akka.actor.{ActorRef, ActorSystem, Props}
+import com.kamilkurp.entities.Door
 import org.newdawn.slick._
 
 import scala.collection.mutable.ListBuffer
@@ -42,12 +43,12 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     val room4 = new Room("Room D", 800, 2100, 500, 500)
 
 
-    for (_ <- 1 to 15) {
+    for (_ <- 1 to 20) {
 
       val randomNameIndex = Random.nextInt(listOfNames.length)
       val randomName = listOfNames(randomNameIndex)
       listOfNames = listOfNames.take(randomNameIndex) ++ listOfNames.drop(randomNameIndex + 1)
-      val character = new Character(randomName, room1, ControlScheme.Agent, characterImage)
+      val character = new entities.Character(randomName, room1, ControlScheme.Agent, characterImage)
       room1.characterList += character
       val actor = system.actorOf(Props(new CharacterActor(randomName, character)))
       mutableActorList += actor
@@ -56,7 +57,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     }
 
     val playerName = "Player"
-    val character = new Character(playerName, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S), characterImage)
+    val character = new entities.Character(playerName, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S), characterImage)
     room1.characterList += character
 
     val doorAB = new Door("Door AB", room1, 170, 845, doorImage)

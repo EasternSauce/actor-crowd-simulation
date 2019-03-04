@@ -12,9 +12,14 @@ case class CollisionProbe(x: Int, y: Int, w: Int, h: Int)
 
 case class SomeoneNearby(name: String, x: Float, y: Float, w: Float, h: Float)
 
-class CharacterActor(val name: String, val character: Character) extends Actor with ActorLogging {
+case class SomeoneEvacuating(name: String, x: Float, y: Float, w: Float, h: Float)
 
-  val char: Character = character
+case class OutOfTheWay(name: String, x: Float, y: Float, w: Float, h: Float)
+
+
+class CharacterActor(val name: String, val character: entities.Character) extends Actor with ActorLogging {
+
+  val char: entities.Character = character
 
 
   override def receive: Receive = {
@@ -24,6 +29,20 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
     case CharacterInfo => sender ! (name, char.x, char.y)
 
     case SomeoneNearby(name: String, x: Float, y: Float, w: Float, h: Float) => println(this.name + " encounters " + name + " at " + x + ", " + y)
+
+    case SomeoneEvacuating(name: String, x: Float, y: Float, w: Float, h: Float) => {
+      println(this.name + " sees " + name + " evacuating at " + x + ", " + y)
+
+      var door = char.room.evacuationDoor
+
+      if (door != null) char.followingBehavior.start(door.x + door.w/2, door.y + door.h/2)
+    }
+
+    case OutOfTheWay(name: String, x: Float, y: Float, w: Float, h: Float) => {
+      println(name + " screams to get out of the way to " + this.name)
+      char.moveAwayFrom(x + w/2, y + h/2)
+    }
+
 
 
   }

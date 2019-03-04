@@ -1,4 +1,6 @@
-package com.kamilkurp
+package com.kamilkurp.entities
+
+import com.kamilkurp.Room
 import org.newdawn.slick.Image
 
 class Flames extends Entity {
