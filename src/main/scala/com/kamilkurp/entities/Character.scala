@@ -25,11 +25,10 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
 
   var behaviorSet: mutable.HashSet[String] = new mutable.HashSet[String]()
-  behaviorSet.add("relaxed")
+  behaviorSet += "relaxed"
 
   var controls: (Int, Int, Int, Int) = _
 
-  var timer: Int = 0
   var speed: Float = 0.5f
 
   var slow: Float = 0.0f
@@ -68,11 +67,10 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
   def update(gc: GameContainer, delta: Int): Unit = {
-    timer = timer + delta
     slowTimer = slowTimer + delta
     moveAwayTimer = moveAwayTimer + delta
 
-    if (controlScheme == ControlScheme.Agent) updateAgent
+    if (controlScheme == ControlScheme.Agent) updateAgent(delta)
     else if (controlScheme == ControlScheme.Manual) updateManual(gc)
 
     val collisionDetails = Globals.manageCollisions(room, this)
@@ -84,7 +82,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     }
   }
 
-  private def updateAgent: Unit = {
+  private def updateAgent(delta: Int): Unit = {
     if (slowTimer > 3000) {
       slow = 0f
     }
@@ -115,15 +113,15 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 //        currentVelocityY = (normalVector.y + deviationY) * speed * (1f - slow)
 //      }
 //      else {
-        followingBehavior.perform()
+        followingBehavior.perform(delta)
 //      }
     }
     else {
       if (behaviorSet.contains("runToExit")) {
-        runToExitBehavior.perform()
+        runToExitBehavior.perform(delta)
       }
       else if (behaviorSet.contains("relaxed")) {
-        relaxedBehavior.perform()
+        relaxedBehavior.perform(delta)
       }
     }
   }
@@ -184,7 +182,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     room = newRoom
     x = newX
     y = newY
-    timer = 500
   }
 
   def setActor(actor: ActorRef): Unit = {

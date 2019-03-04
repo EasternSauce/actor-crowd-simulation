@@ -18,11 +18,15 @@ class FollowingBehavior(character: Character) extends Behavior(character) {
   var followX: Float = 0
   var followY: Float = 0
 
-  def perform(): Unit = {
+  def perform(delta: Int): Unit = {
+    timer += delta
+    deviationTimer += delta
 
-    if (timer > timerTimeout) {
+    if (character.room.evacuationDoor == null || timer > timerTimeout) {
       character.behaviorSet -= "following"
+      return
     }
+
 
     if (deviationTimer > deviationTimerTimeout) {
       deviationX = 0.3f * Random.nextFloat() - 0.15f

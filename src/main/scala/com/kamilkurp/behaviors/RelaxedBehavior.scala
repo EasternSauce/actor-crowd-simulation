@@ -9,7 +9,9 @@ class RelaxedBehavior(character: Character) extends Behavior(character) {
 
 
 
-  def perform(): Unit = {
+  def perform(delta: Int): Unit = {
+    timer += delta
+
     if (timer > 500) {
       val inPlace = Random.nextInt(100) < 60
 

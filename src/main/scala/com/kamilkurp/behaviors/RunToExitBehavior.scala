@@ -15,13 +15,21 @@ class RunToExitBehavior(character: Character) extends Behavior(character) {
   var deviationTimer: Int = 0
   val deviationTimerTimeout: Int = 500
 
-  def perform(): Unit = {
+  def perform(delta: Int): Unit = {
+    timer += delta
+    deviationTimer += delta
+
+    if (character.room.evacuationDoor == null) {
+      character.behaviorSet -= "runToExit"
+      return
+    }
+
     val door: Door = character.room.evacuationDoor
     if (door != null) {
-      if (timer > deviationTimerTimeout) {
+      if (deviationTimer > deviationTimerTimeout) {
         deviationX = 0.3f * Random.nextFloat() - 0.15f
         deviationY = 0.3f * Random.nextFloat() - 0.15f
-        timer = 0
+        deviationTimer = 0
       }
 
       val normalVector = new Vector2f(door.x - character.x, door.y - character.y)
