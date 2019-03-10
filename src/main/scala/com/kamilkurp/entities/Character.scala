@@ -23,6 +23,8 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var runToExitBehavior: RunToExitBehavior = new RunToExitBehavior(this)
   var relaxedBehavior: RelaxedBehavior = new RelaxedBehavior(this)
 
+  var viewAngle: Float = 0
+
 
   var behaviorSet: mutable.HashSet[String] = new mutable.HashSet[String]()
   behaviorSet += "relaxed"
@@ -57,7 +59,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     }
   }
 
-  if (Random.nextInt(100) < 60) behaviorSet += "runToExit"
+  if (Random.nextInt(100) < 15) behaviorSet += "runToExit"
 
   def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int), image: Image) {
     this(name, room, controlScheme, image)
