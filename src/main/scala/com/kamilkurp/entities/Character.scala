@@ -23,6 +23,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var runToExitBehavior: RunToExitBehavior = new RunToExitBehavior(this)
   var relaxedBehavior: RelaxedBehavior = new RelaxedBehavior(this)
 
+  var walkAngle: Float = 0
   var viewAngle: Float = 0
 
 
@@ -35,6 +36,8 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   var slow: Float = 0.0f
   var slowTimer: Int = 0
+
+  var lookTimer: Int = 0
 
   var slowed: Boolean = false
 
@@ -59,7 +62,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     }
   }
 
-  if (Random.nextInt(100) < 15) behaviorSet += "runToExit"
+  if (Random.nextInt(100) < 100) behaviorSet += "runToExit"
 
   def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int), image: Image) {
     this(name, room, controlScheme, image)
@@ -71,6 +74,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   def update(gc: GameContainer, delta: Int): Unit = {
     slowTimer = slowTimer + delta
     moveAwayTimer = moveAwayTimer + delta
+    lookTimer = lookTimer + delta
 
     if (controlScheme == ControlScheme.Agent) updateAgent(delta)
     else if (controlScheme == ControlScheme.Manual) updateManual(gc)
@@ -87,6 +91,18 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   private def updateAgent(delta: Int): Unit = {
     if (slowTimer > 3000) {
       slow = 0f
+    }
+
+    if (lookTimer > 50) {
+      if (viewAngle < walkAngle) {
+        if (viewAngle + 8 < walkAngle) viewAngle += 8
+        else viewAngle = walkAngle
+      }
+      else if (viewAngle > walkAngle) {
+        if (viewAngle - 8 > walkAngle) viewAngle -= 8
+        else viewAngle = walkAngle
+      }
+      lookTimer = 0
     }
 
     if (moveAwayTimer > 500) {

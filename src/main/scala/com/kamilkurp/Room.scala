@@ -38,15 +38,17 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
       if (character.behaviorSet.contains("runToExit")) {
         g.fillRect(x + character.x - offsetX, y + character.y - offsetY, 5, 5)
       }
-      g.drawArc(x + character.x + character.w / 2 - offsetX - 100, y + character.y + character.h / 2 - offsetY - 100, 200, 200, character.viewAngle-60, character.viewAngle+60)
+      //g.drawArc(x + character.x + character.w / 2 - offsetX - 100, y + character.y + character.h / 2 - offsetY - 100, 200, 200, character.viewAngle-60, character.viewAngle+60)
 
 
 
       for (i <- 0 to 12) {
-        g.setColor(Color.green)
+        var col = new Color(Color.green)
+        col.a = 0.2f
+        g.setColor(col)
         var x: Float = this.x + character.x + character.w / 2 - offsetX
         var y: Float = this.y + character.y + character.h / 2 - offsetY
-        var polygon: Polygon = new Polygon(new Rectangle(x, y, 100, 1).getPoints)
+        var polygon: Polygon = new Polygon(new Rectangle(x, y, 200, 1).getPoints)
         var t: Transform = Transform.createRotateTransform(Math.toRadians(character.viewAngle - 60 + i* 10).toFloat, x, y)
         g.draw(polygon.transform(t))
       }

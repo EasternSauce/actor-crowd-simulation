@@ -43,7 +43,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     val room4 = new Room("Room D", 800, 2100, 500, 500)
 
 
-    for (_ <- 1 to 20) {
+    for (_ <- 1 to 1) {
 
       val randomNameIndex = Random.nextInt(listOfNames.length)
       val randomName = listOfNames(randomNameIndex)
