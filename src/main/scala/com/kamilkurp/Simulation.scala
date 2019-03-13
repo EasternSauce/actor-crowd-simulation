@@ -21,6 +21,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     "Lovie", "Theola", "Damion", "Petronila", "Corrinne",
     "Arica", "Alfonso", "Madalene", "Alvina", "Eliana", "Jarrod", "Thora")
 
+  val numberOfAgents: Int = 15
+
   var doorImage: Image = _
   var characterImage: Image = _
 
@@ -43,7 +45,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     val room4 = new Room("Room D", 800, 2100, 500, 500)
 
 
-    for (_ <- 1 to 1) {
+    for (_ <- 1 to numberOfAgents) {
 
       val randomNameIndex = Random.nextInt(listOfNames.length)
       val randomName = listOfNames(randomNameIndex)
@@ -99,6 +101,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
 
   override def render(gc: GameContainer, g: Graphics): Unit = {
+    g.scale(Globals.SCALE_X, Globals.SCALE_Y)
     roomList.foreach(room => {
       room.render(g, doorImage, CameraView.x, CameraView.y)
     })

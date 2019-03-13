@@ -11,6 +11,9 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
   val doorList: ListBuffer[Door] = ListBuffer[Door]()
   var evacuationDoor: Door = _
 
+  var shape: Shape = _
+
+
   def addCharacter(character: entities.Character): characterList.type = {
     characterList += character
   }
@@ -34,6 +37,9 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
 
     characterList.foreach(character => {
       g.drawImage(character.image, x + character.x - offsetX, y + character.y - offsetY)
+
+      character.shape = new Polygon(new Rectangle(x + character.x - offsetX,y + character.y - offsetY,character.w,character.h).getPoints)
+
       g.setColor(Color.red)
       if (character.behaviorSet.contains("runToExit")) {
         g.fillRect(x + character.x - offsetX, y + character.y - offsetY, 5, 5)
@@ -42,22 +48,38 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
 
 
 
-      for (i <- 0 to 12) {
-        var col = new Color(Color.green)
-        col.a = 0.2f
-        g.setColor(col)
-        var x: Float = this.x + character.x + character.w / 2 - offsetX
-        var y: Float = this.y + character.y + character.h / 2 - offsetY
-        var polygon: Polygon = new Polygon(new Rectangle(x, y, 200, 1).getPoints)
-        var t: Transform = Transform.createRotateTransform(Math.toRadians(character.viewAngle - 60 + i* 10).toFloat, x, y)
-        g.draw(polygon.transform(t))
-      }
+      character.drawViewRays(g, offsetX, offsetY, this.x, this.y)
     })
 
     characterList.foreach(character => {
       g.setColor(Color.darkGray)
       g.drawString(character.name, x + character.x - 10 - offsetX, y + character.y - 25 - offsetY)
     })
+
+
+
+  }
+
+  def update(gc: GameContainer, delta: Int): Unit = {
+    characterList.foreach(character => {
+      character.update(gc, delta)
+    })
+
+    for (character1 <- characterList) {
+      if (character1.name eq "Alfonso") {
+        val viewRayList = character1.viewRayList
+        for (character2 <- characterList) {
+          if (character1 != character2) {
+            for (rayShape <- viewRayList) {
+              if (character2.shape.intersects(rayShape)) {
+                println(character1.name + " sees " + character2.name)
+              }
+            }
+          }
+
+        }
+      }
+    }
 
     for (character1 <- characterList) {
       for (character2 <- characterList) {
@@ -84,12 +106,6 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
       }
     }
 
-  }
-
-  def update(gc: GameContainer, delta: Int): Unit = {
-    characterList.foreach(character => {
-      character.update(gc, delta)
-    })
   }
 
 }

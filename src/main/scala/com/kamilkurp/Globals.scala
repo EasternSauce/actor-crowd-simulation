@@ -4,8 +4,10 @@ import com.kamilkurp.entities.Entity
 
 object Globals {
   val CHARACTER_SIZE: Int = 40
-  val WINDOW_X: Int = 1440
-  val WINDOW_Y: Int = 900
+  val WINDOW_X: Int = 2560
+  val WINDOW_Y: Int = 1440
+  val SCALE_X: Float = 2.0f
+  val SCALE_Y: Float = 2.0f
 
   private def intersectsX(entity: Entity, thatX: Float, thatY: Float, thatW: Float, thatH: Float): Boolean = {
 

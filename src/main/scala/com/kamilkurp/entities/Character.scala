@@ -4,10 +4,11 @@ import akka.actor.ActorRef
 import com.kamilkurp.ControlScheme.ControlScheme
 import com.kamilkurp._
 import com.kamilkurp.behaviors.{FollowingBehavior, RelaxedBehavior, RunToExitBehavior}
-import org.newdawn.slick.geom.Vector2f
-import org.newdawn.slick.{GameContainer, Image}
+import org.newdawn.slick.geom.{Polygon, Rectangle, Shape, Transform}
+import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 class Character(val name: String, var room: Room, val controlScheme: ControlScheme, var image: Image) extends Entity {
@@ -26,13 +27,19 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var walkAngle: Float = 0
   var viewAngle: Float = 0
 
+  var viewRayList: ListBuffer[Shape] = ListBuffer[Shape]()
+
+  for (i <- 0 until 12) {
+    var polygon: Shape = new Polygon(new Rectangle(0, 0, 200, 1).getPoints)
+    viewRayList += polygon
+  }
 
   var behaviorSet: mutable.HashSet[String] = new mutable.HashSet[String]()
   behaviorSet += "relaxed"
 
   var controls: (Int, Int, Int, Int) = _
 
-  var speed: Float = 0.5f
+  var speed: Float = 3.0f
 
   var slow: Float = 0.0f
   var slowTimer: Int = 0
@@ -50,6 +57,8 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var moveAwayX: Float = 0
   var moveAwayY: Float = 0
   var moveAwayTimer: Int = 0
+
+  var shape: Shape = new Polygon()
 
   var isFree = false
   while (!isFree) {
@@ -171,8 +180,8 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     }
 
     if (moved) {
-      CameraView.x = room.x + x - Globals.WINDOW_X / 2 + w / 2
-      CameraView.y = room.y + y - Globals.WINDOW_Y / 2 + h / 2
+      CameraView.x = room.x + x - Globals.WINDOW_X/Globals.SCALE_X / 2 + w / 2
+      CameraView.y = room.y + y - Globals.WINDOW_Y/Globals.SCALE_Y / 2 + h / 2
     }
   }
 
@@ -204,5 +213,27 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   def setActor(actor: ActorRef): Unit = {
     this.actor = actor
+  }
+
+
+  def drawViewRays(g: Graphics, offsetX: Float, offsetY: Float, roomX: Float, roomY: Float): Unit = {
+    for (i <- viewRayList.indices) {
+      var x: Float = roomX + this.x + this.w / 2 - offsetX
+      var y: Float = roomY + this.y + this.h / 2 - offsetY
+
+      var polygon: Shape = new Polygon(new Rectangle(x, y, 200, 1).getPoints)
+
+      var t: Transform = Transform.createRotateTransform(Math.toRadians(this.viewAngle - 60 + i* 10).toFloat, x, y)
+      polygon = polygon.transform(t)
+
+      viewRayList(i) = polygon
+    }
+
+    var col = new Color(Color.green)
+    col.a = 0.2f
+    for (i <- viewRayList.indices) {
+      g.setColor(col)
+      g.draw(viewRayList(i))
+    }
   }
 }
