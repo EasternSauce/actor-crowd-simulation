@@ -40,7 +40,6 @@ class CharacterActor(val name: String, val character: entities.Character) extend
 
     case OutOfTheWay(name: String, x: Float, y: Float, w: Float, h: Float) => {
       //println(name + " screams to get out of the way to " + this.name)
-      char.moveAwayFrom(x + w/2, y + h/2)
     }
 
 

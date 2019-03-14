@@ -53,11 +53,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var deviationX: Float = 0
   var deviationY: Float = 0
 
-  var moveAway: Boolean = false
-  var moveAwayX: Float = 0
-  var moveAwayY: Float = 0
-  var moveAwayTimer: Int = 0
-
   var shape: Shape = new Polygon()
 
   var isFree = false
@@ -82,7 +77,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   def update(gc: GameContainer, delta: Int): Unit = {
     slowTimer = slowTimer + delta
-    moveAwayTimer = moveAwayTimer + delta
     lookTimer = lookTimer + delta
 
     if (controlScheme == ControlScheme.Agent) updateAgent(delta)
@@ -114,42 +108,15 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       lookTimer = 0
     }
 
-    if (moveAwayTimer > 500) {
-      moveAway = false
-    }
 
     if (behaviorSet.contains("following")) {
-//      if (moveAway) {
-//        if (timer > 500) {
-//          deviationX = 0.3f * Random.nextFloat() - 0.15f
-//          deviationY = 0.3f * Random.nextFloat() - 0.15f
-//          timer = 0
-//        }
-//
-//        val normalVector = new Vector2f(moveAwayX - this.x, moveAwayY - this.y)
-//        normalVector.normalise()
-//
-//        println("before negating " + normalVector.x + " " + normalVector.y)
-//        normalVector.negateLocal()
-//        println("after negating " + normalVector.x + " " + normalVector.y)
-//
-//
-//
-//
-//        currentVelocityX = (normalVector.x + deviationX) * speed * (1f - slow)
-//        currentVelocityY = (normalVector.y + deviationY) * speed * (1f - slow)
-//      }
-//      else {
         followingBehavior.perform(delta)
-//      }
     }
-    else {
-      if (behaviorSet.contains("runToExit")) {
-        runToExitBehavior.perform(delta)
-      }
-      else if (behaviorSet.contains("relaxed")) {
-        relaxedBehavior.perform(delta)
-      }
+    else if (behaviorSet.contains("runToExit")) {
+      runToExitBehavior.perform(delta)
+    }
+    else if (behaviorSet.contains("relaxed")) {
+      relaxedBehavior.perform(delta)
     }
   }
 
@@ -185,13 +152,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     }
   }
 
-  def moveAwayFrom(x: Float, y: Float): Unit = {
-    moveAway = true
-    moveAwayX = x
-    moveAwayY = y
-    moveAwayTimer = 0
-  }
-
 
   override def onCollision(entity: Entity): Unit = {
     //println("this character " + name + " collided with " + entity.name)
@@ -215,6 +175,21 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     this.actor = actor
   }
 
+  def draw(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
+    g.drawImage(this.image, room.x + this.x - offsetX, room.y + this.y - offsetY)
+
+    this.shape = new Polygon(new Rectangle(x + this.x - offsetX,y + this.y - offsetY,this.w,this.h).getPoints)
+
+    g.setColor(Color.red)
+    if (this.behaviorSet.contains("runToExit")) {
+      g.fillRect(room.x + this.x - offsetX, room.y + this.y - offsetY, 5, 5)
+    }
+    //g.drawArc(x + character.x + character.w / 2 - offsetX - 100, y + character.y + character.h / 2 - offsetY - 100, 200, 200, character.viewAngle-60, character.viewAngle+60)
+
+
+
+    this.drawViewRays(g, offsetX, offsetY, room.x, room.y)
+  }
 
   def drawViewRays(g: Graphics, offsetX: Float, offsetY: Float, roomX: Float, roomY: Float): Unit = {
     for (i <- viewRayList.indices) {

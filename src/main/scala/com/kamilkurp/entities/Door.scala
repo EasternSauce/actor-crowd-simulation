@@ -1,7 +1,7 @@
 package com.kamilkurp.entities
 
 import com.kamilkurp.{Globals, Room}
-import org.newdawn.slick.Image
+import org.newdawn.slick.{Graphics, Image}
 
 class Door(val name: String, var room: Room, var x: Float, var y: Float, var image: Image) extends Entity {
   override var w = 24.0f
@@ -37,5 +37,9 @@ class Door(val name: String, var room: Room, var x: Float, var y: Float, var ima
     }
   }
 
+  def draw(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
+    g.drawImage(this.image, room.x + this.x - offsetX, room.y + this.y - offsetY)
+
+  }
 
 }

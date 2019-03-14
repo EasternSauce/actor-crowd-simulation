@@ -32,23 +32,11 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
 
 
     doorList.foreach(door => {
-      g.drawImage(door.image, x + door.x - offsetX, y + door.y - offsetY)
+      door.draw(g, offsetX, offsetY)
     })
 
     characterList.foreach(character => {
-      g.drawImage(character.image, x + character.x - offsetX, y + character.y - offsetY)
-
-      character.shape = new Polygon(new Rectangle(x + character.x - offsetX,y + character.y - offsetY,character.w,character.h).getPoints)
-
-      g.setColor(Color.red)
-      if (character.behaviorSet.contains("runToExit")) {
-        g.fillRect(x + character.x - offsetX, y + character.y - offsetY, 5, 5)
-      }
-      //g.drawArc(x + character.x + character.w / 2 - offsetX - 100, y + character.y + character.h / 2 - offsetY - 100, 200, 200, character.viewAngle-60, character.viewAngle+60)
-
-
-
-      character.drawViewRays(g, offsetX, offsetY, this.x, this.y)
+      character.draw(g, offsetX, offsetY)
     })
 
     characterList.foreach(character => {
