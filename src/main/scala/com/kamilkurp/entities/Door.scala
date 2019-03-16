@@ -1,16 +1,18 @@
 package com.kamilkurp.entities
 
 import com.kamilkurp.{Globals, Room}
+import org.newdawn.slick.geom.{Rectangle, Shape}
 import org.newdawn.slick.{Graphics, Image}
 
-class Door(val name: String, var room: Room, var x: Float, var y: Float, var image: Image) extends Entity {
-  override var w = 24.0f
-  override var h = 42.0f
+class Door(val name: String, var room: Room, var posX: Float, var posY: Float, var image: Image) extends Entity {
   override var currentVelocityX = 0.0f
   override var currentVelocityY = 0.0f
+  override var shape: Shape = _
   var leadingToDoor: Door = _
 
   room.doorList += this
+
+  shape = new Rectangle(posX, posY,24,48)
 
   override def changeRoom(room: Room, newX: Float, newY: Float): Unit = {
     //do nothing
@@ -23,11 +25,11 @@ class Door(val name: String, var room: Room, var x: Float, var y: Float, var ima
 
   override def onCollision(entity: Entity): Unit = {
     var foundSpot: (Float, Float) = null
-    for (gridX <- Seq(-10 - entity.w, (w - entity.w) / w, w + 10)) {
-      for (gridY <- Seq(-10 - entity.h, (h - entity.h) / h, h + 10)) {
-        val potentialSpotX = leadingToDoor.x + gridX
-        val potentialSpotY = leadingToDoor.y + gridY
-        if (!Globals.isRectOccupied(leadingToDoor.room, potentialSpotX, potentialSpotY, entity.w, entity.h)) {
+    for (gridX <- Seq(-10 - entity.shape.getWidth, (shape.getWidth - entity.shape.getWidth) / shape.getWidth, shape.getWidth + 10)) {
+      for (gridY <- Seq(-10 - entity.shape.getHeight, (shape.getHeight - entity.shape.getHeight) / shape.getHeight, shape.getHeight + 10)) {
+        val potentialSpotX = leadingToDoor.posX + gridX
+        val potentialSpotY = leadingToDoor.posY + gridY
+        if (!Globals.isRectOccupied(leadingToDoor.room, potentialSpotX, potentialSpotY, entity.shape.getWidth, entity.shape.getHeight)) {
           foundSpot = (potentialSpotX, potentialSpotY)
         }
       }
@@ -38,7 +40,7 @@ class Door(val name: String, var room: Room, var x: Float, var y: Float, var ima
   }
 
   def draw(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
-    g.drawImage(this.image, room.x + this.x - offsetX, room.y + this.y - offsetY)
+    g.drawImage(this.image, room.x + shape.getX - offsetX, room.y + shape.getY - offsetY)
 
   }
 

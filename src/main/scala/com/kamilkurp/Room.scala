@@ -41,7 +41,7 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
 
     characterList.foreach(character => {
       g.setColor(Color.darkGray)
-      g.drawString(character.name, x + character.x - 10 - offsetX, y + character.y - 25 - offsetY)
+      g.drawString(character.name, x + character.shape.getX - 10 - offsetX, y + character.shape.getY - 25 - offsetY)
     })
 
 
@@ -71,25 +71,25 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
 
     for (character1 <- characterList) {
       for (character2 <- characterList) {
-        if (Math.abs(character1.x - character2.x) <= 50
-          && Math.abs(character1.y - character2.y) <= 50
+        if (Math.abs(character1.shape.getX - character2.shape.getX) <= 50
+          && Math.abs(character1.shape.getY - character2.shape.getY) <= 50
           && character1 != character2 && character1.name != "Player" && character2.name != "Player") {
-          character1.actor ! SomeoneNearby(character2.name, character2.x, character2.y, character2.w, character2.h)
+          character1.actor ! SomeoneNearby(character2.name, character2.shape.getX, character2.shape.getY, character2.shape.getWidth, character2.shape.getHeight)
         }
 
-        if (Math.abs(character1.x - character2.x) <= 70
-          && Math.abs(character1.y - character2.y) <= 70
+        if (Math.abs(character1.shape.getX - character2.shape.getX) <= 70
+          && Math.abs(character1.shape.getY - character2.shape.getY) <= 70
           && character1 != character2 && character1.name != "Player" && character2.name != "Player"
           && !character1.behaviorSet.contains("runToExit") && character2.behaviorSet.contains("runToExit")) {
-          character1.actor ! OutOfTheWay(character2.name, character2.x, character2.y, character2.w, character2.h)
+          character1.actor ! OutOfTheWay(character2.name, character2.shape.getX, character2.shape.getY, character2.shape.getWidth, character2.shape.getHeight)
         }
 
-        if (Math.abs(character1.x - character2.x) <= 400
-          && Math.abs(character1.y - character2.y) <= 400
+        if (Math.abs(character1.shape.getX - character2.shape.getX) <= 400
+          && Math.abs(character1.shape.getY - character2.shape.getY) <= 400
           && character1 != character2 && character1.name != "Player" && character2.name != "Player"
           && !character1.behaviorSet.contains("runToExit") && character2.behaviorSet.contains("runToExit")
           && character1.room == character2.room) {
-          character1.actor ! SomeoneEvacuating(character2.name, character2.x, character2.y, character2.w, character2.h)
+          character1.actor ! SomeoneEvacuating(character2.name, character2.shape.getX, character2.shape.getY, character2.shape.getWidth, character2.shape.getHeight)
         }
       }
     }

@@ -34,7 +34,7 @@ class FollowingBehavior(character: Character) extends Behavior(character) {
       deviationTimer = 0
     }
 
-    val normalVector = new Vector2f(followX - character.x, followY - character.y)
+    val normalVector = new Vector2f(followX - character.shape.getX, followY - character.shape.getY)
     normalVector.normalise()
 
     character.walkAngle = normalVector.getTheta.floatValue()

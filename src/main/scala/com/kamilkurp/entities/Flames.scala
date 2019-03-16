@@ -2,15 +2,13 @@ package com.kamilkurp.entities
 
 import com.kamilkurp.Room
 import org.newdawn.slick.Image
+import org.newdawn.slick.geom.{Rectangle, Shape}
 
 class Flames extends Entity {
-  override val name: String = "fire"
-  override var x: Float = _
-  override var y: Float = _
-  override var w: Float = _
-  override var h: Float = _
   override var currentVelocityX: Float = 0
   override var currentVelocityY: Float = 0
+  override var shape: Shape = _
+  override val name: String = "fire"
   override var room: Room = _
   override var image: Image = _
 

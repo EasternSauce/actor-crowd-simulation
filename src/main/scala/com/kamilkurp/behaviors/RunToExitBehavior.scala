@@ -32,7 +32,7 @@ class RunToExitBehavior(character: Character) extends Behavior(character) {
         deviationTimer = 0
       }
 
-      val normalVector = new Vector2f(door.x - character.x, door.y - character.y)
+      val normalVector = new Vector2f(door.posX - character.shape.getX, door.posY - character.shape.getY)
       normalVector.normalise()
 
       character.walkAngle = normalVector.getTheta.floatValue()

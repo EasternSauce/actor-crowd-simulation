@@ -24,9 +24,9 @@ class CharacterActor(val name: String, val character: entities.Character) extend
 
   override def receive: Receive = {
     //case Hello(sender) => log.info(sender + " says hello to " + name)
-    case NearbyProbe(thatX, thatY) if Math.abs(thatX - char.x) <= 25 && Math.abs(thatY - char.y) <= 25 && sender != self =>
+    case NearbyProbe(thatX, thatY) if Math.abs(thatX - char.shape.getX) <= 25 && Math.abs(thatY - char.shape.getY) <= 25 && sender != self =>
       sender ! Hello(name)
-    case CharacterInfo => sender ! (name, char.x, char.y)
+    case CharacterInfo => sender ! (name, char.shape.getX, char.shape.getY)
 
     case SomeoneNearby(name: String, x: Float, y: Float, w: Float, h: Float) => //println(this.name + " encounters " + name + " at " + x + ", " + y)
 
@@ -35,7 +35,7 @@ class CharacterActor(val name: String, val character: entities.Character) extend
 
       var door = char.room.evacuationDoor
 
-      if (door != null) char.followingBehavior.start(door.x + door.w/2, door.y + door.h/2)
+      if (door != null) char.followingBehavior.start(door.posX + door.shape.getWidth/2, door.posY + door.shape.getHeight/2)
     }
 
     case OutOfTheWay(name: String, x: Float, y: Float, w: Float, h: Float) => {

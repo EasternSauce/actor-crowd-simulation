@@ -11,20 +11,20 @@ object Globals {
 
   private def intersectsX(entity: Entity, thatX: Float, thatY: Float, thatW: Float, thatH: Float): Boolean = {
 
-    if (entity.x + entity.currentVelocityX < thatX + thatW &&
-      entity.x + entity.currentVelocityX + entity.w > thatX &&
-      entity.y < thatY + thatH &&
-      entity.h + entity.y > thatY) true
+    if (entity.shape.getX + entity.currentVelocityX < thatX + thatW &&
+      entity.shape.getX + entity.currentVelocityX + entity.shape.getWidth > thatX &&
+      entity.shape.getY < thatY + thatH &&
+      entity.shape.getHeight + entity.shape.getY > thatY) true
     else false
 
   }
 
   private def intersectsY(entity: Entity, thatX: Float, thatY: Float, thatW: Float, thatH: Float): Boolean = {
 
-    if (entity.x < thatX + thatW &&
-      entity.x + entity.w > thatX &&
-      entity.y + entity.currentVelocityY < thatY + thatH &&
-      entity.h + entity.y + entity.currentVelocityY > thatY) true
+    if (entity.shape.getX < thatX + thatW &&
+      entity.shape.getX + entity.shape.getWidth > thatX &&
+      entity.shape.getY + entity.currentVelocityY < thatY + thatH &&
+      entity.shape.getHeight + entity.shape.getY + entity.currentVelocityY > thatY) true
     else false
 
   }
@@ -37,19 +37,21 @@ object Globals {
   }
 
   def manageCollisions(room: Room, entity: Entity): CollisionDetails = {
+
     val collisionDetails: CollisionDetails = new CollisionDetails(false, false)
 
-    if (entity.x + entity.currentVelocityX < 0 || entity.x + entity.currentVelocityX > room.w - entity.w) collisionDetails.colX = true
-    if (entity.y + entity.currentVelocityY < 0 || entity.y + entity.currentVelocityY > room.h - entity.h) collisionDetails.colY = true
+    if (entity.shape.getX + entity.currentVelocityX < 0 || entity.shape.getX + entity.currentVelocityX > room.w - entity.shape.getWidth) collisionDetails.colX = true
+    if (entity.shape.getY + entity.currentVelocityY < 0 || entity.shape.getY + entity.currentVelocityY > room.h - entity.shape.getHeight) collisionDetails.colY = true
 
     room.characterList.filter(character => character != entity).foreach(character => {
+
       var collided = false
 
-      if (intersectsX(entity, character.x, character.y, character.w, character.h)) {
+      if (intersectsX(entity, character.shape.getX, character.shape.getY, character.shape.getWidth, character.shape.getHeight)) {
         collisionDetails.colX = true
         collided = true
       }
-      if (intersectsY(entity, character.x, character.y, character.w, character.h)) {
+      if (intersectsY(entity, character.shape.getX, character.shape.getY, character.shape.getWidth, character.shape.getHeight)) {
         collisionDetails.colY = true
         collided = true
       }
@@ -61,7 +63,7 @@ object Globals {
     })
 
     room.doorList.foreach(door => {
-      if (intersects(entity, door.x, door.y, door.w, door.h)) {
+      if (intersects(entity, door.shape.getX, door.shape.getY, door.shape.getWidth, door.shape.getHeight)) {
         entity.onCollision(door)
         door.onCollision(entity)
       }

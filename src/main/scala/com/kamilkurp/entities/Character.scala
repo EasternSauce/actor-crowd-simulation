@@ -4,7 +4,7 @@ import akka.actor.ActorRef
 import com.kamilkurp.ControlScheme.ControlScheme
 import com.kamilkurp._
 import com.kamilkurp.behaviors.{FollowingBehavior, RelaxedBehavior, RunToExitBehavior}
-import org.newdawn.slick.geom.{Polygon, Rectangle, Shape, Transform}
+import org.newdawn.slick.geom._
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
 import scala.collection.mutable
@@ -12,13 +12,10 @@ import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 class Character(val name: String, var room: Room, val controlScheme: ControlScheme, var image: Image) extends Entity {
-
-  override var w: Float = Globals.CHARACTER_SIZE
-  override var h: Float = Globals.CHARACTER_SIZE
-  override var x: Float = _
-  override var y: Float = _
   override var currentVelocityX: Float = 0.0f
   override var currentVelocityY: Float = 0.0f
+  override var shape: Shape = new Rectangle(0, 0, Globals.CHARACTER_SIZE, Globals.CHARACTER_SIZE)
+
 
   var followingBehavior: FollowingBehavior = new FollowingBehavior(this)
   var runToExitBehavior: RunToExitBehavior = new RunToExitBehavior(this)
@@ -53,17 +50,16 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var deviationX: Float = 0
   var deviationY: Float = 0
 
-  var shape: Shape = new Polygon()
-
   var isFree = false
   while (!isFree) {
-    x = Random.nextInt(room.w - w.toInt)
-    y = Random.nextInt(room.h - h.toInt)
+    shape.setX(Random.nextInt(room.w - Globals.CHARACTER_SIZE))
+    shape.setY(Random.nextInt(room.w - Globals.CHARACTER_SIZE))
 
     val collisionDetails = Globals.manageCollisions(room, this)
     if (!collisionDetails.colX || !collisionDetails.colY) {
       isFree = true
     }
+
   }
 
   if (Random.nextInt(100) < 100) behaviorSet += "runToExit"
@@ -84,10 +80,10 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
     val collisionDetails = Globals.manageCollisions(room, this)
     if (!collisionDetails.colX) {
-      this.x += currentVelocityX
+      shape.setX(shape.getX + currentVelocityX)
     }
     if (!collisionDetails.colY) {
-      this.y += currentVelocityY
+      shape.setY(shape.getY + currentVelocityY)
     }
   }
 
@@ -123,6 +119,18 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   private def updateManual(gc: GameContainer): Unit = {
     var moved = false
 
+    if (lookTimer > 50) {
+      if (viewAngle < walkAngle) {
+        if (viewAngle + 8 < walkAngle) viewAngle += 8
+        else viewAngle = walkAngle
+      }
+      else if (viewAngle > walkAngle) {
+        if (viewAngle - 8 > walkAngle) viewAngle -= 8
+        else viewAngle = walkAngle
+      }
+      lookTimer = 0
+    }
+    
     if (gc.getInput.isKeyDown(controls._1)) {
       currentVelocityX = -speed
       moved = true
@@ -146,9 +154,16 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       currentVelocityY = 0
     }
 
+    if (currentVelocityX != 0 && currentVelocityY != 0) {
+      val normalVector = new Vector2f(currentVelocityX, currentVelocityY)
+      normalVector.normalise()
+
+      walkAngle = normalVector.getTheta.floatValue()
+    }
+
     if (moved) {
-      CameraView.x = room.x + x - Globals.WINDOW_X/Globals.SCALE_X / 2 + w / 2
-      CameraView.y = room.y + y - Globals.WINDOW_Y/Globals.SCALE_Y / 2 + h / 2
+      CameraView.x = room.x + shape.getX - Globals.WINDOW_X/Globals.SCALE_X / 2 + shape.getWidth / 2
+      CameraView.y = room.y + shape.getY - Globals.WINDOW_Y/Globals.SCALE_Y / 2 + shape.getHeight / 2
     }
   }
 
@@ -167,8 +182,8 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     newRoom.addCharacter(this)
 
     room = newRoom
-    x = newX
-    y = newY
+    shape.setX(newX)
+    shape.setY(newY)
   }
 
   def setActor(actor: ActorRef): Unit = {
@@ -176,13 +191,11 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
   def draw(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
-    g.drawImage(this.image, room.x + this.x - offsetX, room.y + this.y - offsetY)
-
-    this.shape = new Polygon(new Rectangle(x + this.x - offsetX,y + this.y - offsetY,this.w,this.h).getPoints)
+    g.drawImage(this.image, room.x + shape.getX - offsetX, room.y + shape.getY - offsetY)
 
     g.setColor(Color.red)
     if (this.behaviorSet.contains("runToExit")) {
-      g.fillRect(room.x + this.x - offsetX, room.y + this.y - offsetY, 5, 5)
+      g.fillRect(room.x + shape.getX - offsetX, room.y + shape.getY - offsetY, 5, 5)
     }
     //g.drawArc(x + character.x + character.w / 2 - offsetX - 100, y + character.y + character.h / 2 - offsetY - 100, 200, 200, character.viewAngle-60, character.viewAngle+60)
 
@@ -193,8 +206,8 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   def drawViewRays(g: Graphics, offsetX: Float, offsetY: Float, roomX: Float, roomY: Float): Unit = {
     for (i <- viewRayList.indices) {
-      var x: Float = roomX + this.x + this.w / 2 - offsetX
-      var y: Float = roomY + this.y + this.h / 2 - offsetY
+      var x: Float = roomX + this.shape.getX + this.shape.getWidth / 2 - offsetX
+      var y: Float = roomY + this.shape.getY + this.shape.getHeight / 2 - offsetY
 
       var polygon: Shape = new Polygon(new Rectangle(x, y, 200, 1).getPoints)
 
