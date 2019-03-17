@@ -3,11 +3,10 @@ package com.kamilkurp.entities
 import akka.actor.ActorRef
 import com.kamilkurp.ControlScheme.ControlScheme
 import com.kamilkurp._
-import com.kamilkurp.behaviors.{FollowingBehavior, RelaxedBehavior, RunToExitBehavior}
+import com.kamilkurp.behaviors.{Behavior, FollowingBehavior, RelaxedBehavior, RunToExitBehavior}
 import org.newdawn.slick.geom._
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
-import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
@@ -16,10 +15,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   override var currentVelocityY: Float = 0.0f
   override var shape: Shape = new Rectangle(0, 0, Globals.CHARACTER_SIZE, Globals.CHARACTER_SIZE)
 
-
-  var followingBehavior: FollowingBehavior = new FollowingBehavior(this)
-  var runToExitBehavior: RunToExitBehavior = new RunToExitBehavior(this)
-  var relaxedBehavior: RelaxedBehavior = new RelaxedBehavior(this)
+  var currentBehavior: String = _
 
   var walkAngle: Float = 0
   var viewAngle: Float = 0
@@ -31,8 +27,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     viewRayList += polygon
   }
 
-  var behaviorSet: mutable.HashSet[String] = new mutable.HashSet[String]()
-  behaviorSet += "relaxed"
+  currentBehavior = "relaxed"
 
   var controls: (Int, Int, Int, Int) = _
 
@@ -64,7 +59,9 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   }
 
-  if (Random.nextInt(100) < chanceToBeLeader) behaviorSet += "runToExit"
+  if (Random.nextInt(100) < chanceToBeLeader) {
+    currentBehavior = "runToExit"
+  }
 
   def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int), image: Image) {
     this(name, room, controlScheme, image)
@@ -89,17 +86,13 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     }
 
     if (name eq "Player") {
-      for (character <- room.characterList) {
-        if (this != character) {
-          for (rayShape <- viewRayList) {
-            if (character.shape.intersects(rayShape)) {
-              var distance: Float = Math.sqrt(Math.pow(character.shape.getCenterX.doubleValue() - shape.getCenterX.doubleValue(),2) + Math.pow(character.shape.getCenterY.doubleValue() - shape.getCenterY.doubleValue(),2)).floatValue()
-              println(name + " sees " + character.name + " at distance " + distance)
-            }
+      room.characterList.filter(c => c != this).foreach(character =>
+        viewRayList.foreach(rayShape =>
+          if (character.shape.intersects(rayShape)) {
+            println(name + " sees " + character.name + " at distance " + getDistanceTo(character))
           }
-        }
-
-      }
+        )
+      )
     }
   }
 
@@ -114,16 +107,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       lookTimer = 0
     }
 
-
-    if (behaviorSet.contains("following")) {
-        followingBehavior.perform(delta)
-    }
-    else if (behaviorSet.contains("runToExit")) {
-      runToExitBehavior.perform(delta)
-    }
-    else if (behaviorSet.contains("relaxed")) {
-      relaxedBehavior.perform(delta)
-    }
+    Behavior.getBehavior(currentBehavior).perform(this, delta)
   }
 
   private def updateManual(gc: GameContainer): Unit = {
@@ -174,11 +158,11 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   private def adjustViewAngle(clockwise: Boolean) = {
     if (Math.abs(viewAngle - walkAngle) > 6 && Math.abs((viewAngle + 180) % 360 - (walkAngle + 180) % 360) > 6) {
       if (clockwise) { // clockwise
-        if (viewAngle + 6 < 360) viewAngle = viewAngle + 6
+        if (viewAngle + 6 < 360) viewAngle += 6
         else viewAngle = viewAngle + 6 - 360
       }
       else { // counterclockwise
-        if (viewAngle - 6 > 0) viewAngle = viewAngle - 6
+        if (viewAngle - 6 > 0) viewAngle -= 6
         else viewAngle = viewAngle - 6 + 360
       }
     }
@@ -188,8 +172,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
   override def onCollision(entity: Entity): Unit = {
-    //println("this character " + name + " collided with " + entity.name)
-
     if (entity.getClass == classOf[Character]) {
       slowTimer = 0
       slow = 0.2f
@@ -213,7 +195,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     g.drawImage(image, room.x + shape.getX - offsetX, room.y + shape.getY - offsetY)
 
     g.setColor(Color.red)
-    if (behaviorSet.contains("runToExit")) {
+    if (currentBehavior == "runToExit") {
       g.fillRect(room.x + shape.getX - offsetX, room.y + shape.getY - offsetY, 5, 5)
     }
 
@@ -227,24 +209,24 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   private def drawViewRays(g: Graphics, offsetX: Float, offsetY: Float, roomX: Float, roomY: Float): Unit = {
     for (i <- viewRayList.indices) {
-      var x: Float = shape.getX + shape.getWidth / 2
-      var y: Float = shape.getY + shape.getHeight / 2
+      val x: Float = shape.getX + shape.getWidth / 2
+      val y: Float = shape.getY + shape.getHeight / 2
 
       var polygon: Shape = new Polygon(new Rectangle(x, y, 200, 1).getPoints)
 
-      var t: Transform = Transform.createRotateTransform(Math.toRadians(this.viewAngle - 60 + i* 10).toFloat, x, y)
+      val t: Transform = Transform.createRotateTransform(Math.toRadians(this.viewAngle - 60 + i* 10).toFloat, x, y)
       polygon = polygon.transform(t)
 
       viewRayList(i) = polygon
     }
 
-    var col = new Color(Color.green)
+    val col = new Color(Color.green)
     col.a = 1f
     for (i <- viewRayList.indices) {
       g.setColor(col)
 
       var polygon: Shape = new Polygon(viewRayList(i).getPoints)
-      var t: Transform = Transform.createTranslateTransform(roomX - offsetX, roomY - offsetY)
+      val t: Transform = Transform.createTranslateTransform(roomX - offsetX, roomY - offsetY)
       polygon = polygon.transform(t)
 
 
@@ -253,6 +235,11 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
 
+  def getDistanceTo(entity: Entity): Float = {
+    val differenceSquaredX = Math.pow(entity.shape.getCenterX.doubleValue() - shape.getCenterX.doubleValue(),2)
+    val differenceSquaredY = Math.pow(entity.shape.getCenterY.doubleValue() - shape.getCenterY.doubleValue(),2)
+    Math.sqrt(differenceSquaredX + differenceSquaredY).floatValue()
+  }
 }
 
 
@@ -270,4 +257,5 @@ object Character {
     }
     clockwise
   }
+
 }

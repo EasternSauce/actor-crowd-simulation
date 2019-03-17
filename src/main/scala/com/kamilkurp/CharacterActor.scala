@@ -33,9 +33,9 @@ class CharacterActor(val name: String, val character: entities.Character) extend
     case SomeoneEvacuating(name: String, x: Float, y: Float, w: Float, h: Float) => {
       //println(this.name + " sees " + name + " evacuating at " + x + ", " + y)
 
-      var door = char.room.evacuationDoor
-
-      if (door != null) char.followingBehavior.start(door.posX + door.shape.getWidth/2, door.posY + door.shape.getHeight/2)
+//      var door = char.room.evacuationDoor
+//
+//      if (door != null) char.followingBehavior.start(door.posX + door.shape.getWidth/2, door.posY + door.shape.getHeight/2)
     }
 
     case OutOfTheWay(name: String, x: Float, y: Float, w: Float, h: Float) => {

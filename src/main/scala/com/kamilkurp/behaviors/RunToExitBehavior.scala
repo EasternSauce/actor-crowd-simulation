@@ -5,7 +5,7 @@ import org.newdawn.slick.geom.Vector2f
 import scala.util.Random
 import com.kamilkurp.entities.{Character, Door}
 
-class RunToExitBehavior(character: Character) extends Behavior(character) {
+class RunToExitBehavior extends Behavior {
 
   var deviationX: Float = 0
   var deviationY: Float = 0
@@ -15,12 +15,12 @@ class RunToExitBehavior(character: Character) extends Behavior(character) {
   var deviationTimer: Int = 0
   val deviationTimerTimeout: Int = 500
 
-  def perform(delta: Int): Unit = {
+  def perform(character: Character, delta: Int): Unit = {
     timer += delta
     deviationTimer += delta
 
     if (character.room.evacuationDoor == null) {
-      character.behaviorSet -= "runToExit"
+      character.currentBehavior = "relaxed"
       return
     }
 

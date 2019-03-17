@@ -5,12 +5,12 @@ import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
-class RelaxedBehavior(character: Character) extends Behavior(character) {
+class RelaxedBehavior extends Behavior {
   override var timerTimeout: Int = 500
 
 
 
-  def perform(delta: Int): Unit = {
+  def perform(character: Character, delta: Int): Unit = {
     timer += delta
 
     if (timer > 500) {
