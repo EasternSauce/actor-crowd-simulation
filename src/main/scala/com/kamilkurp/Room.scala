@@ -54,7 +54,7 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
     })
 
     for (character1 <- characterList) {
-      if (character1.name eq "Alfonso") {
+      if (character1.name eq "Player") {
         val viewRayList = character1.viewRayList
         for (character2 <- characterList) {
           if (character1 != character2) {

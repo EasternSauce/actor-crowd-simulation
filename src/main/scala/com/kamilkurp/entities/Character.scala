@@ -26,7 +26,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   var viewRayList: ListBuffer[Shape] = ListBuffer[Shape]()
 
-  for (i <- 0 until 12) {
+  for (_ <- 0 until 12) {
     var polygon: Shape = new Polygon(new Rectangle(0, 0, 200, 1).getPoints)
     viewRayList += polygon
   }
@@ -98,7 +98,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
       var clockwise : Boolean = findSideToTurn(viewAngle, walkAngle)
 
-      println(viewAngle + " " + walkAngle + " " + Math.abs((viewAngle+180)%360 - (walkAngle+180)%360) + " " + clockwise)
+      //println(viewAngle + " " + walkAngle + " " + Math.abs((viewAngle+180)%360 - (walkAngle+180)%360) + " " + clockwise)
       if (Math.abs(viewAngle - walkAngle) > 6 && Math.abs((viewAngle+180)%360 - (walkAngle+180)%360) > 6) {
         if (clockwise) { // clockwise
           if (viewAngle + 6 < 360) viewAngle = viewAngle + 6
@@ -143,7 +143,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
       var clockwise : Boolean = findSideToTurn(viewAngle, walkAngle)
 
-      println(viewAngle + " " + walkAngle + " " + Math.abs((viewAngle+180)%360 - (walkAngle+180)%360) + " " + clockwise)
+      //println(viewAngle + " " + walkAngle + " " + Math.abs((viewAngle+180)%360 - (walkAngle+180)%360) + " " + clockwise)
       if (Math.abs(viewAngle - walkAngle) > 6 && Math.abs((viewAngle+180)%360 - (walkAngle+180)%360) > 6) {
         if (clockwise) { // clockwise
           if (viewAngle + 6 < 360) viewAngle = viewAngle + 6
@@ -238,8 +238,8 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   def drawViewRays(g: Graphics, offsetX: Float, offsetY: Float, roomX: Float, roomY: Float): Unit = {
     for (i <- viewRayList.indices) {
-      var x: Float = roomX + this.shape.getX + this.shape.getWidth / 2 - offsetX
-      var y: Float = roomY + this.shape.getY + this.shape.getHeight / 2 - offsetY
+      var x: Float = this.shape.getX + this.shape.getWidth / 2
+      var y: Float = this.shape.getY + this.shape.getHeight / 2
 
       var polygon: Shape = new Polygon(new Rectangle(x, y, 200, 1).getPoints)
 
@@ -253,7 +253,13 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     col.a = 1f
     for (i <- viewRayList.indices) {
       g.setColor(col)
-      g.draw(viewRayList(i))
+
+      var polygon: Shape = new Polygon(viewRayList(i).getPoints)
+      var t: Transform = Transform.createTranslateTransform(roomX - offsetX, roomY - offsetY)
+      polygon = polygon.transform(t)
+
+
+      g.draw(polygon)
     }
   }
 
