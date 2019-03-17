@@ -50,6 +50,8 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var deviationX: Float = 0
   var deviationY: Float = 0
 
+  val chanceToBeLeader: Float = 100
+
   var isFree = false
   while (!isFree) {
     shape.setX(Random.nextInt(room.w - Globals.CHARACTER_SIZE))
@@ -62,7 +64,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   }
 
-  if (Random.nextInt(100) < 100) behaviorSet += "runToExit"
+  if (Random.nextInt(100) < chanceToBeLeader) behaviorSet += "runToExit"
 
   def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int), image: Image) {
     this(name, room, controlScheme, image)
@@ -85,6 +87,20 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     if (!collisionDetails.colY) {
       shape.setY(shape.getY + currentVelocityY)
     }
+
+    if (name eq "Player") {
+      for (character <- room.characterList) {
+        if (this != character) {
+          for (rayShape <- viewRayList) {
+            if (character.shape.intersects(rayShape)) {
+              var distance: Float = Math.sqrt(Math.pow(character.shape.getCenterX.doubleValue() - shape.getCenterX.doubleValue(),2) + Math.pow(character.shape.getCenterY.doubleValue() - shape.getCenterY.doubleValue(),2)).floatValue()
+              println(name + " sees " + character.name + " at distance " + distance)
+            }
+          }
+        }
+
+      }
+    }
   }
 
   private def updateAgent(delta: Int): Unit = {
@@ -93,27 +109,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     }
 
     if (lookTimer > 50 && walkAngle != viewAngle) {
-
-
-
-      var clockwise : Boolean = findSideToTurn(viewAngle, walkAngle)
-
-      //println(viewAngle + " " + walkAngle + " " + Math.abs((viewAngle+180)%360 - (walkAngle+180)%360) + " " + clockwise)
-      if (Math.abs(viewAngle - walkAngle) > 6 && Math.abs((viewAngle+180)%360 - (walkAngle+180)%360) > 6) {
-        if (clockwise) { // clockwise
-          if (viewAngle + 6 < 360) viewAngle = viewAngle + 6
-          else viewAngle = viewAngle + 6 - 360
-        }
-        else { // counterclockwise
-          if (viewAngle - 6 > 0) viewAngle = viewAngle - 6
-          else viewAngle = viewAngle - 6 + 360
-        }
-      }
-      else {
-        viewAngle = walkAngle
-      }
-
-
+      adjustViewAngle(Character.findSideToTurn(viewAngle, walkAngle))
 
       lookTimer = 0
     }
@@ -133,33 +129,8 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   private def updateManual(gc: GameContainer): Unit = {
     var moved = false
 
-
-
-    //println(findSideToTurn(350, 10))
-
     if (lookTimer > 50 && walkAngle != viewAngle) {
-
-
-
-      var clockwise : Boolean = findSideToTurn(viewAngle, walkAngle)
-
-      //println(viewAngle + " " + walkAngle + " " + Math.abs((viewAngle+180)%360 - (walkAngle+180)%360) + " " + clockwise)
-      if (Math.abs(viewAngle - walkAngle) > 6 && Math.abs((viewAngle+180)%360 - (walkAngle+180)%360) > 6) {
-        if (clockwise) { // clockwise
-          if (viewAngle + 6 < 360) viewAngle = viewAngle + 6
-          else viewAngle = viewAngle + 6 - 360
-        }
-        else { // counterclockwise
-          if (viewAngle - 6 > 0) viewAngle = viewAngle - 6
-          else viewAngle = viewAngle - 6 + 360
-        }
-      }
-      else {
-        viewAngle = walkAngle
-      }
-
-
-
+      adjustViewAngle(Character.findSideToTurn(viewAngle, walkAngle))
       lookTimer = 0
     }
 
@@ -200,6 +171,22 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
 
+  private def adjustViewAngle(clockwise: Boolean) = {
+    if (Math.abs(viewAngle - walkAngle) > 6 && Math.abs((viewAngle + 180) % 360 - (walkAngle + 180) % 360) > 6) {
+      if (clockwise) { // clockwise
+        if (viewAngle + 6 < 360) viewAngle = viewAngle + 6
+        else viewAngle = viewAngle + 6 - 360
+      }
+      else { // counterclockwise
+        if (viewAngle - 6 > 0) viewAngle = viewAngle - 6
+        else viewAngle = viewAngle - 6 + 360
+      }
+    }
+    else {
+      viewAngle = walkAngle
+    }
+  }
+
   override def onCollision(entity: Entity): Unit = {
     //println("this character " + name + " collided with " + entity.name)
 
@@ -223,23 +210,25 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
   def draw(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
-    g.drawImage(this.image, room.x + shape.getX - offsetX, room.y + shape.getY - offsetY)
+    g.drawImage(image, room.x + shape.getX - offsetX, room.y + shape.getY - offsetY)
 
     g.setColor(Color.red)
-    if (this.behaviorSet.contains("runToExit")) {
+    if (behaviorSet.contains("runToExit")) {
       g.fillRect(room.x + shape.getX - offsetX, room.y + shape.getY - offsetY, 5, 5)
     }
-    //g.drawArc(x + character.x + character.w / 2 - offsetX - 100, y + character.y + character.h / 2 - offsetY - 100, 200, 200, character.viewAngle-60, character.viewAngle+60)
 
-
-
-    this.drawViewRays(g, offsetX, offsetY, room.x, room.y)
+    drawViewRays(g, offsetX, offsetY, room.x, room.y)
   }
 
-  def drawViewRays(g: Graphics, offsetX: Float, offsetY: Float, roomX: Float, roomY: Float): Unit = {
+  def drawName(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
+    g.setColor(Color.darkGray)
+    g.drawString(name, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 25 - offsetY)
+  }
+
+  private def drawViewRays(g: Graphics, offsetX: Float, offsetY: Float, roomX: Float, roomY: Float): Unit = {
     for (i <- viewRayList.indices) {
-      var x: Float = this.shape.getX + this.shape.getWidth / 2
-      var y: Float = this.shape.getY + this.shape.getHeight / 2
+      var x: Float = shape.getX + shape.getWidth / 2
+      var y: Float = shape.getY + shape.getHeight / 2
 
       var polygon: Shape = new Polygon(new Rectangle(x, y, 200, 1).getPoints)
 
@@ -263,7 +252,12 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     }
   }
 
-  def findSideToTurn(currentAngle: Float, desiredAngle: Float) = {
+
+}
+
+
+object Character {
+  def findSideToTurn(currentAngle: Float, desiredAngle: Float): Boolean = {
     var clockwise = false
     if (currentAngle < 180) {
       if (desiredAngle - currentAngle >= 0 && desiredAngle - currentAngle < 180) clockwise = true

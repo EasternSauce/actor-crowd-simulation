@@ -40,8 +40,7 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
     })
 
     characterList.foreach(character => {
-      g.setColor(Color.darkGray)
-      g.drawString(character.name, x + character.shape.getX - 10 - offsetX, y + character.shape.getY - 25 - offsetY)
+      character.drawName(g, offsetX,offsetY)
     })
 
 
@@ -52,22 +51,6 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
     characterList.foreach(character => {
       character.update(gc, delta)
     })
-
-    for (character1 <- characterList) {
-      if (character1.name eq "Player") {
-        val viewRayList = character1.viewRayList
-        for (character2 <- characterList) {
-          if (character1 != character2) {
-            for (rayShape <- viewRayList) {
-              if (character2.shape.intersects(rayShape)) {
-                println(character1.name + " sees " + character2.name)
-              }
-            }
-          }
-
-        }
-      }
-    }
 
     for (character1 <- characterList) {
       for (character2 <- characterList) {
