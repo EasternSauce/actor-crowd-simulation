@@ -26,7 +26,7 @@ class RelaxedBehavior(character: Character) extends Behavior(character) {
         character.currentVelocityY = (Random.nextInt(3) - 1) * character.speed * (1f - character.slow) * 0.8f
       }
 
-      if (character.currentVelocityX != 0 && character.currentVelocityY != 0) {
+      if (character.currentVelocityX != 0 || character.currentVelocityY != 0) {
         val normalVector = new Vector2f(character.currentVelocityX, character.currentVelocityY)
         normalVector.normalise()
 

@@ -92,15 +92,29 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       slow = 0f
     }
 
-    if (lookTimer > 50) {
-      if (viewAngle < walkAngle) {
-        if (viewAngle + 8 < walkAngle) viewAngle += 8
-        else viewAngle = walkAngle
+    if (lookTimer > 50 && walkAngle != viewAngle) {
+
+
+
+      var clockwise : Boolean = findSideToTurn(viewAngle, walkAngle)
+
+      println(viewAngle + " " + walkAngle + " " + Math.abs((viewAngle+180)%360 - (walkAngle+180)%360) + " " + clockwise)
+      if (Math.abs(viewAngle - walkAngle) > 6 && Math.abs((viewAngle+180)%360 - (walkAngle+180)%360) > 6) {
+        if (clockwise) { // clockwise
+          if (viewAngle + 6 < 360) viewAngle = viewAngle + 6
+          else viewAngle = viewAngle + 6 - 360
+        }
+        else { // counterclockwise
+          if (viewAngle - 6 > 0) viewAngle = viewAngle - 6
+          else viewAngle = viewAngle - 6 + 360
+        }
       }
-      else if (viewAngle > walkAngle) {
-        if (viewAngle - 8 > walkAngle) viewAngle -= 8
-        else viewAngle = walkAngle
+      else {
+        viewAngle = walkAngle
       }
+
+
+
       lookTimer = 0
     }
 
@@ -119,18 +133,36 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   private def updateManual(gc: GameContainer): Unit = {
     var moved = false
 
-    if (lookTimer > 50) {
-      if (viewAngle < walkAngle) {
-        if (viewAngle + 8 < walkAngle) viewAngle += 8
-        else viewAngle = walkAngle
+
+
+    //println(findSideToTurn(350, 10))
+
+    if (lookTimer > 50 && walkAngle != viewAngle) {
+
+
+
+      var clockwise : Boolean = findSideToTurn(viewAngle, walkAngle)
+
+      println(viewAngle + " " + walkAngle + " " + Math.abs((viewAngle+180)%360 - (walkAngle+180)%360) + " " + clockwise)
+      if (Math.abs(viewAngle - walkAngle) > 6 && Math.abs((viewAngle+180)%360 - (walkAngle+180)%360) > 6) {
+        if (clockwise) { // clockwise
+          if (viewAngle + 6 < 360) viewAngle = viewAngle + 6
+          else viewAngle = viewAngle + 6 - 360
+        }
+        else { // counterclockwise
+          if (viewAngle - 6 > 0) viewAngle = viewAngle - 6
+          else viewAngle = viewAngle - 6 + 360
+        }
       }
-      else if (viewAngle > walkAngle) {
-        if (viewAngle - 8 > walkAngle) viewAngle -= 8
-        else viewAngle = walkAngle
+      else {
+        viewAngle = walkAngle
       }
+
+
+
       lookTimer = 0
     }
-    
+
     if (gc.getInput.isKeyDown(controls._1)) {
       currentVelocityX = -speed
       moved = true
@@ -154,7 +186,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       currentVelocityY = 0
     }
 
-    if (currentVelocityX != 0 && currentVelocityY != 0) {
+    if (currentVelocityX != 0 || currentVelocityY != 0) {
       val normalVector = new Vector2f(currentVelocityX, currentVelocityY)
       normalVector.normalise()
 
@@ -218,10 +250,24 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     }
 
     var col = new Color(Color.green)
-    col.a = 0.2f
+    col.a = 1f
     for (i <- viewRayList.indices) {
       g.setColor(col)
       g.draw(viewRayList(i))
     }
+  }
+
+  def findSideToTurn(currentAngle: Float, desiredAngle: Float) = {
+    var clockwise = false
+    if (currentAngle < 180) {
+      if (desiredAngle - currentAngle >= 0 && desiredAngle - currentAngle < 180) clockwise = true
+      else clockwise = false
+    }
+    else {
+      if (currentAngle - desiredAngle >= 0 && currentAngle - desiredAngle < 180) clockwise = false
+      else clockwise = true
+
+    }
+    clockwise
   }
 }
