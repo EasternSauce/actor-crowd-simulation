@@ -1,6 +1,7 @@
 package com.kamilkurp
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
+import com.kamilkurp.entities.{Character, Entity}
 
 case class Hello(sender: String)
 
@@ -12,12 +13,14 @@ case class CollisionProbe(x: Int, y: Int, w: Int, h: Int)
 
 case class SomeoneNearby(name: String, x: Float, y: Float, w: Float, h: Float)
 
-case class SomeoneEvacuating(name: String, x: Float, y: Float, w: Float, h: Float)
+//case class SomeoneEvacuating(name: String, x: Float, y: Float, w: Float, h: Float)
 
 case class OutOfTheWay(name: String, x: Float, y: Float, w: Float, h: Float)
 
+case class CharacterWithinVision(entity: Entity, distance: Float)
 
-class CharacterActor(val name: String, val character: entities.Character) extends Actor with ActorLogging {
+
+class CharacterActor(val name: String, val character: Character) extends Actor with ActorLogging {
 
   val char: entities.Character = character
 
@@ -30,16 +33,26 @@ class CharacterActor(val name: String, val character: entities.Character) extend
 
     case SomeoneNearby(name: String, x: Float, y: Float, w: Float, h: Float) => //println(this.name + " encounters " + name + " at " + x + ", " + y)
 
-    case SomeoneEvacuating(name: String, x: Float, y: Float, w: Float, h: Float) => {
+//    case SomeoneEvacuating(name: String, x: Float, y: Float, w: Float, h: Float) => {
       //println(this.name + " sees " + name + " evacuating at " + x + ", " + y)
 
 //      var door = char.room.evacuationDoor
 //
 //      if (door != null) char.followingBehavior.start(door.posX + door.shape.getWidth/2, door.posY + door.shape.getHeight/2)
-    }
+//    }
 
     case OutOfTheWay(name: String, x: Float, y: Float, w: Float, h: Float) => {
       //println(name + " screams to get out of the way to " + this.name)
+    }
+
+    case CharacterWithinVision(that: Character, distance: Float) => {
+//      println(name + " sees " + that.name + " at distance " + distance)
+
+      if (that.currentBehavior == "runToExit") {
+        if (character.currentBehavior == "relaxed") character.currentBehavior = "following"
+
+        if (character.currentBehavior == "following") character.follow(that.shape.getCenterX, that.shape.getCenterY)
+      }
     }
 
 

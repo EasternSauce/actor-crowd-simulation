@@ -11,13 +11,3 @@ abstract class Behavior {
   def perform(character: Character, delta: Int): Unit
 
 }
-
-object Behavior {
-  val behaviorMap: mutable.HashMap[String, Behavior] = mutable.HashMap.empty[String,Behavior]
-
-  behaviorMap += ("following" -> new FollowingBehavior)
-  behaviorMap += ("relaxed" -> new RelaxedBehavior)
-  behaviorMap += ("runToExit" -> new RunToExitBehavior)
-
-  def getBehavior(behaviorName: String): Behavior = behaviorMap(behaviorName)
-}

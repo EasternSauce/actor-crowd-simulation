@@ -7,10 +7,12 @@ import com.kamilkurp.behaviors.{Behavior, FollowingBehavior, RelaxedBehavior, Ru
 import org.newdawn.slick.geom._
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 class Character(val name: String, var room: Room, val controlScheme: ControlScheme, var image: Image) extends Entity {
+
   override var currentVelocityX: Float = 0.0f
   override var currentVelocityY: Float = 0.0f
   override var shape: Shape = new Rectangle(0, 0, Globals.CHARACTER_SIZE, Globals.CHARACTER_SIZE)
@@ -45,7 +47,10 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var deviationX: Float = 0
   var deviationY: Float = 0
 
-  val chanceToBeLeader: Float = 100
+  val chanceToBeLeader: Float = 50
+
+  var followX: Float = 0
+  var followY: Float = 0
 
   var isFree = false
   while (!isFree) {
@@ -85,15 +90,13 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       shape.setY(shape.getY + currentVelocityY)
     }
 
-    if (name eq "Player") {
-      room.characterList.filter(c => c != this).foreach(character =>
-        viewRayList.foreach(rayShape =>
-          if (character.shape.intersects(rayShape)) {
-            println(name + " sees " + character.name + " at distance " + getDistanceTo(character))
-          }
-        )
+    room.characterList.filter(c => c != this).foreach(character =>
+      viewRayList.foreach(rayShape =>
+        if (character.shape.intersects(rayShape)) {
+          actor ! CharacterWithinVision(character, getDistanceTo(character))
+        }
       )
-    }
+    )
   }
 
   private def updateAgent(delta: Int): Unit = {
@@ -107,7 +110,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       lookTimer = 0
     }
 
-    Behavior.getBehavior(currentBehavior).perform(this, delta)
+    getBehavior(currentBehavior).perform(this, delta)
   }
 
   private def updateManual(gc: GameContainer): Unit = {
@@ -185,6 +188,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     room = newRoom
     shape.setX(newX)
     shape.setY(newY)
+    if (currentBehavior == "following") currentBehavior = "relaxed"
   }
 
   def setActor(actor: ActorRef): Unit = {
@@ -194,17 +198,23 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   def draw(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
     g.drawImage(image, room.x + shape.getX - offsetX, room.y + shape.getY - offsetY)
 
-    g.setColor(Color.red)
-    if (currentBehavior == "runToExit") {
-      g.fillRect(room.x + shape.getX - offsetX, room.y + shape.getY - offsetY, 5, 5)
-    }
+//    if (currentBehavior == "runToExit") {
+//      g.setColor(Color.red)
+//      g.fillRect(room.x + shape.getX - offsetX, room.y + shape.getY - offsetY, 5, 5)
+//    }
 
     drawViewRays(g, offsetX, offsetY, room.x, room.y)
   }
 
   def drawName(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
     g.setColor(Color.darkGray)
-    g.drawString(name, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 25 - offsetY)
+    g.drawString(name, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 40 - offsetY)
+    if (currentBehavior == "relaxed") g.setColor(Color.cyan)
+    if (currentBehavior == "following") g.setColor(Color.orange)
+    if (currentBehavior == "runToExit") g.setColor(Color.red)
+    g.drawString("[" + currentBehavior + "]", room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 25 - offsetY)
+
+
   }
 
   private def drawViewRays(g: Graphics, offsetX: Float, offsetY: Float, roomX: Float, roomY: Float): Unit = {
@@ -240,6 +250,27 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     val differenceSquaredY = Math.pow(entity.shape.getCenterY.doubleValue() - shape.getCenterY.doubleValue(),2)
     Math.sqrt(differenceSquaredX + differenceSquaredY).floatValue()
   }
+
+  def getDistanceTo(x: Float, y: Float): Float = {
+    val differenceSquaredX = Math.pow(x.doubleValue() - shape.getCenterX.doubleValue(),2)
+    val differenceSquaredY = Math.pow(y.doubleValue() - shape.getCenterY.doubleValue(),2)
+    Math.sqrt(differenceSquaredX + differenceSquaredY).floatValue()
+  }
+
+  def follow(getCenterX: Float, getCenterY: Float) = {
+    followX = getCenterX
+    followY = getCenterY
+    getBehavior("following").timer = 0
+  }
+
+  val behaviorMap: mutable.HashMap[String, Behavior] = mutable.HashMap.empty[String,Behavior]
+
+  behaviorMap += ("following" -> new FollowingBehavior)
+  behaviorMap += ("relaxed" -> new RelaxedBehavior)
+  behaviorMap += ("runToExit" -> new RunToExitBehavior)
+
+  def getBehavior(behaviorName: String): Behavior = behaviorMap(behaviorName)
+
 }
 
 

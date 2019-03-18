@@ -60,6 +60,11 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     val playerName = "Player"
     val character = new entities.Character(playerName, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S), characterImage)
+
+    val actor = system.actorOf(Props(new CharacterActor("Player", character)))
+
+    character.setActor(actor)
+
     room1.characterList += character
 
     val doorAB = new Door("Door AB", room1, 170, 845, doorImage)

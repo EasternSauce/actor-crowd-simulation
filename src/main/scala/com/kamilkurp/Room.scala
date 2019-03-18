@@ -67,13 +67,13 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
           character1.actor ! OutOfTheWay(character2.name, character2.shape.getX, character2.shape.getY, character2.shape.getWidth, character2.shape.getHeight)
         }
 
-        if (Math.abs(character1.shape.getX - character2.shape.getX) <= 400
-          && Math.abs(character1.shape.getY - character2.shape.getY) <= 400
-          && character1 != character2 && character1.name != "Player" && character2.name != "Player"
-          && character1.currentBehavior != "runToExit" && character2.currentBehavior == "runToExit"
-          && character1.room == character2.room) {
-          character1.actor ! SomeoneEvacuating(character2.name, character2.shape.getX, character2.shape.getY, character2.shape.getWidth, character2.shape.getHeight)
-        }
+//        if (Math.abs(character1.shape.getX - character2.shape.getX) <= 400
+//          && Math.abs(character1.shape.getY - character2.shape.getY) <= 400
+//          && character1 != character2 && character1.name != "Player" && character2.name != "Player"
+//          && character1.currentBehavior != "runToExit" && character2.currentBehavior == "runToExit"
+//          && character1.room == character2.room) {
+//          character1.actor ! SomeoneEvacuating(character2.name, character2.shape.getX, character2.shape.getY, character2.shape.getWidth, character2.shape.getHeight)
+//        }
       }
     }
 
