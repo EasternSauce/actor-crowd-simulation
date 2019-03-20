@@ -2,6 +2,7 @@ package com.kamilkurp
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import com.kamilkurp.entities.{Character, Entity}
+import org.newdawn.slick.geom.Vector2f
 
 case class Hello(sender: String)
 
@@ -19,6 +20,10 @@ case class OutOfTheWay(name: String, x: Float, y: Float, w: Float, h: Float)
 
 case class CharacterWithinVision(entity: Entity, distance: Float)
 
+
+case class CharacterEnteredDoor(entity: Entity, locationX: Float, locationY: Float)
+
+case class CharacterLeadingEvacuation(entity: Entity, locationX: Float, locationY:Float)
 
 class CharacterActor(val name: String, val character: Character) extends Actor with ActorLogging {
 
@@ -49,13 +54,30 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
 //      println(name + " sees " + that.name + " at distance " + distance)
 
       if (that.currentBehavior == "runToExit") {
-        if (character.currentBehavior == "relaxed") character.currentBehavior = "following"
-
-        if (character.currentBehavior == "following") character.follow(that.shape.getCenterX, that.shape.getCenterY)
+        character.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
       }
     }
 
+    case CharacterEnteredDoor(entity, locationX, locationY) => {
+//      println("character entered door: " + entity.name)
+//      println("i am " + character.name + " following " + character.followingEntity.name)
+      if (character.followingEntity == entity) {
+//        println("gotta follow through door")
+        character.follow(entity, locationX, locationY, 0)
+      }
+    }
 
+    case CharacterLeadingEvacuation(entity, locationX, locationY) => {
+//      println(character.name + " received broadcast from " + entity.name)
+      if (character.currentBehavior == "following" && character.followingEntity == entity) {
+        val normalVector = new Vector2f(locationX - character.shape.getCenterX, locationY - character.shape.getCenterY)
+        normalVector.normalise()
+
+        character.walkAngle = normalVector.getTheta.floatValue()
+        character.viewAngle = normalVector.getTheta.floatValue()
+      }
+
+    }
 
   }
 

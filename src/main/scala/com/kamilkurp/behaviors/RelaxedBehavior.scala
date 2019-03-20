@@ -1,5 +1,6 @@
 package com.kamilkurp.behaviors
 
+import com.kamilkurp.ControlScheme
 import com.kamilkurp.entities.Character
 import org.newdawn.slick.geom.Vector2f
 
@@ -17,14 +18,19 @@ class RelaxedBehavior extends Behavior {
       val inPlace = Random.nextInt(100) < 60
 
       timer = 0
-      if (inPlace) {
-        character.currentVelocityX = 0
-        character.currentVelocityY = 0
+
+      if (character.controlScheme != ControlScheme.Manual) {
+        if (inPlace) {
+          character.currentVelocityX = 0
+          character.currentVelocityY = 0
+        }
+        else {
+          character.currentVelocityX = (Random.nextInt(3) - 1) * character.speed * (1f - character.slow) * 0.8f
+          character.currentVelocityY = (Random.nextInt(3) - 1) * character.speed * (1f - character.slow) * 0.8f
+        }
       }
-      else {
-        character.currentVelocityX = (Random.nextInt(3) - 1) * character.speed * (1f - character.slow) * 0.8f
-        character.currentVelocityY = (Random.nextInt(3) - 1) * character.speed * (1f - character.slow) * 0.8f
-      }
+
+
 
       if (character.currentVelocityX != 0 || character.currentVelocityY != 0) {
         val normalVector = new Vector2f(character.currentVelocityX, character.currentVelocityY)

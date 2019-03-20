@@ -24,7 +24,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   var viewRayList: ListBuffer[Shape] = ListBuffer[Shape]()
 
-  for (_ <- 0 until 12) {
+  for (_ <- 0 until 24) {
     var polygon: Shape = new Polygon(new Rectangle(0, 0, 200, 1).getPoints)
     viewRayList += polygon
   }
@@ -47,10 +47,13 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var deviationX: Float = 0
   var deviationY: Float = 0
 
-  val chanceToBeLeader: Float = 50
+  val chanceToBeLeader: Float = 20
 
   var followX: Float = 0
   var followY: Float = 0
+  var followDistance: Float = 0
+
+  var followingEntity: Entity = _
 
   var isFree = false
   while (!isFree) {
@@ -72,6 +75,11 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     this(name, room, controlScheme, image)
     this.controls = controls
 
+    if (name == "Player") {
+      println("setting for player")
+      currentBehavior = "runToExit"
+    }
+
 
   }
 
@@ -80,7 +88,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     lookTimer = lookTimer + delta
 
     if (controlScheme == ControlScheme.Agent) updateAgent(delta)
-    else if (controlScheme == ControlScheme.Manual) updateManual(gc)
+    else if (controlScheme == ControlScheme.Manual) updateManual(gc, delta)
 
     val collisionDetails = Globals.manageCollisions(room, this)
     if (!collisionDetails.colX) {
@@ -113,7 +121,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     getBehavior(currentBehavior).perform(this, delta)
   }
 
-  private def updateManual(gc: GameContainer): Unit = {
+  private def updateManual(gc: GameContainer, delta: Int): Unit = {
     var moved = false
 
     if (lookTimer > 50 && walkAngle != viewAngle) {
@@ -155,18 +163,21 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       CameraView.x = room.x + shape.getX - Globals.WINDOW_X/Globals.SCALE_X / 2 + shape.getWidth / 2
       CameraView.y = room.y + shape.getY - Globals.WINDOW_Y/Globals.SCALE_Y / 2 + shape.getHeight / 2
     }
+
+    getBehavior(currentBehavior).perform(this, delta)
   }
 
 
   private def adjustViewAngle(clockwise: Boolean) = {
-    if (Math.abs(viewAngle - walkAngle) > 6 && Math.abs((viewAngle + 180) % 360 - (walkAngle + 180) % 360) > 6) {
+    val turnSpeed = 12
+    if (Math.abs(viewAngle - walkAngle) > turnSpeed && Math.abs((viewAngle + 180) % 360 - (walkAngle + 180) % 360) > turnSpeed) {
       if (clockwise) { // clockwise
-        if (viewAngle + 6 < 360) viewAngle += 6
-        else viewAngle = viewAngle + 6 - 360
+        if (viewAngle + turnSpeed < 360) viewAngle += turnSpeed
+        else viewAngle = viewAngle + turnSpeed - 360
       }
       else { // counterclockwise
-        if (viewAngle - 6 > 0) viewAngle -= 6
-        else viewAngle = viewAngle - 6 + 360
+        if (viewAngle - turnSpeed > 0) viewAngle -= turnSpeed
+        else viewAngle = viewAngle - turnSpeed + 360
       }
     }
     else {
@@ -182,13 +193,23 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
   def changeRoom(newRoom: Room, newX: Float, newY: Float): Unit = {
+//    println("changing room")
+    for (character <- room.characterList) {
+      if (Math.abs(character.shape.getX - shape.getX) <= 700
+        && Math.abs(character.shape.getY - shape.getY) <= 700
+        && character != this) {
+        character.actor ! CharacterEnteredDoor(this, shape.getCenterX + currentVelocityX*10, shape.getCenterY + currentVelocityY* 10)
+      }
+    }
+
     room.removeCharacter(this)
     newRoom.addCharacter(this)
 
     room = newRoom
     shape.setX(newX)
     shape.setY(newY)
-    if (currentBehavior == "following") currentBehavior = "relaxed"
+//    if (currentBehavior == "following") currentBehavior = "relaxed"
+
   }
 
   def setActor(actor: ActorRef): Unit = {
@@ -217,14 +238,14 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   }
 
-  private def drawViewRays(g: Graphics, offsetX: Float, offsetY: Float, roomX: Float, roomY: Float): Unit = {
+  private def drawViewRays(g: Graphics, offsetX: Float, offsetY: Float, roomX: Float, roomY: Float) {
     for (i <- viewRayList.indices) {
       val x: Float = shape.getX + shape.getWidth / 2
       val y: Float = shape.getY + shape.getHeight / 2
 
-      var polygon: Shape = new Polygon(new Rectangle(x, y, 200, 1).getPoints)
+      var polygon: Shape = new Polygon(new Rectangle(x, y, 500, 1).getPoints)
 
-      val t: Transform = Transform.createRotateTransform(Math.toRadians(this.viewAngle - 60 + i* 10).toFloat, x, y)
+      val t: Transform = Transform.createRotateTransform(Math.toRadians(this.viewAngle - 60 + i* 5).toFloat, x, y)
       polygon = polygon.transform(t)
 
       viewRayList(i) = polygon
@@ -240,7 +261,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       polygon = polygon.transform(t)
 
 
-      g.draw(polygon)
+//      g.draw(polygon)
     }
   }
 
@@ -257,11 +278,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     Math.sqrt(differenceSquaredX + differenceSquaredY).floatValue()
   }
 
-  def follow(getCenterX: Float, getCenterY: Float) = {
-    followX = getCenterX
-    followY = getCenterY
-    getBehavior("following").timer = 0
-  }
+
 
   val behaviorMap: mutable.HashMap[String, Behavior] = mutable.HashMap.empty[String,Behavior]
 
@@ -270,6 +287,30 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   behaviorMap += ("runToExit" -> new RunToExitBehavior)
 
   def getBehavior(behaviorName: String): Behavior = behaviorMap(behaviorName)
+
+
+  def follow(entity: Entity, posX: Float, posY: Float, atDistance: Float): Unit = {
+    if (currentBehavior == "relaxed") {
+      currentBehavior = "following"
+//      println("set to follow")
+      followX = posX
+      followY = posY
+      followDistance = atDistance
+      followingEntity = entity
+      getBehavior("following").timer = 0
+    }
+    else {
+//      println("current behavior is following")
+      if (entity == followingEntity) {
+//        println("following same person")
+        followX = posX
+        followY = posY
+        getBehavior("following").timer = 0
+        followDistance = atDistance
+      }
+    }
+
+  }
 
 }
 
