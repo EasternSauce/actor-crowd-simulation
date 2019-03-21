@@ -4,6 +4,8 @@ import akka.actor.{Actor, ActorLogging, ActorRef}
 import com.kamilkurp.entities.{Character, Entity}
 import org.newdawn.slick.geom.Vector2f
 
+import scala.util.Random
+
 case class Hello(sender: String)
 
 case class UpdatePosition(delta: Int, actorList: List[ActorRef])
@@ -24,6 +26,8 @@ case class CharacterWithinVision(entity: Entity, distance: Float)
 case class CharacterEnteredDoor(entity: Entity, locationX: Float, locationY: Float)
 
 case class CharacterLeadingEvacuation(entity: Entity, locationX: Float, locationY:Float)
+
+case class MoveOutOfTheWay(entity: Entity)
 
 class CharacterActor(val name: String, val character: Character) extends Actor with ActorLogging {
 
@@ -56,6 +60,10 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
       if (that.currentBehavior == "runToExit") {
         character.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
       }
+
+      if (character.currentBehavior == "runToExit" && that.currentBehavior == "following") {
+        that.actor ! MoveOutOfTheWay(character)
+      }
     }
 
     case CharacterEnteredDoor(entity, locationX, locationY) => {
@@ -68,7 +76,7 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
     }
 
     case CharacterLeadingEvacuation(entity, locationX, locationY) => {
-//      println(character.name + " received broadcast from " + entity.name)
+      //      println(character.name + " received broadcast from " + entity.name)
       if (character.currentBehavior == "following" && character.followingEntity == entity) {
         val normalVector = new Vector2f(locationX - character.shape.getCenterX, locationY - character.shape.getCenterY)
         normalVector.normalise()
@@ -76,8 +84,29 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
         character.walkAngle = normalVector.getTheta.floatValue()
         character.viewAngle = normalVector.getTheta.floatValue()
       }
-
     }
+
+    case MoveOutOfTheWay(entity) =>
+      if (!character.movingOutOfTheWay) {
+        character.movingOutOfTheWay = true
+        character.outOfWayTimer = 0
+
+        val normalVector = new Vector2f(entity.currentVelocityX, entity.currentVelocityY)
+        normalVector.normalise()
+
+        val randomValue = Random.nextInt(2)
+
+        if (randomValue == 1) {
+          normalVector.setTheta(normalVector.getTheta + 90)
+        }
+        else {
+          normalVector.setTheta(normalVector.getTheta - 90)
+        }
+
+        character.currentVelocityX = character.speed * normalVector.x
+        character.currentVelocityY = character.speed * normalVector.y
+      }
+
 
   }
 

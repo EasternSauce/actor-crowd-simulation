@@ -55,6 +55,13 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   var followingEntity: Entity = _
 
+  var outOfWayTimerTimeout: Float = 100
+
+  var outOfWayTimer: Float = outOfWayTimerTimeout
+
+  var movingOutOfTheWay: Boolean = false
+
+
   var isFree = false
   while (!isFree) {
     shape.setX(Random.nextInt(room.w - Globals.CHARACTER_SIZE))
