@@ -47,7 +47,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var deviationX: Float = 0
   var deviationY: Float = 0
 
-  val chanceToBeLeader: Float = 20
+  val chanceToBeLeader: Float = 0
 
   var followX: Float = 0
   var followY: Float = 0
@@ -55,7 +55,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   var followingEntity: Entity = _
 
-  var outOfWayTimerTimeout: Float = 100
+  var outOfWayTimerTimeout: Float = 300
 
   var outOfWayTimer: Float = outOfWayTimerTimeout
 
@@ -268,7 +268,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       polygon = polygon.transform(t)
 
 
-//      g.draw(polygon)
+     if (name == "Player") g.draw(polygon)
     }
   }
 

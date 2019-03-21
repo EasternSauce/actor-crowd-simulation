@@ -21,7 +21,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     "Lovie", "Theola", "Damion", "Petronila", "Corrinne",
     "Arica", "Alfonso", "Madalene", "Alvina", "Eliana", "Jarrod", "Thora")
 
-  val numberOfAgents: Int = 20
+  val numberOfAgents: Int = 10
 
   var doorImage: Image = _
   var characterImage: Image = _
