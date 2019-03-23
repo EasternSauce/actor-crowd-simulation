@@ -63,7 +63,7 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
 
       if (character.currentBehavior == "runToExit" && that.currentBehavior == "following") {
         that.actor ! MoveOutOfTheWay(character)
-        println("sending to " + that.name)
+//        println("sending to " + that.name)
       }
     }
 

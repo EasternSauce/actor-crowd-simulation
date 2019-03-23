@@ -14,7 +14,7 @@ class Door(val name: String, var room: Room, var posX: Float, var posY: Float, v
 
   shape = new Rectangle(posX, posY,24,48)
 
-  override def changeRoom(room: Room, newX: Float, newY: Float): Unit = {
+  override def changeRoom(entryDoor: Door, newX: Float, newY: Float): Unit = {
     //do nothing
   }
 
@@ -35,7 +35,7 @@ class Door(val name: String, var room: Room, var posX: Float, var posY: Float, v
       }
     }
     if (foundSpot != null) {
-      entity.changeRoom(leadingToDoor.room, foundSpot._1, foundSpot._2)
+      entity.changeRoom(this, foundSpot._1, foundSpot._2)
     }
   }
 

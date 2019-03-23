@@ -16,7 +16,7 @@ class Flames extends Entity {
 
   }
 
-  override def changeRoom(room: Room, newX: Float, newY: Float): Unit = {
+  override def changeRoom(entryDoor: Door, newX: Float, newY: Float): Unit = {
 
   }
 

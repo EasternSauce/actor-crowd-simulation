@@ -11,6 +11,8 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
+import scala.collection.mutable.Map
+
 class Character(val name: String, var room: Room, val controlScheme: ControlScheme, var image: Image) extends Entity {
 
   override var currentVelocityX: Float = 0.0f
@@ -21,6 +23,8 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   var walkAngle: Float = 0
   var viewAngle: Float = 0
+
+  var rememberedRoute: mutable.Map[String, (Float, Float)] = mutable.Map[String, (Float, Float)]()
 
   var viewRayList: ListBuffer[Shape] = ListBuffer[Shape]()
 
@@ -199,13 +203,24 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     }
   }
 
-  def changeRoom(newRoom: Room, newX: Float, newY: Float): Unit = {
+  override def changeRoom(entryDoor: Door, newX: Float, newY: Float): Unit = {
 //    println("changing room")
+
+    val newRoom: Room = entryDoor.leadingToDoor.room
+
+    if (rememberedRoute.contains(newRoom.name)) {
+      println("oh! im "+ name + " and i remember the door is at " + rememberedRoute(newRoom.name)._1 + ", " + rememberedRoute(newRoom.name)._2 + " in room " + newRoom.name)
+
+      followX = rememberedRoute(newRoom.name)._1
+      followY = rememberedRoute(newRoom.name)._2
+      followDistance = 0
+    }
+
     for (character <- room.characterList) {
       if (Math.abs(character.shape.getX - shape.getX) <= 700
         && Math.abs(character.shape.getY - shape.getY) <= 700
         && character != this) {
-        character.actor ! CharacterEnteredDoor(this, shape.getCenterX + currentVelocityX*10, shape.getCenterY + currentVelocityY* 10)
+        character.actor ! CharacterEnteredDoor(this, entryDoor.shape.getX, entryDoor.shape.getY)
       }
     }
 
@@ -297,6 +312,9 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
 
   def follow(entity: Entity, posX: Float, posY: Float, atDistance: Float): Unit = {
+
+    rememberedRoute.put(entity.room.name, (posX,posY))
+
     if (currentBehavior == "relaxed") {
       currentBehavior = "following"
 //      println("set to follow")

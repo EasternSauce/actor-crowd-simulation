@@ -15,5 +15,5 @@ abstract class Entity() {
 
   def onCollision(entity: Entity)
 
-  def changeRoom(room: Room, newX: Float, newY: Float)
+  def changeRoom(entryDoor: Door, newX: Float, newY: Float)
 }
