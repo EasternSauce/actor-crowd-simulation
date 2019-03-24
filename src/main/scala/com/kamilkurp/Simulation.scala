@@ -1,7 +1,7 @@
 package com.kamilkurp
 
 import akka.actor.{ActorRef, ActorSystem, Props}
-import com.kamilkurp.entities.Door
+import com.kamilkurp.entities.{Door, MeetPoint}
 import org.newdawn.slick._
 
 import scala.collection.mutable.ListBuffer
@@ -21,7 +21,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     "Lovie", "Theola", "Damion", "Petronila", "Corrinne",
     "Arica", "Alfonso", "Madalene", "Alvina", "Eliana", "Jarrod", "Thora")
 
-  val numberOfAgents: Int = 3
+  val numberOfAgents: Int = 20
+  val addManualAgent: Boolean = false
 
   var doorImage: Image = _
   var characterImage: Image = _
@@ -58,14 +59,16 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       character.setActor(actor)
     }
 
-    val playerName = "Player"
-    val character = new entities.Character(playerName, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S), characterImage)
+    if (addManualAgent) {
+      val playerName = "Player"
+      val character = new entities.Character(playerName, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S), characterImage)
 
-    val actor = system.actorOf(Props(new CharacterActor("Player", character)))
+      val actor = system.actorOf(Props(new CharacterActor("Player", character)))
 
-    character.setActor(actor)
+      character.setActor(actor)
 
-    room1.characterList += character
+      room1.characterList += character
+    }
 
     val doorAB = new Door("Door AB", room1, 170, 845, doorImage)
     val doorBA = new Door("Door BA", room2, 180, 10, doorImage)
@@ -81,6 +84,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     val doorDC = new Door("Door DC", room4, 460, 215, doorImage)
     doorCD.connectWith(doorDC)
     room3.evacuationDoor = doorCD
+
+    room4.meetPointList += new MeetPoint("meetpoint1", room4, 100, 100)
 
     roomList += (room1, room2, room3, room4)
   }

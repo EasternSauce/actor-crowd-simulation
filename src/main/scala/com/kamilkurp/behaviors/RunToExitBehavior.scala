@@ -1,6 +1,6 @@
 package com.kamilkurp.behaviors
 
-import com.kamilkurp.{CharacterLeadingEvacuation, ControlScheme}
+import com.kamilkurp.{CharacterEvacuating, ControlScheme}
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
@@ -29,7 +29,7 @@ class RunToExitBehavior extends Behavior {
         if (Math.abs(that.shape.getX - character.shape.getX) <= 700
           && Math.abs(that.shape.getY - character.shape.getY) <= 700
           && that != character) {
-          that.actor ! CharacterLeadingEvacuation(character, character.shape.getCenterX, character.shape.getCenterY)
+          that.actor ! CharacterEvacuating(character, character.shape.getCenterX, character.shape.getCenterY)
         }
       })
       broadcastTimer = 0
@@ -56,6 +56,12 @@ class RunToExitBehavior extends Behavior {
         character.currentVelocityY = (normalVector.y + deviationY) * character.speed * (1f - character.slow)
       }
 
+    }
+    else if (character.room.meetPointList.nonEmpty){
+      character.followX = character.room.meetPointList.head.shape.getCenterX
+      character.followY = character.room.meetPointList.head.shape.getCenterY
+
+      character.currentBehavior = "holdMeetPoint"
     }
   }
 }

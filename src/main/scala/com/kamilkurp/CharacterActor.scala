@@ -25,7 +25,7 @@ case class CharacterWithinVision(entity: Entity, distance: Float)
 
 case class CharacterEnteredDoor(entity: Entity, locationX: Float, locationY: Float)
 
-case class CharacterLeadingEvacuation(entity: Entity, locationX: Float, locationY:Float)
+case class CharacterEvacuating(entity: Entity, locationX: Float, locationY:Float)
 
 case class MoveOutOfTheWay(entity: Entity)
 
@@ -57,14 +57,26 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
     case CharacterWithinVision(that: Character, distance: Float) => {
 //      println(name + " sees " + that.name + " at distance " + distance)
 
-      if (that.currentBehavior == "runToExit") {
-        character.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
+      if (character.currentBehavior == "relaxed" || character.currentBehavior == "following") {
+        if (that.currentBehavior == "runToExit") {
+          character.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
+        } else if (that.currentBehavior == "following" && that.followingEntity == null) {
+          if (character.followingEntity == null || character.getDistanceTo(that) < character.getDistanceTo(character.followingEntity)) {
+            if (that.followingEntity != character) {
+              character.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
+            }
+          }
+        }
+
+
       }
 
-      if (character.currentBehavior == "runToExit" && that.currentBehavior == "following") {
-        that.actor ! MoveOutOfTheWay(character)
-//        println("sending to " + that.name)
+      if (that.currentBehavior == "following" && distance < 150) {
+        if (character.currentBehavior == "runToExit" || (character.currentBehavior == "following" && that.followingEntity == character)) {
+          that.actor ! MoveOutOfTheWay(character)
+        }
       }
+
     }
 
     case CharacterEnteredDoor(entity, locationX, locationY) => {
@@ -76,7 +88,7 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
       }
     }
 
-    case CharacterLeadingEvacuation(entity, locationX, locationY) => {
+    case CharacterEvacuating(entity, locationX, locationY) => {
       //      println(character.name + " received broadcast from " + entity.name)
       if (character.currentBehavior == "following" && character.followingEntity == entity) {
         val normalVector = new Vector2f(locationX - character.shape.getCenterX, locationY - character.shape.getCenterY)

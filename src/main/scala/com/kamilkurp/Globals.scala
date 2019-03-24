@@ -62,6 +62,25 @@ object Globals {
       }
     })
 
+    room.meetPointList.foreach(meetPoint => {
+
+      var collided = false
+
+      if (intersectsX(entity, meetPoint.shape.getX, meetPoint.shape.getY, meetPoint.shape.getWidth, meetPoint.shape.getHeight)) {
+        collisionDetails.colX = true
+        collided = true
+      }
+      if (intersectsY(entity, meetPoint.shape.getX, meetPoint.shape.getY, meetPoint.shape.getWidth, meetPoint.shape.getHeight)) {
+        collisionDetails.colY = true
+        collided = true
+      }
+
+      if (collided) {
+        entity.onCollision(meetPoint)
+        meetPoint.onCollision(entity)
+      }
+    })
+
     room.doorList.foreach(door => {
       if (intersects(entity, door.shape.getX, door.shape.getY, door.shape.getWidth, door.shape.getHeight)) {
         entity.onCollision(door)

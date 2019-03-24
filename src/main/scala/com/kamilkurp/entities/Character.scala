@@ -3,14 +3,13 @@ package com.kamilkurp.entities
 import akka.actor.ActorRef
 import com.kamilkurp.ControlScheme.ControlScheme
 import com.kamilkurp._
-import com.kamilkurp.behaviors.{Behavior, FollowingBehavior, RelaxedBehavior, RunToExitBehavior}
+import com.kamilkurp.behaviors._
 import org.newdawn.slick.geom._
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
-
 import scala.collection.mutable.Map
 
 class Character(val name: String, var room: Room, val controlScheme: ControlScheme, var image: Image) extends Entity {
@@ -51,7 +50,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var deviationX: Float = 0
   var deviationY: Float = 0
 
-  val chanceToBeLeader: Float = 0
+  val chanceToBeLeader: Float = 10
 
   var followX: Float = 0
   var followY: Float = 0
@@ -72,6 +71,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     shape.setY(Random.nextInt(room.w - Globals.CHARACTER_SIZE))
 
     val collisionDetails = Globals.manageCollisions(room, this)
+
     if (!collisionDetails.colX || !collisionDetails.colY) {
       isFree = true
     }
@@ -206,19 +206,21 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   override def changeRoom(entryDoor: Door, newX: Float, newY: Float): Unit = {
 //    println("changing room")
 
+//    if (currentBehavior == "runToExit") {
+//      rememberedRoute.put(entryDoor.room.name, (entryDoor.shape.getCenterX , entryDoor.shape.getCenterY))
+//    }
+
     val newRoom: Room = entryDoor.leadingToDoor.room
 
     if (rememberedRoute.contains(newRoom.name)) {
-      println("oh! im "+ name + " and i remember the door is at " + rememberedRoute(newRoom.name)._1 + ", " + rememberedRoute(newRoom.name)._2 + " in room " + newRoom.name)
-
       followX = rememberedRoute(newRoom.name)._1
       followY = rememberedRoute(newRoom.name)._2
       followDistance = 0
     }
 
     for (character <- room.characterList) {
-      if (Math.abs(character.shape.getX - shape.getX) <= 700
-        && Math.abs(character.shape.getY - shape.getY) <= 700
+      if (Math.abs(character.shape.getX - shape.getX) <= 1000
+        && Math.abs(character.shape.getY - shape.getY) <= 1000
         && character != this) {
         character.actor ! CharacterEnteredDoor(this, entryDoor.shape.getX, entryDoor.shape.getY)
       }
@@ -255,36 +257,67 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     if (currentBehavior == "relaxed") g.setColor(Color.cyan)
     if (currentBehavior == "following") g.setColor(Color.orange)
     if (currentBehavior == "runToExit") g.setColor(Color.red)
-    g.drawString("[" + currentBehavior + "]", room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 25 - offsetY)
+    if (currentBehavior == "holdMeetPoint") g.setColor(Color.yellow)
+
+
+    var tag: String = ""
+    if (currentBehavior == "following") {
+      tag = "[" + currentBehavior + " " + followingEntity.name +  "]"
+    }
+    else {
+      tag = "[" + currentBehavior + "]"
+
+    }
+    g.drawString(tag, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 25 - offsetY)
 
 
   }
 
   private def drawViewRays(g: Graphics, offsetX: Float, offsetY: Float, roomX: Float, roomY: Float) {
+    var firstRay: (Rectangle, Float) = (new Rectangle(0,0,0,0), 0)
+    var lastRay: (Rectangle, Float) = (new Rectangle(0,0,0,0), 0)
+
+    val x: Float = shape.getX + shape.getWidth / 2
+    val y: Float = shape.getY + shape.getHeight / 2
+
     for (i <- viewRayList.indices) {
-      val x: Float = shape.getX + shape.getWidth / 2
-      val y: Float = shape.getY + shape.getHeight / 2
+      val rect = new Rectangle(x, y, 500, 1)
+      var polygon: Shape = new Polygon(rect.getPoints)
 
-      var polygon: Shape = new Polygon(new Rectangle(x, y, 500, 1).getPoints)
-
-      val t: Transform = Transform.createRotateTransform(Math.toRadians(this.viewAngle - 60 + i* 5).toFloat, x, y)
+      val radianAngle = this.viewAngle - 60 + i * 5
+      val t: Transform = Transform.createRotateTransform(Math.toRadians(radianAngle).toFloat, x, y)
       polygon = polygon.transform(t)
 
       viewRayList(i) = polygon
+
+      if(i == 0) {
+        firstRay = (rect, radianAngle)
+      }
+      if(i == viewRayList.length - 1) {
+        lastRay = (rect, radianAngle)
+      }
     }
+
+    firstRay._1.setWidth(100)
+    lastRay._1.setWidth(100)
 
     val col = new Color(Color.green)
     col.a = 1f
-    for (i <- viewRayList.indices) {
-      g.setColor(col)
+    g.setColor(col)
 
-      var polygon: Shape = new Polygon(viewRayList(i).getPoints)
-      val t: Transform = Transform.createTranslateTransform(roomX - offsetX, roomY - offsetY)
-      polygon = polygon.transform(t)
+    val t: Transform = Transform.createTranslateTransform(roomX - offsetX, roomY - offsetY)
+    var polygon1: Shape = new Polygon(firstRay._1.getPoints)
+    val firstRotation: Transform = Transform.createRotateTransform(Math.toRadians(firstRay._2).toFloat, x, y)
+    polygon1 = polygon1.transform(firstRotation)
+    polygon1 = polygon1.transform(t)
+    var polygon2: Shape = new Polygon(lastRay._1.getPoints)
+    val lastRotation: Transform = Transform.createRotateTransform(Math.toRadians(lastRay._2).toFloat, x, y)
+    polygon2 = polygon2.transform(lastRotation)
+    polygon2 = polygon2.transform(t)
 
 
-     if (name == "Player") g.draw(polygon)
-    }
+    g.draw(polygon1)
+    g.draw(polygon2)
   }
 
 
@@ -307,13 +340,14 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   behaviorMap += ("following" -> new FollowingBehavior)
   behaviorMap += ("relaxed" -> new RelaxedBehavior)
   behaviorMap += ("runToExit" -> new RunToExitBehavior)
+  behaviorMap += ("holdMeetPoint" -> new HoldMeetPointBehavior)
+
 
   def getBehavior(behaviorName: String): Behavior = behaviorMap(behaviorName)
 
 
   def follow(entity: Entity, posX: Float, posY: Float, atDistance: Float): Unit = {
 
-    rememberedRoute.put(entity.room.name, (posX,posY))
 
     if (currentBehavior == "relaxed") {
       currentBehavior = "following"

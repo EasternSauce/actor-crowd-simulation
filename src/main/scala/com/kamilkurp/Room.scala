@@ -1,6 +1,6 @@
 package com.kamilkurp
 
-import com.kamilkurp.entities.Door
+import com.kamilkurp.entities.{Door, MeetPoint}
 import org.newdawn.slick.geom._
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
@@ -9,10 +9,9 @@ import scala.collection.mutable.ListBuffer
 class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
   val characterList: ListBuffer[entities.Character] = ListBuffer[entities.Character]()
   val doorList: ListBuffer[Door] = ListBuffer[Door]()
+  val meetPointList: ListBuffer[MeetPoint] = ListBuffer[MeetPoint]()
+
   var evacuationDoor: Door = _
-
-  var shape: Shape = _
-
 
   def addCharacter(character: entities.Character): characterList.type = {
     characterList += character
@@ -33,6 +32,10 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
 
     doorList.foreach(door => {
       door.draw(g, offsetX, offsetY)
+    })
+
+    meetPointList.foreach(meetPoint => {
+      meetPoint.draw(g, offsetX, offsetY)
     })
 
     characterList.foreach(character => {

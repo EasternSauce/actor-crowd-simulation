@@ -1,6 +1,6 @@
 package com.kamilkurp.behaviors
 
-import com.kamilkurp.ControlScheme
+import com.kamilkurp.{CharacterEvacuating, ControlScheme}
 import com.kamilkurp.entities.Character
 import org.newdawn.slick.geom.Vector2f
 
@@ -18,14 +18,30 @@ class FollowingBehavior extends Behavior {
   var deviationTimer: Int = 0
   val deviationTimerTimeout: Int = 500
 
+  var broadcastTimer: Int = 0
+  var broadcastTimerTimeout: Int = 300
+
+
 
   def perform(character: Character, delta: Int): Unit = {
     timer += delta
     deviationTimer += delta
     character.outOfWayTimer += delta
 
+    if (broadcastTimer > broadcastTimerTimeout) {
+      character.room.characterList.foreach(that => {
+        if (Math.abs(that.shape.getX - character.shape.getX) <= 700
+          && Math.abs(that.shape.getY - character.shape.getY) <= 700
+          && that != character) {
+          that.actor ! CharacterEvacuating(character, character.shape.getCenterX, character.shape.getCenterY)
+        }
+      })
+      broadcastTimer = 0
+    }
+
     if (timer > timerTimeout) {
       character.currentBehavior = "relaxed"
+      character.followingEntity = null
       return
     }
 
@@ -54,6 +70,13 @@ class FollowingBehavior extends Behavior {
         }
 
       }
+    }
+
+    if (character.room.meetPointList.nonEmpty){
+      character.followX = character.room.meetPointList.head.shape.getCenterX
+      character.followY = character.room.meetPointList.head.shape.getCenterY
+
+      character.currentBehavior = "holdMeetPoint"
     }
 
 
