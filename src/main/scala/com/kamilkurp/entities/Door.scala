@@ -41,12 +41,12 @@ class Door(val name: String, var room: Room, var posX: Float, var posY: Float, v
 //    }
 
 
-    for (i <- 1 to 20) {
+    for (i <- 1 to 36) {
       normalVector.setTheta(normalVector.getTheta + 10)
       var spotX = leadingToDoor.posX + normalVector.x * 100
       var spotY = leadingToDoor.posY + normalVector.y * 100
 
-      if (!Globals.isRectOccupied(leadingToDoor.room, spotX,spotY,shape.getWidth,shape.getHeight)) {
+      if (!Globals.isRectOccupied(leadingToDoor.room, spotX,spotY,entity.shape.getWidth,entity.shape.getHeight)) {
         entity.changeRoom(this, spotX, spotY)
         return
       }

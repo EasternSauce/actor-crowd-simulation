@@ -6,7 +6,7 @@ import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
-class RelaxedBehavior extends Behavior {
+class IdleBehavior extends Behavior {
   override var timerTimeout: Int = 500
 
 
@@ -37,6 +37,13 @@ class RelaxedBehavior extends Behavior {
         normalVector.normalise()
 
         character.walkAngle = normalVector.getTheta.floatValue()
+      }
+
+      if (character.room.meetPointList.nonEmpty){
+        character.followX = character.room.meetPointList.head.shape.getCenterX
+        character.followY = character.room.meetPointList.head.shape.getCenterY
+
+        character.currentBehavior = "holdMeetPoint"
       }
 
 

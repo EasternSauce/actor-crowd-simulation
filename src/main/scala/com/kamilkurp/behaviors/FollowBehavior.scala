@@ -1,25 +1,28 @@
 package com.kamilkurp.behaviors
 
-import com.kamilkurp.{CharacterEvacuating, ControlScheme}
+import com.kamilkurp.{CharacterLeading, ControlScheme}
 import com.kamilkurp.entities.Character
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
-class FollowingBehavior extends Behavior {
+class FollowBehavior extends Behavior {
 
 
 
   var deviationX: Float = 0
   var deviationY: Float = 0
 
-  override var timerTimeout: Int = 8000
+  override var timerTimeout: Int = 3000
 
   var deviationTimer: Int = 0
   val deviationTimerTimeout: Int = 500
 
   var broadcastTimer: Int = 0
   var broadcastTimerTimeout: Int = 300
+
+  var lastSeenLeaderTimer: Int = 0
+  var lastSeenLeaderTimerTimeout: Int = 1000
 
 
 
@@ -33,14 +36,14 @@ class FollowingBehavior extends Behavior {
         if (Math.abs(that.shape.getX - character.shape.getX) <= 700
           && Math.abs(that.shape.getY - character.shape.getY) <= 700
           && that != character) {
-          that.actor ! CharacterEvacuating(character, character.shape.getCenterX, character.shape.getCenterY)
+          that.actor ! CharacterLeading(character, character.shape.getCenterX, character.shape.getCenterY)
         }
       })
       broadcastTimer = 0
     }
 
     if (timer > timerTimeout) {
-      character.currentBehavior = "relaxed"
+      character.currentBehavior = "idle"
       character.followingEntity = null
       return
     }
@@ -85,7 +88,7 @@ class FollowingBehavior extends Behavior {
   }
 
 //  def start(x: Float, y: Float): Unit = {
-//    character.behaviorSet += "following"
+//    character.behaviorSet += "follow"
 //    followX = x
 //    followY = y
 //    timer = 0

@@ -32,7 +32,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     viewRayList += polygon
   }
 
-  currentBehavior = "relaxed"
+  currentBehavior = "idle"
 
   var controls: (Int, Int, Int, Int) = _
 
@@ -79,7 +79,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
   if (Random.nextInt(100) < chanceToBeLeader) {
-    currentBehavior = "runToExit"
+    currentBehavior = "leader"
   }
 
   def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int), image: Image) {
@@ -88,7 +88,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
     if (name == "Player") {
       println("setting for player")
-      currentBehavior = "runToExit"
+      currentBehavior = "leader"
     }
 
 
@@ -232,7 +232,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     room = newRoom
     shape.setX(newX)
     shape.setY(newY)
-//    if (currentBehavior == "following") currentBehavior = "relaxed"
+//    if (currentBehavior == "follow") currentBehavior = "idle"
 
   }
 
@@ -254,14 +254,15 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   def drawName(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
     g.setColor(Color.darkGray)
     g.drawString(name, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 40 - offsetY)
-    if (currentBehavior == "relaxed") g.setColor(Color.cyan)
-    if (currentBehavior == "following") g.setColor(Color.orange)
-    if (currentBehavior == "runToExit") g.setColor(Color.red)
+    if (currentBehavior == "idle") g.setColor(Color.cyan)
+    if (currentBehavior == "follow") g.setColor(Color.orange)
+    if (currentBehavior == "leader") g.setColor(Color.red)
     if (currentBehavior == "holdMeetPoint") g.setColor(Color.yellow)
+    if (currentBehavior == "followGroup") g.setColor(Color.pink)
 
 
     var tag: String = ""
-    if (currentBehavior == "following") {
+    if (currentBehavior == "follow") {
       tag = "[" + currentBehavior + " " + followingEntity.name +  "]"
     }
     else {
@@ -337,10 +338,11 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   val behaviorMap: mutable.HashMap[String, Behavior] = mutable.HashMap.empty[String,Behavior]
 
-  behaviorMap += ("following" -> new FollowingBehavior)
-  behaviorMap += ("relaxed" -> new RelaxedBehavior)
-  behaviorMap += ("runToExit" -> new RunToExitBehavior)
+  behaviorMap += ("follow" -> new FollowBehavior)
+  behaviorMap += ("idle" -> new IdleBehavior)
+  behaviorMap += ("leader" -> new LeaderNehavior)
   behaviorMap += ("holdMeetPoint" -> new HoldMeetPointBehavior)
+  behaviorMap += ("followGroup" -> new FollowGroupBehavior)
 
 
   def getBehavior(behaviorName: String): Behavior = behaviorMap(behaviorName)
@@ -349,14 +351,14 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   def follow(entity: Entity, posX: Float, posY: Float, atDistance: Float): Unit = {
 
 
-    if (currentBehavior == "relaxed") {
-      currentBehavior = "following"
+    if (currentBehavior == "idle") {
+      currentBehavior = "follow"
 //      println("set to follow")
       followX = posX
       followY = posY
       followDistance = atDistance
       followingEntity = entity
-      getBehavior("following").timer = 0
+      getBehavior("follow").timer = 0
     }
     else {
 //      println("current behavior is following")
@@ -364,7 +366,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 //        println("following same person")
         followX = posX
         followY = posY
-        getBehavior("following").timer = 0
+        getBehavior("follow").timer = 0
         followDistance = atDistance
       }
     }

@@ -1,12 +1,12 @@
 package com.kamilkurp.behaviors
 
-import com.kamilkurp.{CharacterEvacuating, ControlScheme}
+import com.kamilkurp.{CharacterLeading, ControlScheme}
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 import com.kamilkurp.entities.{Character, Door}
 
-class RunToExitBehavior extends Behavior {
+class LeaderNehavior extends Behavior {
 
   var deviationX: Float = 0
   var deviationY: Float = 0
@@ -26,10 +26,10 @@ class RunToExitBehavior extends Behavior {
 
     if (broadcastTimer > broadcastTimerTimeout) {
       character.room.characterList.foreach(that => {
-        if (Math.abs(that.shape.getX - character.shape.getX) <= 700
+        if (/*Math.abs(that.shape.getX - character.shape.getX) <= 700
           && Math.abs(that.shape.getY - character.shape.getY) <= 700
-          && that != character) {
-          that.actor ! CharacterEvacuating(character, character.shape.getCenterX, character.shape.getCenterY)
+          && */that != character) {
+          that.actor ! CharacterLeading(character, character.shape.getCenterX, character.shape.getCenterY)
         }
       })
       broadcastTimer = 0

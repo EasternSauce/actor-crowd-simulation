@@ -18,14 +18,14 @@ case class SomeoneNearby(name: String, x: Float, y: Float, w: Float, h: Float)
 
 //case class SomeoneEvacuating(name: String, x: Float, y: Float, w: Float, h: Float)
 
-case class OutOfTheWay(name: String, x: Float, y: Float, w: Float, h: Float)
+//case class OutOfTheWay(name: String, x: Float, y: Float, w: Float, h: Float)
 
 case class CharacterWithinVision(entity: Entity, distance: Float)
 
 
 case class CharacterEnteredDoor(entity: Entity, locationX: Float, locationY: Float)
 
-case class CharacterEvacuating(entity: Entity, locationX: Float, locationY:Float)
+case class CharacterLeading(entity: Entity, locationX: Float, locationY:Float)
 
 case class MoveOutOfTheWay(entity: Entity)
 
@@ -50,17 +50,17 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
 //      if (door != null) char.followingBehavior.start(door.posX + door.shape.getWidth/2, door.posY + door.shape.getHeight/2)
 //    }
 
-    case OutOfTheWay(name: String, x: Float, y: Float, w: Float, h: Float) => {
+//    case OutOfTheWay(name: String, x: Float, y: Float, w: Float, h: Float) => {
       //println(name + " screams to get out of the way to " + this.name)
-    }
+//    }
 
     case CharacterWithinVision(that: Character, distance: Float) => {
 //      println(name + " sees " + that.name + " at distance " + distance)
 
-      if (character.currentBehavior == "relaxed" || character.currentBehavior == "following") {
-        if (that.currentBehavior == "runToExit") {
+      if (character.currentBehavior == "idle" || character.currentBehavior == "follow") {
+        if (that.currentBehavior == "leader") {
           character.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
-        } else if (that.currentBehavior == "following" && that.followingEntity == null) {
+        } else if (that.currentBehavior == "follow" && that.followingEntity == null) {
           if (character.followingEntity == null || character.getDistanceTo(that) < character.getDistanceTo(character.followingEntity)) {
             if (that.followingEntity != character) {
               character.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
@@ -71,8 +71,8 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
 
       }
 
-      if (that.currentBehavior == "following" && distance < 150) {
-        if (character.currentBehavior == "runToExit" || (character.currentBehavior == "following" && that.followingEntity == character)) {
+      if (that.currentBehavior == "follow" && distance < 150) {
+        if (character.currentBehavior == "leader" || (character.currentBehavior == "follow" && that.followingEntity == character)) {
           that.actor ! MoveOutOfTheWay(character)
         }
       }
@@ -88,9 +88,9 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
       }
     }
 
-    case CharacterEvacuating(entity, locationX, locationY) => {
+    case CharacterLeading(entity, locationX, locationY) => {
       //      println(character.name + " received broadcast from " + entity.name)
-      if (character.currentBehavior == "following" && character.followingEntity == entity) {
+      if (character.currentBehavior == "idle" || (character.currentBehavior == "follow" && character.followingEntity == entity)) {
         val normalVector = new Vector2f(locationX - character.shape.getCenterX, locationY - character.shape.getCenterY)
         normalVector.normalise()
 

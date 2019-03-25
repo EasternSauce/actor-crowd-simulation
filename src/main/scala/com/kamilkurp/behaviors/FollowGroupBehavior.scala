@@ -4,7 +4,7 @@ import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
-class HoldMeetPointBehavior extends Behavior {
+class FollowGroupBehavior extends Behavior {
   override var timerTimeout: Int = 0
 
   var deviationX: Float = 0
@@ -13,11 +13,7 @@ class HoldMeetPointBehavior extends Behavior {
   var deviationTimer: Int = 0
   val deviationTimerTimeout: Int = 500
 
-
   override def perform(character: entities.Character, delta: Int): Unit = {
-
-//    println(character.name + " holding meet point at " + character.followX + " " + character.followY)
-
     val normalVector = new Vector2f(character.followX - character.shape.getCenterX, character.followY - character.shape.getCenterY)
     normalVector.normalise()
 
