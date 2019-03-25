@@ -14,16 +14,13 @@ object CameraView {
 
 class Simulation(gameName: String) extends BasicGame(gameName) {
   val system: ActorSystem = ActorSystem("crowd_sim_system")
-
+  val numberOfAgents: Int = 20
+  val addManualAgent: Boolean = false
   // load resources
   var listOfNames = Array("Virgil", "Dominique", "Hermina",
     "Carolynn", "Adina", "Elida", "Classie", "Raymonde",
     "Lovie", "Theola", "Damion", "Petronila", "Corrinne",
     "Arica", "Alfonso", "Madalene", "Alvina", "Eliana", "Jarrod", "Thora")
-
-  val numberOfAgents: Int = 20
-  val addManualAgent: Boolean = false
-
   var doorImage: Image = _
   var characterImage: Image = _
 
@@ -85,7 +82,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     doorCD.connectWith(doorDC)
     room3.evacuationDoor = doorCD
 
-    room4.meetPointList += new MeetPoint("meetpoint1", room4, 100, 100)
+    room4.meetPointList += new MeetPoint("Meet Point 1", room4, 100, 100)
 
     roomList += (room1, room2, room3, room4)
   }

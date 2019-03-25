@@ -7,9 +7,8 @@ import org.newdawn.slick.geom.Vector2f
 import scala.util.Random
 
 class IdleBehavior extends Behavior {
-  override var timerTimeout: Int = 500
-
-
+  override var timer: Int = 0
+  override var timerTimeout: Int = 3000
 
   def perform(character: Character, delta: Int): Unit = {
     timer += delta
@@ -31,7 +30,6 @@ class IdleBehavior extends Behavior {
       }
 
 
-
       if (character.currentVelocityX != 0 || character.currentVelocityY != 0) {
         val normalVector = new Vector2f(character.currentVelocityX, character.currentVelocityY)
         normalVector.normalise()
@@ -39,7 +37,7 @@ class IdleBehavior extends Behavior {
         character.walkAngle = normalVector.getTheta.floatValue()
       }
 
-      if (character.room.meetPointList.nonEmpty){
+      if (character.room.meetPointList.nonEmpty) {
         character.followX = character.room.meetPointList.head.shape.getCenterX
         character.followY = character.room.meetPointList.head.shape.getCenterY
 

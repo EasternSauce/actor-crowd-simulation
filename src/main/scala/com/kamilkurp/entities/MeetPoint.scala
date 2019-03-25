@@ -1,7 +1,8 @@
 package com.kamilkurp.entities
+
 import com.kamilkurp.Room
+import org.newdawn.slick.geom.{Rectangle, Shape, Transform}
 import org.newdawn.slick.{Color, Graphics, Image}
-import org.newdawn.slick.geom.{Polygon, Rectangle, Shape, Transform}
 
 class MeetPoint(val name: String, var room: Room, var posX: Float, var posY: Float) extends Entity {
 

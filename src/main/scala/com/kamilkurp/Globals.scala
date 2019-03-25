@@ -9,33 +9,6 @@ object Globals {
   val SCALE_X: Float = 2.0f
   val SCALE_Y: Float = 2.0f
 
-  private def intersectsX(entity: Entity, thatX: Float, thatY: Float, thatW: Float, thatH: Float): Boolean = {
-
-    if (entity.shape.getX + entity.currentVelocityX < thatX + thatW &&
-      entity.shape.getX + entity.currentVelocityX + entity.shape.getWidth > thatX &&
-      entity.shape.getY < thatY + thatH &&
-      entity.shape.getHeight + entity.shape.getY > thatY) true
-    else false
-
-  }
-
-  private def intersectsY(entity: Entity, thatX: Float, thatY: Float, thatW: Float, thatH: Float): Boolean = {
-
-    if (entity.shape.getX < thatX + thatW &&
-      entity.shape.getX + entity.shape.getWidth > thatX &&
-      entity.shape.getY + entity.currentVelocityY < thatY + thatH &&
-      entity.shape.getHeight + entity.shape.getY + entity.currentVelocityY > thatY) true
-    else false
-
-  }
-
-  private def intersects(entity: Entity, thatX: Float, thatY: Float, thatW: Float, thatH: Float): Boolean = {
-
-    if (intersectsX(entity, thatX, thatY, thatW, thatH) || intersectsY(entity, thatX, thatY, thatW, thatH)) true
-    else false
-
-  }
-
   def manageCollisions(room: Room, entity: Entity): CollisionDetails = {
 
     val collisionDetails: CollisionDetails = new CollisionDetails(false, false)
@@ -91,8 +64,6 @@ object Globals {
     collisionDetails
   }
 
-  class CollisionDetails(var colX: Boolean, var colY: Boolean)
-
   def isRectOccupied(room: Room, x: Float, y: Float, w: Float, h: Float): Boolean = {
     var occupied = false
 
@@ -113,5 +84,34 @@ object Globals {
 
     occupied
   }
+
+  private def intersects(entity: Entity, thatX: Float, thatY: Float, thatW: Float, thatH: Float): Boolean = {
+
+    if (intersectsX(entity, thatX, thatY, thatW, thatH) || intersectsY(entity, thatX, thatY, thatW, thatH)) true
+    else false
+
+  }
+
+  private def intersectsX(entity: Entity, thatX: Float, thatY: Float, thatW: Float, thatH: Float): Boolean = {
+
+    if (entity.shape.getX + entity.currentVelocityX < thatX + thatW &&
+      entity.shape.getX + entity.currentVelocityX + entity.shape.getWidth > thatX &&
+      entity.shape.getY < thatY + thatH &&
+      entity.shape.getHeight + entity.shape.getY > thatY) true
+    else false
+
+  }
+
+  private def intersectsY(entity: Entity, thatX: Float, thatY: Float, thatW: Float, thatH: Float): Boolean = {
+
+    if (entity.shape.getX < thatX + thatW &&
+      entity.shape.getX + entity.shape.getWidth > thatX &&
+      entity.shape.getY + entity.currentVelocityY < thatY + thatH &&
+      entity.shape.getHeight + entity.shape.getY + entity.currentVelocityY > thatY) true
+    else false
+
+  }
+
+  class CollisionDetails(var colX: Boolean, var colY: Boolean)
 
 }

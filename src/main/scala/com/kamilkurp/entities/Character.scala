@@ -10,7 +10,6 @@ import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
-import scala.collection.mutable.Map
 
 class Character(val name: String, var room: Room, val controlScheme: ControlScheme, var image: Image) extends Entity {
 
@@ -23,7 +22,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var walkAngle: Float = 0
   var viewAngle: Float = 0
 
-  var rememberedRoute: mutable.Map[String, (Float, Float)] = mutable.Map[String, (Float, Float)]()
+  val rememberedRoute: mutable.Map[String, (Float, Float)] = mutable.Map[String, (Float, Float)]()
 
   var viewRayList: ListBuffer[Shape] = ListBuffer[Shape]()
 
@@ -36,7 +35,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   var controls: (Int, Int, Int, Int) = _
 
-  var speed: Float = 3.0f
+  val speed: Float = 3.0f
 
   var slow: Float = 0.0f
   var slowTimer: Int = 0
@@ -58,7 +57,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   var followingEntity: Entity = _
 
-  var outOfWayTimerTimeout: Float = 300
+  val outOfWayTimerTimeout: Float = 300
 
   var outOfWayTimer: Float = outOfWayTimerTimeout
 
@@ -179,7 +178,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
 
-  private def adjustViewAngle(clockwise: Boolean) = {
+  private def adjustViewAngle(clockwise: Boolean): Unit = {
     val turnSpeed = 12
     if (Math.abs(viewAngle - walkAngle) > turnSpeed && Math.abs((viewAngle + 180) % 360 - (walkAngle + 180) % 360) > turnSpeed) {
       if (clockwise) { // clockwise
@@ -204,11 +203,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
   override def changeRoom(entryDoor: Door, newX: Float, newY: Float): Unit = {
-//    println("changing room")
-
-//    if (currentBehavior == "runToExit") {
-//      rememberedRoute.put(entryDoor.room.name, (entryDoor.shape.getCenterX , entryDoor.shape.getCenterY))
-//    }
 
     val newRoom: Room = entryDoor.leadingToDoor.room
 
@@ -232,8 +226,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     room = newRoom
     shape.setX(newX)
     shape.setY(newY)
-//    if (currentBehavior == "follow") currentBehavior = "idle"
-
   }
 
   def setActor(actor: ActorRef): Unit = {
@@ -242,11 +234,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   def draw(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
     g.drawImage(image, room.x + shape.getX - offsetX, room.y + shape.getY - offsetY)
-
-//    if (currentBehavior == "runToExit") {
-//      g.setColor(Color.red)
-//      g.fillRect(room.x + shape.getX - offsetX, room.y + shape.getY - offsetY, 5, 5)
-//    }
 
     drawViewRays(g, offsetX, offsetY, room.x, room.y)
   }
@@ -340,7 +327,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   behaviorMap += ("follow" -> new FollowBehavior)
   behaviorMap += ("idle" -> new IdleBehavior)
-  behaviorMap += ("leader" -> new LeaderNehavior)
+  behaviorMap += ("leader" -> new LeaderBehavior)
   behaviorMap += ("holdMeetPoint" -> new HoldMeetPointBehavior)
   behaviorMap += ("followGroup" -> new FollowGroupBehavior)
 
@@ -353,7 +340,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
     if (currentBehavior == "idle") {
       currentBehavior = "follow"
-//      println("set to follow")
       followX = posX
       followY = posY
       followDistance = atDistance
@@ -361,9 +347,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       getBehavior("follow").timer = 0
     }
     else {
-//      println("current behavior is following")
       if (entity == followingEntity) {
-//        println("following same person")
         followX = posX
         followY = posY
         getBehavior("follow").timer = 0

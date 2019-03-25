@@ -1,23 +1,21 @@
 package com.kamilkurp.behaviors
 
+import com.kamilkurp.entities.{Character, Door}
 import com.kamilkurp.{CharacterLeading, ControlScheme}
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
-import com.kamilkurp.entities.{Character, Door}
 
-class LeaderNehavior extends Behavior {
+class LeaderBehavior extends Behavior {
 
+  val broadcastTimerTimeout: Int = 300
+  val deviationTimerTimeout: Int = 500
+  override var timer: Int = 0
+  override var timerTimeout: Int = 3000
   var deviationX: Float = 0
   var deviationY: Float = 0
-
-  override var timerTimeout: Int = 3500
-
   var broadcastTimer: Int = 0
-  var broadcastTimerTimeout: Int = 300
-
   var deviationTimer: Int = 0
-  val deviationTimerTimeout: Int = 500
 
   def perform(character: Character, delta: Int): Unit = {
     timer += delta
@@ -26,9 +24,9 @@ class LeaderNehavior extends Behavior {
 
     if (broadcastTimer > broadcastTimerTimeout) {
       character.room.characterList.foreach(that => {
-        if (/*Math.abs(that.shape.getX - character.shape.getX) <= 700
+        if ( /*Math.abs(that.shape.getX - character.shape.getX) <= 700
           && Math.abs(that.shape.getY - character.shape.getY) <= 700
-          && */that != character) {
+          && */ that != character) {
           that.actor ! CharacterLeading(character, character.shape.getCenterX, character.shape.getCenterY)
         }
       })
@@ -45,7 +43,6 @@ class LeaderNehavior extends Behavior {
       }
 
 
-
       if (character.controlScheme != ControlScheme.Manual) {
         val normalVector = new Vector2f(door.posX - character.shape.getX, door.posY - character.shape.getY)
         normalVector.normalise()
@@ -57,7 +54,7 @@ class LeaderNehavior extends Behavior {
       }
 
     }
-    else if (character.room.meetPointList.nonEmpty){
+    else if (character.room.meetPointList.nonEmpty) {
       character.followX = character.room.meetPointList.head.shape.getCenterX
       character.followY = character.room.meetPointList.head.shape.getCenterY
 
