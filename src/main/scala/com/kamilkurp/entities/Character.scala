@@ -55,7 +55,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var followY: Float = 0
   var followDistance: Float = 0
 
-  var followingEntity: Entity = _
+  var followedCharacter: Character = _
 
   val outOfWayTimerTimeout: Float = 300
 
@@ -63,6 +63,10 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   var movingOutOfTheWay: Boolean = false
 
+  var lastSeenFollowedEntityTimer: Int = 0
+  var lastSeenFollowedEntityTimerTimeout: Int = 1000
+
+  var lostSightOfFollowedEntity: Boolean =  false
 
   var isFree = false
   while (!isFree) {
@@ -250,7 +254,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
     var tag: String = ""
     if (currentBehavior == "follow") {
-      tag = "[" + currentBehavior + " " + followingEntity.name +  "]"
+      tag = "[" + currentBehavior + " " + followedCharacter.name +  "]"
     }
     else {
       tag = "[" + currentBehavior + "]"
@@ -269,7 +273,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     val y: Float = shape.getY + shape.getHeight / 2
 
     for (i <- viewRayList.indices) {
-      val rect = new Rectangle(x, y, 500, 1)
+      val rect = new Rectangle(x, y, 1200, 1)
       var polygon: Shape = new Polygon(rect.getPoints)
 
       val radianAngle = this.viewAngle - 60 + i * 5
@@ -335,7 +339,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   def getBehavior(behaviorName: String): Behavior = behaviorMap(behaviorName)
 
 
-  def follow(entity: Entity, posX: Float, posY: Float, atDistance: Float): Unit = {
+  def follow(character: Character, posX: Float, posY: Float, atDistance: Float): Unit = {
 
 
     if (currentBehavior == "idle") {
@@ -343,11 +347,11 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       followX = posX
       followY = posY
       followDistance = atDistance
-      followingEntity = entity
+      followedCharacter = character
       getBehavior("follow").timer = 0
     }
     else {
-      if (entity == followingEntity) {
+      if (character == followedCharacter) {
         followX = posX
         followY = posY
         getBehavior("follow").timer = 0

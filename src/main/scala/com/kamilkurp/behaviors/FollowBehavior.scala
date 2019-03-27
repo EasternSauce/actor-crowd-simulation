@@ -9,27 +9,27 @@ import scala.util.Random
 class FollowBehavior extends Behavior {
 
   override var timer: Int = 0
-  override var timerTimeout: Int = 3000
+  override var timerTimeout: Int = 10000
   val deviationTimerTimeout: Int = 500
   val broadcastTimerTimeout: Int = 300
   var deviationX: Float = 0
   var deviationY: Float = 0
   var deviationTimer: Int = 0
   var broadcastTimer: Int = 0
-  var lastSeenLeaderTimer: Int = 0
-  var lastSeenLeaderTimerTimeout: Int = 1000
+
 
 
   def perform(character: Character, delta: Int): Unit = {
     timer += delta
     deviationTimer += delta
     character.outOfWayTimer += delta
+    if (!character.lostSightOfFollowedEntity) character.lastSeenFollowedEntityTimer += delta
 
     if (broadcastTimer > broadcastTimerTimeout) {
       character.room.characterList.foreach(that => {
-        if (Math.abs(that.shape.getX - character.shape.getX) <= 700
-          && Math.abs(that.shape.getY - character.shape.getY) <= 700
-          && that != character) {
+        if (/*Math.abs(that.shape.getX - character.shape.getX) <= 1100
+          && Math.abs(that.shape.getY - character.shape.getY) <= 1100
+          &&*/ that != character) {
           that.actor ! CharacterLeading(character, character.shape.getCenterX, character.shape.getCenterY)
         }
       })
@@ -38,8 +38,13 @@ class FollowBehavior extends Behavior {
 
     if (timer > timerTimeout) {
       character.currentBehavior = "idle"
-      character.followingEntity = null
+      character.followedCharacter = null
       return
+    }
+
+    if (character.lastSeenFollowedEntityTimer > character.lastSeenFollowedEntityTimerTimeout) {
+      character.lostSightOfFollowedEntity = true
+      character.lastSeenFollowedEntityTimer = 0
     }
 
     if (deviationTimer > deviationTimerTimeout) {
