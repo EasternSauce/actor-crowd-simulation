@@ -1,28 +1,27 @@
 package com.kamilkurp.behaviors
 
 import com.kamilkurp.entities.{Character, Door}
-import com.kamilkurp.{CharacterLeading, ControlScheme}
+import com.kamilkurp.{CharacterLeading, ControlScheme, Timer}
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
 class LeaderBehavior extends Behavior {
 
-  val broadcastTimerTimeout: Int = 300
-  val deviationTimerTimeout: Int = 500
-  override var timer: Int = 0
-  override var timerTimeout: Int = 3000
+  override var timer: Timer = new Timer(3000)
+  var deviationTimer: Timer = new Timer(500)
+  var broadcastTimer: Timer = new Timer(300)
+
   var deviationX: Float = 0
   var deviationY: Float = 0
-  var broadcastTimer: Int = 0
-  var deviationTimer: Int = 0
+
 
   def perform(character: Character, delta: Int): Unit = {
-    timer += delta
-    deviationTimer += delta
-    broadcastTimer += delta
+    timer.update(delta)
+    deviationTimer.update(delta)
+    broadcastTimer.update(delta)
 
-    if (broadcastTimer > broadcastTimerTimeout) {
+    if (broadcastTimer.timedOut()) {
       character.room.characterList.foreach(that => {
         if ( /*Math.abs(that.shape.getX - character.shape.getX) <= 700
           && Math.abs(that.shape.getY - character.shape.getY) <= 700
@@ -30,16 +29,16 @@ class LeaderBehavior extends Behavior {
           that.actor ! CharacterLeading(character, character.shape.getCenterX, character.shape.getCenterY)
         }
       })
-      broadcastTimer = 0
+      broadcastTimer.reset()
     }
 
 
     val door: Door = character.room.evacuationDoor
     if (door != null) {
-      if (deviationTimer > deviationTimerTimeout) {
+      if (deviationTimer.timedOut()) {
         deviationX = 0.3f * Random.nextFloat() - 0.15f
         deviationY = 0.3f * Random.nextFloat() - 0.15f
-        deviationTimer = 0
+        deviationTimer.reset()
       }
 
 

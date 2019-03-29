@@ -37,7 +37,7 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
       if (character.currentBehavior == "idle" || character.currentBehavior == "follow") {
         if (that.currentBehavior == "leader") {
           character.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
-          character.lastSeenFollowedEntityTimer = 0
+          character.lastSeenFollowedEntityTimer.reset()
         } else if (that.currentBehavior == "follow") {
           if (character.followedCharacter == null || character.lostSightOfFollowedEntity) {
 
@@ -68,7 +68,7 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
             if (!loopDetected && lastCharacter.currentBehavior == "leader") {
               println(print)
               character.lostSightOfFollowedEntity = false
-              character.lastSeenFollowedEntityTimer = 0
+              character.lastSeenFollowedEntityTimer.reset()
               character.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
             }
           }
@@ -103,7 +103,7 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
     case MoveOutOfTheWay(entity) =>
       if (!character.movingOutOfTheWay) {
         character.movingOutOfTheWay = true
-        character.outOfWayTimer = 0
+        character.outOfWayTimer.reset()
 
         val normalVector = new Vector2f(entity.currentVelocityX, entity.currentVelocityY)
         normalVector.normalise()

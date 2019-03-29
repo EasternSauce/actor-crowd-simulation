@@ -1,22 +1,22 @@
 package com.kamilkurp.behaviors
 
-import com.kamilkurp.ControlScheme
+import com.kamilkurp.{ControlScheme, Timer}
 import com.kamilkurp.entities.Character
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
 class IdleBehavior extends Behavior {
-  override var timer: Int = 0
-  override var timerTimeout: Int = 3000
+  override var timer: Timer = new Timer(3000)
+
 
   def perform(character: Character, delta: Int): Unit = {
-    timer += delta
+    timer.update(delta)
 
-    if (timer > 500) {
+    if (timer.timedOut()) {
       val inPlace = Random.nextInt(100) < 60
 
-      timer = 0
+      timer.reset()
 
       if (character.controlScheme != ControlScheme.Manual) {
         if (inPlace) {

@@ -56,6 +56,10 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       character.setActor(actor)
     }
 
+    for (i <- 0 to 0) {
+      room1.characterList(i).currentBehavior = "leader"
+    }
+
     if (addManualAgent) {
       val playerName = "Player"
       val character = new entities.Character(playerName, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S), characterImage)

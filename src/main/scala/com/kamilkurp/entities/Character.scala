@@ -38,9 +38,9 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   val speed: Float = 3.0f
 
   var slow: Float = 0.0f
-  var slowTimer: Int = 0
+  var slowTimer: Timer = new Timer(3000)
 
-  var lookTimer: Int = 0
+  var lookTimer: Timer = new Timer(50)
 
   var slowed: Boolean = false
 
@@ -57,14 +57,12 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   var followedCharacter: Character = _
 
-  val outOfWayTimerTimeout: Float = 300
-
-  var outOfWayTimer: Float = outOfWayTimerTimeout
+  var outOfWayTimer: Timer = new Timer(300)
+  outOfWayTimer.set(outOfWayTimer.timeout)
 
   var movingOutOfTheWay: Boolean = false
 
-  var lastSeenFollowedEntityTimer: Int = 0
-  var lastSeenFollowedEntityTimerTimeout: Int = 1000
+  var lastSeenFollowedEntityTimer = new Timer(1000)
 
   var lostSightOfFollowedEntity: Boolean =  false
 
@@ -81,9 +79,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   }
 
-  if (Random.nextInt(100) < chanceToBeLeader) {
-    currentBehavior = "leader"
-  }
+
 
   def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int), image: Image) {
     this(name, room, controlScheme, image)
@@ -98,8 +94,8 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
   def update(gc: GameContainer, delta: Int): Unit = {
-    slowTimer = slowTimer + delta
-    lookTimer = lookTimer + delta
+    slowTimer.update(delta)
+    lookTimer.update(delta)
 
     if (controlScheme == ControlScheme.Agent) updateAgent(delta)
     else if (controlScheme == ControlScheme.Manual) updateManual(gc, delta)
@@ -122,14 +118,14 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
   private def updateAgent(delta: Int): Unit = {
-    if (slowTimer > 3000) {
+    if (slowTimer.timedOut()) {
       slow = 0f
     }
 
-    if (lookTimer > 50 && walkAngle != viewAngle) {
+    if (lookTimer.timedOut() && walkAngle != viewAngle) {
       adjustViewAngle(Character.findSideToTurn(viewAngle, walkAngle))
 
-      lookTimer = 0
+      lookTimer.reset()
     }
 
     getBehavior(currentBehavior).perform(this, delta)
@@ -138,9 +134,9 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   private def updateManual(gc: GameContainer, delta: Int): Unit = {
     var moved = false
 
-    if (lookTimer > 50 && walkAngle != viewAngle) {
+    if (lookTimer.timedOut() && walkAngle != viewAngle) {
       adjustViewAngle(Character.findSideToTurn(viewAngle, walkAngle))
-      lookTimer = 0
+      lookTimer.reset()
     }
 
     if (gc.getInput.isKeyDown(controls._1)) {
@@ -201,7 +197,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   override def onCollision(entity: Entity): Unit = {
     if (entity.getClass == classOf[Character]) {
-      slowTimer = 0
+      slowTimer.reset()
       slow = 0.2f
     }
   }
@@ -333,7 +329,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   behaviorMap += ("idle" -> new IdleBehavior)
   behaviorMap += ("leader" -> new LeaderBehavior)
   behaviorMap += ("holdMeetPoint" -> new HoldMeetPointBehavior)
-  behaviorMap += ("followGroup" -> new FollowGroupBehavior)
 
 
   def getBehavior(behaviorName: String): Behavior = behaviorMap(behaviorName)
@@ -348,13 +343,13 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       followY = posY
       followDistance = atDistance
       followedCharacter = character
-      getBehavior("follow").timer = 0
+      getBehavior("follow").timer.reset()
     }
     else {
       if (character == followedCharacter) {
         followX = posX
         followY = posY
-        getBehavior("follow").timer = 0
+        getBehavior("follow").timer.reset()
         followDistance = atDistance
       }
     }
