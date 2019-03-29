@@ -31,7 +31,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   var actorList: List[ActorRef] = mutableActorList.toList
 
-  var timer = 0
+  var renderScale: Float = 1.0f
 
   override def init(gc: GameContainer): Unit = {
     doorImage = new Image("door.png")
@@ -105,6 +105,14 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       CameraView.x = CameraView.x - (1.0f * i.toFloat)
     }
 
+    if (gc.getInput.isKeyDown(Input.KEY_SUBTRACT)) {
+      renderScale -= 0.005f
+    }
+    if (gc.getInput.isKeyDown(Input.KEY_ADD)) {
+      renderScale += 0.005f
+    }
+
+
     roomList.foreach(room => {
       room.update(gc, i)
     })
@@ -112,7 +120,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
 
   override def render(gc: GameContainer, g: Graphics): Unit = {
-    g.scale(Globals.SCALE_X, Globals.SCALE_Y)
+    g.scale(renderScale, renderScale)
     roomList.foreach(room => {
       room.render(g, doorImage, CameraView.x, CameraView.y)
     })

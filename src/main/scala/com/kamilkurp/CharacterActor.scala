@@ -45,12 +45,12 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
             var followChain: Character = that
             var lastCharacter: Character = that
 
-            var print = "chain for character " + character.name + ": "
+//            var print = "chain for character " + character.name + ": "
 
             while (followChain != null) {
               lastCharacter = followChain
 
-              print += followChain.name + " "
+//              print += followChain.name + " "
 
               if (followChain == character) {
                 loopDetected = true
@@ -66,7 +66,7 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
 
 
             if (!loopDetected && lastCharacter.currentBehavior == "leader") {
-              println(print)
+//              println(print)
               character.lostSightOfFollowedEntity = false
               character.lastSeenFollowedEntityTimer.reset()
               character.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
