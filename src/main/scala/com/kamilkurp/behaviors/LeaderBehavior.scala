@@ -15,6 +15,9 @@ class LeaderBehavior extends Behavior {
   var deviationX: Float = 0
   var deviationY: Float = 0
 
+  override def init(character: Character): Unit = {
+    character.allowChangeRoom = true
+  }
 
   def perform(character: Character, delta: Int): Unit = {
     timer.update(delta)
@@ -57,7 +60,7 @@ class LeaderBehavior extends Behavior {
       character.followX = character.room.meetPointList.head.shape.getCenterX
       character.followY = character.room.meetPointList.head.shape.getCenterY
 
-      character.currentBehavior = "holdMeetPoint"
+      character.setBehavior("holdMeetPoint")
     }
   }
 }

@@ -14,7 +14,7 @@ object CameraView {
 
 class Simulation(gameName: String) extends BasicGame(gameName) {
   val system: ActorSystem = ActorSystem("crowd_sim_system")
-  val numberOfAgents: Int = 20
+  val numberOfAgents: Int = 12
   val addManualAgent: Boolean = false
   // load resources
   var listOfNames = Array("Virgil", "Dominique", "Hermina",
@@ -31,7 +31,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   var actorList: List[ActorRef] = mutableActorList.toList
 
-  var renderScale: Float = 1.0f
+  var renderScale: Float = 1.5f
 
   override def init(gc: GameContainer): Unit = {
     doorImage = new Image("door.png")
@@ -43,7 +43,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     val room4 = new Room("Room D", 800, 2100, 500, 500)
 
 
-    for (_ <- 1 to numberOfAgents) {
+    for (_ <- 0 until numberOfAgents) {
 
       val randomNameIndex = Random.nextInt(listOfNames.length)
       val randomName = listOfNames(randomNameIndex)
@@ -56,8 +56,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       character.setActor(actor)
     }
 
-    for (i <- 0 to 0) {
-      room1.characterList(i).currentBehavior = "leader"
+    for (i <- 0 until 1) {
+      room1.characterList(i).setBehavior("leader")
     }
 
     if (addManualAgent) {

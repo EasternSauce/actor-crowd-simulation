@@ -10,6 +10,7 @@ class MeetPoint(val name: String, var room: Room, var posX: Float, var posY: Flo
   override var currentVelocityY: Float = 0
   override var image: Image = _
   override var shape: Shape = _
+  override var allowChangeRoom: Boolean = false
 
   shape = new Rectangle(posX, posY, 30, 30)
 

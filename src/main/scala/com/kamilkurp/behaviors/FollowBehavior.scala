@@ -15,6 +15,9 @@ class FollowBehavior extends Behavior {
   var deviationY: Float = 0
 
 
+  override def init(character: Character): Unit = {
+
+  }
 
 
   def perform(character: Character, delta: Int): Unit = {
@@ -37,7 +40,7 @@ class FollowBehavior extends Behavior {
     }
 
     if (timer.timedOut()) {
-      character.currentBehavior = "idle"
+      character.setBehavior("idle")
       character.followedCharacter = null
       return
     }
@@ -78,10 +81,11 @@ class FollowBehavior extends Behavior {
       character.followX = character.room.meetPointList.head.shape.getCenterX
       character.followY = character.room.meetPointList.head.shape.getCenterY
 
-      character.currentBehavior = "holdMeetPoint"
+      character.setBehavior("holdMeetPoint")
     }
 
 
   }
+
 }
 

@@ -8,6 +8,8 @@ class Door(val name: String, var room: Room, var posX: Float, var posY: Float, v
   override var currentVelocityX = 0.0f
   override var currentVelocityY = 0.0f
   override var shape: Shape = _
+  override var allowChangeRoom: Boolean = false
+
   var leadingToDoor: Door = _
 
   room.doorList += this

@@ -16,6 +16,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   override var currentVelocityX: Float = 0.0f
   override var currentVelocityY: Float = 0.0f
   override var shape: Shape = new Rectangle(0, 0, Globals.CHARACTER_SIZE, Globals.CHARACTER_SIZE)
+  override var allowChangeRoom: Boolean = false
 
   var currentBehavior: String = _
 
@@ -31,7 +32,14 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     viewRayList += polygon
   }
 
-  currentBehavior = "idle"
+  val behaviorMap: mutable.HashMap[String, Behavior] = mutable.HashMap.empty[String,Behavior]
+
+  behaviorMap += ("follow" -> new FollowBehavior)
+  behaviorMap += ("idle" -> new IdleBehavior)
+  behaviorMap += ("leader" -> new LeaderBehavior)
+  behaviorMap += ("holdMeetPoint" -> new HoldMeetPointBehavior)
+
+  setBehavior("idle")
 
   var controls: (Int, Int, Int, Int) = _
 
@@ -67,6 +75,8 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var lostSightOfFollowedEntity: Boolean =  false
 
   var isFree = false
+
+
   while (!isFree) {
     shape.setX(Random.nextInt(room.w - Globals.CHARACTER_SIZE))
     shape.setY(Random.nextInt(room.w - Globals.CHARACTER_SIZE))
@@ -80,15 +90,15 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
 
+  if (name == "Player") {
+    println("setting for player")
+    setBehavior("leader")
+  }
 
   def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int), image: Image) {
     this(name, room, controlScheme, image)
     this.controls = controls
 
-    if (name == "Player") {
-      println("setting for player")
-      currentBehavior = "leader"
-    }
 
 
   }
@@ -203,6 +213,11 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
   override def changeRoom(entryDoor: Door, newX: Float, newY: Float): Unit = {
+    if (!allowChangeRoom) return
+
+    if (currentBehavior != "leader") {
+      allowChangeRoom = false
+    }
 
     val newRoom: Room = entryDoor.leadingToDoor.room
 
@@ -242,7 +257,8 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     g.setColor(Color.darkGray)
     g.drawString(name, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 40 - offsetY)
     if (currentBehavior == "idle") g.setColor(Color.cyan)
-    if (currentBehavior == "follow") g.setColor(Color.orange)
+    if (currentBehavior == "follow" && !lostSightOfFollowedEntity) g.setColor(Color.magenta)
+    if (currentBehavior == "follow" && lostSightOfFollowedEntity) g.setColor(Color.orange)
     if (currentBehavior == "leader") g.setColor(Color.red)
     if (currentBehavior == "holdMeetPoint") g.setColor(Color.yellow)
     if (currentBehavior == "followGroup") g.setColor(Color.pink)
@@ -258,6 +274,9 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     }
     g.drawString(tag, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 25 - offsetY)
 
+    if (allowChangeRoom) {
+      g.drawString("wants to enter door", room.x + shape.getX - 10 - offsetX, room.y + shape.getY + 25 - offsetY)
+    }
 
   }
 
@@ -323,22 +342,22 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
 
 
-  val behaviorMap: mutable.HashMap[String, Behavior] = mutable.HashMap.empty[String,Behavior]
 
-  behaviorMap += ("follow" -> new FollowBehavior)
-  behaviorMap += ("idle" -> new IdleBehavior)
-  behaviorMap += ("leader" -> new LeaderBehavior)
-  behaviorMap += ("holdMeetPoint" -> new HoldMeetPointBehavior)
 
 
   def getBehavior(behaviorName: String): Behavior = behaviorMap(behaviorName)
+
+  def setBehavior(behaviorName: String): Unit = {
+    currentBehavior = behaviorName
+    behaviorMap(behaviorName).init(this)
+  }
 
 
   def follow(character: Character, posX: Float, posY: Float, atDistance: Float): Unit = {
 
 
     if (currentBehavior == "idle") {
-      currentBehavior = "follow"
+      setBehavior("follow")
       followX = posX
       followY = posY
       followDistance = atDistance

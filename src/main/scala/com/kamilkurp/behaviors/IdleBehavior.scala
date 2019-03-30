@@ -7,8 +7,11 @@ import org.newdawn.slick.geom.Vector2f
 import scala.util.Random
 
 class IdleBehavior extends Behavior {
-  override var timer: Timer = new Timer(3000)
+  override var timer: Timer = new Timer(500)
 
+  override def init(character: Character): Unit = {
+
+  }
 
   def perform(character: Character, delta: Int): Unit = {
     timer.update(delta)
@@ -41,7 +44,7 @@ class IdleBehavior extends Behavior {
         character.followX = character.room.meetPointList.head.shape.getCenterX
         character.followY = character.room.meetPointList.head.shape.getCenterY
 
-        character.currentBehavior = "holdMeetPoint"
+        character.setBehavior("holdMeetPoint")
       }
 
 

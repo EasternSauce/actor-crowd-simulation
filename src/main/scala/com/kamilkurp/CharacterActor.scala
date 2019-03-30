@@ -6,21 +6,11 @@ import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
-case class Hello(sender: String)
-
-case class UpdatePosition(delta: Int, actorList: List[ActorRef])
-
-case class NearbyProbe(x: Int, y: Int)
-
-case class CollisionProbe(x: Int, y: Int, w: Int, h: Int)
-
-case class SomeoneNearby(name: String, x: Float, y: Float, w: Float, h: Float)
-
 case class CharacterWithinVision(entity: Entity, distance: Float)
 
 case class CharacterEnteredDoor(character: Character, locationX: Float, locationY: Float)
 
-case class CharacterLeading(entity: Entity, locationX: Float, locationY: Float)
+case class CharacterLeading(character: Character, locationX: Float, locationY: Float)
 
 case class MoveOutOfTheWay(entity: Entity)
 
@@ -30,8 +20,6 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
 
 
   override def receive: Receive = {
-    case NearbyProbe(thatX, thatY) if Math.abs(thatX - char.shape.getX) <= 25 && Math.abs(thatY - char.shape.getY) <= 25 && sender != self =>
-      sender ! Hello(name)
     case CharacterWithinVision(that: Character, distance: Float) =>
 
       if (character.currentBehavior == "idle" || character.currentBehavior == "follow") {
@@ -52,7 +40,7 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
 
 //              print += followChain.name + " "
 
-              if (followChain == character) {
+              if (followChain == character || followChain.lostSightOfFollowedEntity) {
                 loopDetected = true
                 followChain = null
               }
@@ -85,18 +73,44 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
 
     case CharacterEnteredDoor(entity, locationX, locationY) => {
       if (character.followedCharacter == entity) {
+        character.allowChangeRoom = true
         character.follow(entity, locationX, locationY, 0)
       }
     }
 
     case CharacterLeading(entity, locationX, locationY) => {
-//      if (character.currentBehavior == "idle" || (character.currentBehavior == "follow" && character.followedCharacter == entity)) {
-      if (character.currentBehavior == "idle" || character.currentBehavior == "follow") {
-        val normalVector = new Vector2f(locationX - character.shape.getCenterX, locationY - character.shape.getCenterY)
-        normalVector.normalise()
+      if (character.currentBehavior == "idle" || (character.currentBehavior == "follow" && character.followedCharacter == entity)) {
+//      if (character.currentBehavior == "idle" || character.currentBehavior == "follow") {
 
-        character.walkAngle = normalVector.getTheta.floatValue()
-        character.viewAngle = normalVector.getTheta.floatValue()
+        var loopDetected: Boolean = false
+        var followChain: Character = entity
+        var lastCharacter: Character = entity
+
+        //            var print = "chain for character " + character.name + ": "
+
+        while (followChain != null) {
+          lastCharacter = followChain
+
+          //              print += followChain.name + " "
+
+          if (followChain == character || followChain.lostSightOfFollowedEntity) {
+            loopDetected = true
+            followChain = null
+          }
+          else {
+            followChain = followChain.followedCharacter
+          }
+        }
+
+        if (!loopDetected) {
+          val normalVector = new Vector2f(locationX - character.shape.getCenterX, locationY - character.shape.getCenterY)
+          normalVector.normalise()
+
+          character.walkAngle = normalVector.getTheta.floatValue()
+          character.viewAngle = normalVector.getTheta.floatValue()
+        }
+
+
       }
     }
 
@@ -126,7 +140,3 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
 
 
 }
-
-case object PrintPosition
-
-case object CharacterInfo
