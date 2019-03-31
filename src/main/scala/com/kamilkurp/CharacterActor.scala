@@ -84,7 +84,7 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
       if (character.followedCharacter == entity) {
 
         character.allowChangeRoom = true
-        println(character.name + ": setting follow to door at " + locationX + " " + locationY)
+//        println(character.name + ": setting follow to door at " + locationX + " " + locationY)
 
         character.follow(entity, locationX, locationY, 0)
         character.getBehavior("follow").timer.stop()

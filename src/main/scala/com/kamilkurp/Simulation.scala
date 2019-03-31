@@ -5,6 +5,7 @@ import com.kamilkurp.entities.{Door, MeetPoint}
 import org.newdawn.slick._
 
 import scala.collection.mutable.ListBuffer
+import scala.io.Source
 import scala.util.Random
 
 object CameraView {
@@ -25,6 +26,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   var characterImage: Image = _
 
   var roomList: ListBuffer[Room] = new ListBuffer[Room]
+  var doorList: ListBuffer[Door] = new ListBuffer[Door]
 
   var mutableActorList = new ListBuffer[ActorRef]()
 
@@ -37,13 +39,78 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     doorImage = new Image("door.png")
     characterImage = new Image("character.png")
 
-    val room1 = new Room("Room A", 100, 100, 400, 900)
-    val room2 = new Room("Room B", 100, 1100, 1200, 500)
-    val room3 = new Room("Room C", 1400, 1100, 500, 1500)
-    val room4 = new Room("Room D", 800, 2100, 500, 500)
+    val filename = "building.txt"
+    for (line <- Source.fromFile(filename).getLines) {
+      if (!line.isEmpty) {
+        var split: Array[String] = line.split(" ")
 
+        if (split(0) == "room") {
+          val room = new Room(split(1), split(2).toInt, split(3).toInt, split(4).toInt, split(5).toInt)
+          roomList += room
+        }
+        else if (split(0) == "door") {
+          var room: Room = null
+          var linkToDoor: Door = null
+
+          if (split.length >= 6) {
+            roomList.foreach(that => {
+              if (that.name == split(5)) room = that
+            })
+          }
+          if (split.length >= 7) {
+            doorList.foreach(that => {
+              if (that.name == split(6)) linkToDoor = that
+            })
+          }
+          val door = new Door(split(1), room, split(3).toInt, split(4).toInt, doorImage)
+          if (linkToDoor != null) door.connectWith(linkToDoor)
+//          println("room " + room.name + " door list size: " + room.doorList.length)
+          if (split(2) == "1") {
+            room.evacuationDoor = door
+          }
+          doorList += door
+        }
+        else if (split(0) == "meet") {
+          var room: Room = null
+
+          if (split.length >= 5) {
+            roomList.foreach(that => {
+              if (that.name == split(4)) room = that
+            })
+          }
+
+          val meetPoint = new MeetPoint(split(1), room, split(2).toInt, split(3).toInt)
+          room.meetPointList += meetPoint
+        }
+      }
+    }
+
+//    val room1 = new Room("", 100, 100, 400, 900)
+//    val room2 = new Room("", 100, 1100, 1200, 500)
+//    val room3 = new Room("", 1400, 1100, 500, 1500)
+//    val room4 = new Room("", 800, 2100, 500, 500)
+//
+//    val doorAB = new Door("", room1, 170, 845, doorImage)
+//    val doorBA = new Door("", room2, 180, 10, doorImage)
+//    doorAB.connectWith(doorBA)
+//    room1.evacuationDoor = doorAB
+//
+//    val doorBC = new Door("", room2, 1160, 215, doorImage)
+//    val doorCB = new Door("", room3, 10, 215, doorImage)
+//    doorBC.connectWith(doorCB)
+//    room2.evacuationDoor = doorBC
+//
+//    val doorCD = new Door("", room3, 10, 1215, doorImage)
+//    val doorDC = new Door("", room4, 460, 215, doorImage)
+//    doorCD.connectWith(doorDC)
+//    room3.evacuationDoor = doorCD
+//
+//    roomList += (room1, room2, room3, room4)
+
+    val room1 = roomList.filter(room => room.name == "roomA").head
 
     for (_ <- 0 until numberOfAgents) {
+
 
       val randomNameIndex = Random.nextInt(listOfNames.length)
       val randomName = listOfNames(randomNameIndex)
@@ -71,24 +138,10 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       room1.characterList += character
     }
 
-    val doorAB = new Door("Door AB", room1, 170, 845, doorImage)
-    val doorBA = new Door("Door BA", room2, 180, 10, doorImage)
-    doorAB.connectWith(doorBA)
-    room1.evacuationDoor = doorAB
 
-    val doorBC = new Door("Door BC", room2, 1160, 215, doorImage)
-    val doorCB = new Door("Door CB", room3, 10, 215, doorImage)
-    doorBC.connectWith(doorCB)
-    room2.evacuationDoor = doorBC
 
-    val doorCD = new Door("Door CD", room3, 10, 1215, doorImage)
-    val doorDC = new Door("Door DC", room4, 460, 215, doorImage)
-    doorCD.connectWith(doorDC)
-    room3.evacuationDoor = doorCD
 
-    room4.meetPointList += new MeetPoint("Meet Point 1", room4, 100, 100)
-
-    roomList += (room1, room2, room3, room4)
+//    room4.meetPointList += new MeetPoint("", room4, 100, 100)
   }
 
   override def update(gc: GameContainer, i: Int): Unit = {

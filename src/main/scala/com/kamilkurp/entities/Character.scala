@@ -236,7 +236,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       followX = newRoom.w/2
       followY = newRoom.h/2
       followDistance = 0
-      println(name + ": setting follow to center of room")
+//      println(name + ": setting follow to center of room")
     }
 
     for (character <- room.characterList) {
