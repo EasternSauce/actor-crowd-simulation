@@ -2,7 +2,7 @@ package com.kamilkurp.entities
 
 import com.kamilkurp.{Globals, Room}
 import org.newdawn.slick.geom.{Rectangle, Shape, Vector2f}
-import org.newdawn.slick.{Graphics, Image}
+import org.newdawn.slick.{Color, Graphics, Image}
 
 class Door(val name: String, var room: Room, var posX: Float, var posY: Float, var image: Image) extends Entity {
   override var currentVelocityX = 0.0f
@@ -32,8 +32,8 @@ class Door(val name: String, var room: Room, var posX: Float, var posY: Float, v
 
     for (_ <- 1 to 36) {
       normalVector.setTheta(normalVector.getTheta + 10)
-      val spotX = leadingToDoor.posX + normalVector.x * 100
-      val spotY = leadingToDoor.posY + normalVector.y * 100
+      val spotX = leadingToDoor.posX + normalVector.x * 50
+      val spotY = leadingToDoor.posY + normalVector.y * 50
 
       if (!Globals.isRectOccupied(leadingToDoor.room, spotX, spotY, entity.shape.getWidth, entity.shape.getHeight)) {
         entity.changeRoom(this, spotX, spotY)
@@ -45,6 +45,8 @@ class Door(val name: String, var room: Room, var posX: Float, var posY: Float, v
 
   def draw(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
     g.drawImage(this.image, room.x + shape.getX - offsetX, room.y + shape.getY - offsetY)
+    g.setColor(Color.green)
+    g.drawString(this.name, room.x + shape.getX - offsetX, room.y + shape.getY - offsetY)
 
   }
 

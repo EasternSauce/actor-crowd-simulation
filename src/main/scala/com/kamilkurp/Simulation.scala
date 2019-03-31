@@ -15,8 +15,8 @@ object CameraView {
 
 class Simulation(gameName: String) extends BasicGame(gameName) {
   val system: ActorSystem = ActorSystem("crowd_sim_system")
-  val numberOfAgents: Int = 20
-  val addManualAgent: Boolean = false
+  val numberOfAgents: Int = 5
+  val addManualAgent: Boolean = true
   // load resources
   var listOfNames = Array("Virgil", "Dominique", "Hermina",
     "Carolynn", "Adina", "Elida", "Classie", "Raymonde",
@@ -107,7 +107,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 //
 //    roomList += (room1, room2, room3, room4)
 
-    val room1 = roomList.filter(room => room.name == "roomA").head
+    val roomsFiltered = roomList.filter(room => room.name == "roomA")
+    val room1 = if (roomsFiltered.nonEmpty) roomsFiltered.head else null
 
     for (_ <- 0 until numberOfAgents) {
 
@@ -124,7 +125,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     }
 
     for (i <- 0 until 1) {
-      room1.characterList(i).setBehavior("leader")
+      if (room1 != null) room1.characterList(i).setBehavior("leader")
     }
 
     if (addManualAgent) {
@@ -145,6 +146,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   }
 
   override def update(gc: GameContainer, i: Int): Unit = {
+
     if (gc.getInput.isKeyDown(Input.KEY_DOWN)) {
       CameraView.y = CameraView.y + (1.0f * i.toFloat)
     }
@@ -176,7 +178,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
 
     roomList.foreach(room => {
-      room.update(gc, i)
+      room.update(gc, i, renderScale)
     })
   }
 
@@ -184,6 +186,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   override def render(gc: GameContainer, g: Graphics): Unit = {
     g.scale(renderScale, renderScale)
     roomList.foreach(room => {
+//      println((CameraView.x + gc.getInput.getMouseX * 1/renderScale) + " " + (CameraView.y + gc.getInput.getMouseY * 1/renderScale))
+
       room.render(g, doorImage, CameraView.x, CameraView.y)
     })
   }

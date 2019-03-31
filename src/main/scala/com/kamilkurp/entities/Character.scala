@@ -78,13 +78,15 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
 
   while (!isFree) {
+//    println("looking for free spot for " + name)
     shape.setX(Random.nextInt(room.w - Globals.CHARACTER_SIZE))
-    shape.setY(Random.nextInt(room.w - Globals.CHARACTER_SIZE))
+    shape.setY(Random.nextInt(room.h - Globals.CHARACTER_SIZE))
 
     val collisionDetails = Globals.manageCollisions(room, this)
 
     if (!collisionDetails.colX || !collisionDetails.colY) {
       isFree = true
+//      println("found spot at " + shape.getX + " " + shape.getY)
     }
 
   }
@@ -103,7 +105,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   }
 
-  def update(gc: GameContainer, delta: Int): Unit = {
+  def update(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
     slowTimer.update(delta)
     lookTimer.update(delta)
 
@@ -112,7 +114,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 //    }
 
     if (controlScheme == ControlScheme.Agent) updateAgent(delta)
-    else if (controlScheme == ControlScheme.Manual) updateManual(gc, delta)
+    else if (controlScheme == ControlScheme.Manual) updateManual(gc, delta, renderScale)
 
     val collisionDetails = Globals.manageCollisions(room, this)
     if (!collisionDetails.colX) {
@@ -145,7 +147,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     getBehavior(currentBehavior).perform(this, delta)
   }
 
-  private def updateManual(gc: GameContainer, delta: Int): Unit = {
+  private def updateManual(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
     var moved = false
 
     if (lookTimer.timedOut() && walkAngle != viewAngle) {
@@ -184,8 +186,8 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     }
 
     if (moved) {
-      CameraView.x = room.x + shape.getX - Globals.WINDOW_X/Globals.SCALE_X / 2 + shape.getWidth / 2
-      CameraView.y = room.y + shape.getY - Globals.WINDOW_Y/Globals.SCALE_Y / 2 + shape.getHeight / 2
+      CameraView.x = room.x + shape.getX - Globals.WINDOW_X/ renderScale/ 2 + shape.getWidth / 2
+      CameraView.y = room.y + shape.getY - Globals.WINDOW_Y/renderScale / 2 + shape.getHeight / 2
     }
 
     getBehavior(currentBehavior).perform(this, delta)
@@ -264,7 +266,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
   def drawName(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
-    g.setColor(Color.darkGray)
+    g.setColor(Color.pink)
     g.drawString(name, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 40 - offsetY)
     if (currentBehavior == "idle") g.setColor(Color.cyan)
     if (currentBehavior == "follow" && !lostSightOfFollowedEntity) g.setColor(Color.yellow)

@@ -25,7 +25,12 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
   }
 
   def render(g: Graphics, doorImage: Image, offsetX: Float, offsetY: Float): Unit = {
-    g.setColor(Color.gray)
+    if (name.startsWith("corr")) g.setColor(Color.darkGray)
+    else if (name.startsWith("room")) g.setColor(Color.lightGray)
+
+
+
+
     g.fillRect(x - offsetX, y - offsetY, w, h)
 
 
@@ -48,9 +53,9 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
 
   }
 
-  def update(gc: GameContainer, delta: Int): Unit = {
+  def update(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
     characterList.foreach(character => {
-      character.update(gc, delta)
+      character.update(gc, delta, renderScale)
     })
 
 

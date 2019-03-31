@@ -1,0 +1,14 @@
+room roomA 100 100 400 900
+room roomB 100 1100 1200 500
+room roomC 1400 1100 500 1500
+room roomD 800 2100 500 500
+
+
+door doorAB 1 170 845 roomA
+door doorBA 0 180 10 roomB doorAB
+door doorBC 1 1160 215 roomB
+door doorCB 0 10 215 roomC doorBC
+door doorCD 1 10 1215 roomC
+door doorDC 0 460 215 roomD doorCD
+
+meet meetPoint1 100 100 roomD
