@@ -51,8 +51,8 @@ class LeaderBehavior extends Behavior {
 
         character.walkAngle = normalVector.getTheta.floatValue()
 
-        character.currentVelocityX = (normalVector.x + deviationX) * character.speed * (1f - character.slow)
-        character.currentVelocityY = (normalVector.y + deviationY) * character.speed * (1f - character.slow)
+        character.currentVelocityX = (normalVector.x + deviationX) * character.speed * (1f - character.slow) * delta
+        character.currentVelocityY = (normalVector.y + deviationY) * character.speed * (1f - character.slow) * delta
       }
 
     }

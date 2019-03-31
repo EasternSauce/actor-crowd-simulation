@@ -14,7 +14,7 @@ object CameraView {
 
 class Simulation(gameName: String) extends BasicGame(gameName) {
   val system: ActorSystem = ActorSystem("crowd_sim_system")
-  val numberOfAgents: Int = 12
+  val numberOfAgents: Int = 20
   val addManualAgent: Boolean = false
   // load resources
   var listOfNames = Array("Virgil", "Dominique", "Hermina",
@@ -106,10 +106,19 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     }
 
     if (gc.getInput.isKeyDown(Input.KEY_SUBTRACT)) {
-      renderScale -= 0.005f
+      val centerX = CameraView.x + Globals.WINDOW_X * 1/renderScale / 2
+      val centerY = CameraView.y + Globals.WINDOW_Y * 1/renderScale / 2
+      renderScale /= 1 + 0.005f
+      CameraView.x = centerX - (Globals.WINDOW_X * 1/renderScale / 2)
+      CameraView.y = centerY - (Globals.WINDOW_Y * 1/renderScale / 2)
+
     }
     if (gc.getInput.isKeyDown(Input.KEY_ADD)) {
-      renderScale += 0.005f
+      val centerX = CameraView.x + Globals.WINDOW_X * 1/renderScale / 2
+      val centerY = CameraView.y + Globals.WINDOW_Y * 1/renderScale / 2
+      renderScale *= 1 + 0.005f
+      CameraView.x = centerX - (Globals.WINDOW_X * 1/renderScale / 2)
+      CameraView.y = centerY - (Globals.WINDOW_Y * 1/renderScale / 2)
     }
 
 

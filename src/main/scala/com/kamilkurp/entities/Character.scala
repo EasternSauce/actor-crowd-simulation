@@ -43,7 +43,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   var controls: (Int, Int, Int, Int) = _
 
-  val speed: Float = 3.0f
+  val speed: Float = 0.5f
 
   var slow: Float = 0.0f
   var slowTimer: Timer = new Timer(3000)
@@ -70,7 +70,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   var movingOutOfTheWay: Boolean = false
 
-  var lastSeenFollowedEntityTimer = new Timer(1000)
+  var lastSeenFollowedEntityTimer = new Timer(1000 + new Random().nextInt(600))
 
   var lostSightOfFollowedEntity: Boolean =  false
 
@@ -91,7 +91,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
 
   if (name == "Player") {
-    println("setting for player")
+//    println("setting for player")
     setBehavior("leader")
   }
 
@@ -106,6 +106,10 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   def update(gc: GameContainer, delta: Int): Unit = {
     slowTimer.update(delta)
     lookTimer.update(delta)
+
+//    if (currentVelocityX == 0 && currentVelocityY == 0) {
+//      println(name + "\'s followX: " + followX + " followY: " + followY)
+//    }
 
     if (controlScheme == ControlScheme.Agent) updateAgent(delta)
     else if (controlScheme == ControlScheme.Manual) updateManual(gc, delta)
@@ -219,6 +223,8 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       allowChangeRoom = false
     }
 
+    getBehavior("follow").timer.start()
+
     val newRoom: Room = entryDoor.leadingToDoor.room
 
     if (rememberedRoute.contains(newRoom.name)) {
@@ -226,11 +232,15 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       followY = rememberedRoute(newRoom.name)._2
       followDistance = 0
     }
+    else {
+      followX = newRoom.w/2
+      followY = newRoom.h/2
+      followDistance = 0
+      println(name + ": setting follow to center of room")
+    }
 
     for (character <- room.characterList) {
-      if (Math.abs(character.shape.getX - shape.getX) <= 1000
-        && Math.abs(character.shape.getY - shape.getY) <= 1000
-        && character != this) {
+      if (character != this) {
         character.actor ! CharacterEnteredDoor(this, entryDoor.shape.getX, entryDoor.shape.getY)
       }
     }
@@ -257,12 +267,10 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     g.setColor(Color.darkGray)
     g.drawString(name, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 40 - offsetY)
     if (currentBehavior == "idle") g.setColor(Color.cyan)
-    if (currentBehavior == "follow" && !lostSightOfFollowedEntity) g.setColor(Color.magenta)
-    if (currentBehavior == "follow" && lostSightOfFollowedEntity) g.setColor(Color.orange)
+    if (currentBehavior == "follow" && !lostSightOfFollowedEntity) g.setColor(Color.yellow)
+    if (currentBehavior == "follow" && lostSightOfFollowedEntity) g.setColor(Color.green)
     if (currentBehavior == "leader") g.setColor(Color.red)
-    if (currentBehavior == "holdMeetPoint") g.setColor(Color.yellow)
-    if (currentBehavior == "followGroup") g.setColor(Color.pink)
-
+    if (currentBehavior == "holdMeetPoint") g.setColor(Color.green)
 
     var tag: String = ""
     if (currentBehavior == "follow") {
@@ -274,9 +282,9 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     }
     g.drawString(tag, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 25 - offsetY)
 
-    if (allowChangeRoom) {
-      g.drawString("wants to enter door", room.x + shape.getX - 10 - offsetX, room.y + shape.getY + 25 - offsetY)
-    }
+//    if (allowChangeRoom) {
+//      g.drawString("wants to enter door", room.x + shape.getX - 10 - offsetX, room.y + shape.getY + 25 - offsetY)
+//    }
 
   }
 
@@ -355,6 +363,9 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   def follow(character: Character, posX: Float, posY: Float, atDistance: Float): Unit = {
 
+//    if (this.getDistanceTo(posX, posY) < 40+atDistance) {
+//      println(name + " arrived")
+//    }
 
     if (currentBehavior == "idle") {
       setBehavior("follow")
@@ -364,14 +375,22 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       followedCharacter = character
       getBehavior("follow").timer.reset()
     }
-    else {
+    else if (currentBehavior == "follow") {
       if (character == followedCharacter) {
         followX = posX
         followY = posY
         getBehavior("follow").timer.reset()
         followDistance = atDistance
       }
+      else {
+        followX = posX
+        followY = posY
+        followDistance = atDistance
+        followedCharacter = character
+        getBehavior("follow").timer.reset()
+      }
     }
+
 
   }
 

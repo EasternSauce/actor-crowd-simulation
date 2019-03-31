@@ -22,12 +22,20 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
   override def receive: Receive = {
     case CharacterWithinVision(that: Character, distance: Float) =>
 
+//      if (character.currentVelocityX == 0 && character.currentVelocityY == 0) {
+//        println(character.name + " standing in place, followedcharacter=" + (if(that.followedCharacter == null) "null" else that.followedCharacter.name) + " ")
+//      }
+
       if (character.currentBehavior == "idle" || character.currentBehavior == "follow") {
-        if (that.currentBehavior == "leader") {
+        if (that.currentBehavior == "leader" && that.followedCharacter == null) {
+//          println(name + " following leader")
           character.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
+          character.lostSightOfFollowedEntity = false
           character.lastSeenFollowedEntityTimer.reset()
         } else if (that.currentBehavior == "follow") {
           if (character.followedCharacter == null || character.lostSightOfFollowedEntity) {
+
+//            println(character.name + "trying to follow non-leader")
 
             var loopDetected: Boolean = false
             var followChain: Character = that
@@ -57,6 +65,7 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
 //              println(print)
               character.lostSightOfFollowedEntity = false
               character.lastSeenFollowedEntityTimer.reset()
+//              println(name + " following someone following leader")
               character.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
             }
           }
@@ -73,14 +82,25 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
 
     case CharacterEnteredDoor(entity, locationX, locationY) => {
       if (character.followedCharacter == entity) {
+
         character.allowChangeRoom = true
+        println(character.name + ": setting follow to door at " + locationX + " " + locationY)
+
         character.follow(entity, locationX, locationY, 0)
+        character.getBehavior("follow").timer.stop()
+//        println(name + " following someone through door")
       }
     }
 
     case CharacterLeading(entity, locationX, locationY) => {
-      if (character.currentBehavior == "idle" || (character.currentBehavior == "follow" && character.followedCharacter == entity)) {
+      if (character.currentBehavior == "idle" ||
+        (character.currentBehavior == "follow" && (character.followedCharacter == null || character.followedCharacter == entity)) ||
+        (character.currentBehavior == "follow" && character.lostSightOfFollowedEntity && !entity.lostSightOfFollowedEntity)) {
 //      if (character.currentBehavior == "idle" || character.currentBehavior == "follow") {
+
+//        if (character.currentBehavior == "follow" && character.lostSightOfFollowedEntity && !entity.lostSightOfFollowedEntity) {
+//          println(character.name + " got message")
+//        }
 
         var loopDetected: Boolean = false
         var followChain: Character = entity
@@ -105,6 +125,10 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
         if (!loopDetected) {
           val normalVector = new Vector2f(locationX - character.shape.getCenterX, locationY - character.shape.getCenterY)
           normalVector.normalise()
+
+//          if (character.currentBehavior == "follow" && character.lostSightOfFollowedEntity && !entity.lostSightOfFollowedEntity) {
+//            println(character.name + " actually looked")
+//          }
 
           character.walkAngle = normalVector.getTheta.floatValue()
           character.viewAngle = normalVector.getTheta.floatValue()

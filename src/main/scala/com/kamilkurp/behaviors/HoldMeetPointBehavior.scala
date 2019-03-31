@@ -27,7 +27,7 @@ class HoldMeetPointBehavior extends Behavior {
       deviationY = 0.3f * Random.nextFloat() - 0.15f
       deviationTimer.reset()
     }
-    character.currentVelocityX = (normalVector.x + deviationX) * character.speed * (1f - character.slow)
-    character.currentVelocityY = (normalVector.y + deviationY) * character.speed * (1f - character.slow)
+    character.currentVelocityX = (normalVector.x + deviationX) * character.speed * (1f - character.slow) * delta
+    character.currentVelocityY = (normalVector.y + deviationY) * character.speed * (1f - character.slow) * delta
   }
 }
