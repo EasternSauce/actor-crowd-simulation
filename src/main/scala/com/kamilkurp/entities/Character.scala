@@ -57,7 +57,11 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var deviationX: Float = 0
   var deviationY: Float = 0
 
-  val chanceToBeLeader: Float = 10
+  val chanceToBeLeader: Float = 20
+
+  if (Random.nextInt(100) < chanceToBeLeader) {
+    setBehavior("leader")
+  }
 
   var followX: Float = 0
   var followY: Float = 0

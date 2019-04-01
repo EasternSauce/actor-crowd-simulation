@@ -4,6 +4,7 @@ import akka.actor.{ActorRef, ActorSystem, Props}
 import com.kamilkurp.entities.{Door, MeetPoint}
 import org.newdawn.slick._
 
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import scala.util.Random
@@ -15,18 +16,22 @@ object CameraView {
 
 class Simulation(gameName: String) extends BasicGame(gameName) {
   val system: ActorSystem = ActorSystem("crowd_sim_system")
-  val numberOfAgents: Int = 5
+  val numberOfAgents: Int = 100
   val addManualAgent: Boolean = true
   // load resources
   var listOfNames = Array("Virgil", "Dominique", "Hermina",
     "Carolynn", "Adina", "Elida", "Classie", "Raymonde",
     "Lovie", "Theola", "Damion", "Petronila", "Corrinne",
     "Arica", "Alfonso", "Madalene", "Alvina", "Eliana", "Jarrod", "Thora")
+  val nameIndeces: mutable.Map[String, Int] = mutable.Map[String, Int]()
+
   var doorImage: Image = _
   var characterImage: Image = _
 
   var roomList: ListBuffer[Room] = new ListBuffer[Room]
   var doorList: ListBuffer[Door] = new ListBuffer[Door]
+
+  var officeList: ListBuffer[Room] = new ListBuffer[Room]
 
   var mutableActorList = new ListBuffer[ActorRef]()
 
@@ -47,6 +52,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
         if (split(0) == "room") {
           val room = new Room(split(1), split(2).toInt, split(3).toInt, split(4).toInt, split(5).toInt)
           roomList += room
+          if (room.name.startsWith("room")) officeList += room
+
         }
         else if (split(0) == "door") {
           var room: Room = null
@@ -110,23 +117,30 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     val roomsFiltered = roomList.filter(room => room.name == "roomA")
     val room1 = if (roomsFiltered.nonEmpty) roomsFiltered.head else null
 
+    for (name <- listOfNames) {
+      nameIndeces.put(name, 0)
+    }
+
     for (_ <- 0 until numberOfAgents) {
 
+      val room: Room = officeList(Random.nextInt(officeList.length))
 
       val randomNameIndex = Random.nextInt(listOfNames.length)
-      val randomName = listOfNames(randomNameIndex)
-      listOfNames = listOfNames.take(randomNameIndex) ++ listOfNames.drop(randomNameIndex + 1)
-      val character = new entities.Character(randomName, room1, ControlScheme.Agent, characterImage)
-      room1.characterList += character
+      val randomName = listOfNames(randomNameIndex) + nameIndeces(listOfNames(randomNameIndex))
+      nameIndeces.put(listOfNames(randomNameIndex), nameIndeces(listOfNames(randomNameIndex)) + 1)
+
+      //      listOfNames = listOfNames.take(randomNameIndex) ++ listOfNames.drop(randomNameIndex + 1)
+      val character = new entities.Character(randomName, room, ControlScheme.Agent, characterImage)
+      room.characterList += character
       val actor = system.actorOf(Props(new CharacterActor(randomName, character)))
       mutableActorList += actor
 
       character.setActor(actor)
     }
-
-    for (i <- 0 until 1) {
-      if (room1 != null) room1.characterList(i).setBehavior("leader")
-    }
+//
+//    for (i <- 0 until 1) {
+//      if (room1 != null) room1.characterList(i).setBehavior("leader")
+//    }
 
     if (addManualAgent) {
       val playerName = "Player"
