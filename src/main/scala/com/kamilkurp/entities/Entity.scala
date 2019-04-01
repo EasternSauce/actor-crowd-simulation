@@ -10,7 +10,7 @@ abstract class Entity() {
   var currentVelocityY: Float
   var room: Room
   var image: Image
-  var allowChangeRoom: Boolean
+//  var allowChangeRoom: Boolean
 
   var shape: Shape
 

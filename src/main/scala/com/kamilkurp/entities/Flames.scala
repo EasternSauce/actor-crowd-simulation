@@ -11,7 +11,7 @@ class Flames extends Entity {
   override var shape: Shape = _
   override var room: Room = _
   override var image: Image = _
-  override var allowChangeRoom: Boolean = false
+//  override var allowChangeRoom: Boolean = false
 
   override def onCollision(entity: Entity): Unit = {
 

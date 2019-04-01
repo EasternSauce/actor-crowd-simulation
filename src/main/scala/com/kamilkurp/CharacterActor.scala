@@ -1,14 +1,14 @@
 package com.kamilkurp
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
-import com.kamilkurp.entities.{Character, Entity}
+import com.kamilkurp.entities.{Character, Door, Entity}
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
 case class CharacterWithinVision(entity: Entity, distance: Float)
 
-case class CharacterEnteredDoor(character: Character, locationX: Float, locationY: Float)
+case class CharacterEnteredDoor(character: Character, door: Door, locationX: Float, locationY: Float)
 
 case class CharacterLeading(character: Character, locationX: Float, locationY: Float)
 
@@ -80,13 +80,14 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
         }
       }
 
-    case CharacterEnteredDoor(entity, locationX, locationY) => {
-      if (character.followedCharacter == entity) {
+    case CharacterEnteredDoor(that, door, locationX, locationY) => {
+      if (character.followedCharacter == that) {
 
-        character.allowChangeRoom = true
+//        character.allowChangeRoom = true
 //        println(character.name + ": setting follow to door at " + locationX + " " + locationY)
 
-        character.follow(entity, locationX, locationY, 0)
+        character.doorToEnter = door
+        character.follow(that, locationX, locationY, 0)
         character.getBehavior("follow").timer.stop()
 //        println(name + " following someone through door")
       }

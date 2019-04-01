@@ -16,7 +16,8 @@ class LeaderBehavior extends Behavior {
   var deviationY: Float = 0
 
   override def init(character: Character): Unit = {
-    character.allowChangeRoom = true
+//    character.allowChangeRoom = true
+//    character.doorToEnter = character.room.evacuationDoor
   }
 
   def perform(character: Character, delta: Int): Unit = {
@@ -38,6 +39,7 @@ class LeaderBehavior extends Behavior {
 
     val door: Door = character.room.evacuationDoor
     if (door != null) {
+      character.doorToEnter = door
       if (deviationTimer.timedOut()) {
         deviationX = 0.3f * Random.nextFloat() - 0.15f
         deviationY = 0.3f * Random.nextFloat() - 0.15f

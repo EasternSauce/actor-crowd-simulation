@@ -16,7 +16,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   override var currentVelocityX: Float = 0.0f
   override var currentVelocityY: Float = 0.0f
   override var shape: Shape = new Rectangle(0, 0, Globals.CHARACTER_SIZE, Globals.CHARACTER_SIZE)
-  override var allowChangeRoom: Boolean = false
+//  override var allowChangeRoom: Boolean = false
 
   var currentBehavior: String = _
 
@@ -69,7 +69,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   var followedCharacter: Character = _
 
-  var outOfWayTimer: Timer = new Timer(300)
+  var outOfWayTimer: Timer = new Timer(1000)
   outOfWayTimer.set(outOfWayTimer.timeout)
 
   var movingOutOfTheWay: Boolean = false
@@ -80,6 +80,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   var isFree = false
 
+  var doorToEnter: Door = _
 
   while (!isFree) {
 //    println("looking for free spot for " + name)
@@ -223,11 +224,12 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
   override def changeRoom(entryDoor: Door, newX: Float, newY: Float): Unit = {
-    if (!allowChangeRoom) return
-
-    if (currentBehavior != "leader") {
-      allowChangeRoom = false
-    }
+    if (doorToEnter != entryDoor) return
+//    if (!allowChangeRoom) return
+//
+//    if (currentBehavior != "leader") {
+//      allowChangeRoom = false
+//    }
 
     getBehavior("follow").timer.start()
 
@@ -247,7 +249,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
     for (character <- room.characterList) {
       if (character != this) {
-        character.actor ! CharacterEnteredDoor(this, entryDoor.shape.getX, entryDoor.shape.getY)
+        character.actor ! CharacterEnteredDoor(this, entryDoor, entryDoor.shape.getX, entryDoor.shape.getY)
       }
     }
 
