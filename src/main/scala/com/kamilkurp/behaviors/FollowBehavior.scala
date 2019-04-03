@@ -7,8 +7,6 @@ import org.newdawn.slick.geom.Vector2f
 import scala.util.Random
 
 class FollowBehavior(agent: Agent) extends Behavior(agent) {
-
-  override val timer: Timer = new Timer(5000)
   val deviationTimer: Timer = new Timer(500)
   val broadcastTimer: Timer = new Timer(300)
   var deviationX: Float = 0
@@ -21,7 +19,7 @@ class FollowBehavior(agent: Agent) extends Behavior(agent) {
 
 
   def perform(delta: Int): Unit = {
-    timer.update(delta)
+    agent.followTimer.update(delta)
     deviationTimer.update(delta)
     broadcastTimer.update(delta)
     agent.outOfWayTimer.update(delta)
@@ -37,7 +35,7 @@ class FollowBehavior(agent: Agent) extends Behavior(agent) {
       broadcastTimer.reset()
     }
 
-    if (timer.timedOut()) {
+    if (agent.followTimer.timedOut()) {
       agent.setBehavior("idle")
       agent.followedAgent = null
       return
@@ -88,7 +86,7 @@ class FollowBehavior(agent: Agent) extends Behavior(agent) {
     if (that == agent.followedAgent) {
       agent.followX = posX
       agent.followY = posY
-      agent.getBehavior("follow").timer.reset()
+      agent.followTimer.start()
       agent.followDistance = atDistance
     }
     else {
@@ -96,7 +94,7 @@ class FollowBehavior(agent: Agent) extends Behavior(agent) {
       agent.followY = posY
       agent.followDistance = atDistance
       agent.followedAgent = that
-      agent.getBehavior("follow").timer.reset()
+      agent.followTimer.start()
     }
   }
 }

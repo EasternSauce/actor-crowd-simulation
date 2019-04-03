@@ -7,8 +7,6 @@ import org.newdawn.slick.geom.Vector2f
 import scala.util.Random
 
 class HoldMeetPointBehavior(agent: Agent) extends Behavior(agent) {
-
-  override var timer: Timer = new Timer(3000)
   val deviationTimer: Timer = new Timer(500)
   var deviationX: Float = 0
   var deviationY: Float = 0

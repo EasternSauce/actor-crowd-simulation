@@ -4,7 +4,7 @@ import com.kamilkurp.building.Room
 import com.kamilkurp.entity.Entity
 
 object Globals {
-  val CHARACTER_SIZE: Int = 40
+  val AGENT_SIZE: Int = 40
   val WINDOW_X: Int = 2560
   val WINDOW_Y: Int = 1440
   val SCALE_X: Float = 0.5f
@@ -17,22 +17,22 @@ object Globals {
     if (entity.shape.getX + entity.currentVelocityX < 0 || entity.shape.getX + entity.currentVelocityX > room.w - entity.shape.getWidth) collisionDetails.colX = true
     if (entity.shape.getY + entity.currentVelocityY < 0 || entity.shape.getY + entity.currentVelocityY > room.h - entity.shape.getHeight) collisionDetails.colY = true
 
-    room.agentList.filter(character => character != entity).foreach(character => {
+    room.agentList.filter(agent => agent != entity).foreach(agent => {
 
       var collided = false
 
-      if (intersectsX(entity, character.shape.getX, character.shape.getY, character.shape.getWidth, character.shape.getHeight)) {
+      if (intersectsX(entity, agent.shape.getX, agent.shape.getY, agent.shape.getWidth, agent.shape.getHeight)) {
         collisionDetails.colX = true
         collided = true
       }
-      if (intersectsY(entity, character.shape.getX, character.shape.getY, character.shape.getWidth, character.shape.getHeight)) {
+      if (intersectsY(entity, agent.shape.getX, agent.shape.getY, agent.shape.getWidth, agent.shape.getHeight)) {
         collisionDetails.colY = true
         collided = true
       }
 
       if (collided) {
-        entity.onCollision(character)
-        character.onCollision(entity)
+        entity.onCollision(agent)
+        agent.onCollision(entity)
       }
     })
 
@@ -71,8 +71,8 @@ object Globals {
     if (x < 0 || x > room.w - w) occupied = true
     if (y < 0 || y > room.h - h) occupied = true
 
-    room.agentList.foreach(character => {
-      if (intersects(character, x, y, w, h)) {
+    room.agentList.foreach(agent => {
+      if (intersects(agent, x, y, w, h)) {
         occupied = true
       }
     })

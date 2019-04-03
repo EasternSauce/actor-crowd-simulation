@@ -9,7 +9,6 @@ import scala.util.Random
 
 class LeaderBehavior(agent: Agent) extends Behavior(agent) {
 
-  override val timer: Timer = new Timer(3000)
   val deviationTimer: Timer = new Timer(500)
   val broadcastTimer: Timer = new Timer(300)
 
@@ -24,7 +23,6 @@ class LeaderBehavior(agent: Agent) extends Behavior(agent) {
   }
 
   def perform(delta: Int): Unit = {
-    timer.update(delta)
     deviationTimer.update(delta)
     broadcastTimer.update(delta)
     waitAtDoorTimer.update(delta)

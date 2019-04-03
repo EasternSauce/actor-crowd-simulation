@@ -5,7 +5,7 @@ import org.newdawn.slick.{Color, Graphics}
 
 import scala.collection.mutable.ListBuffer
 
-class ViewCone(character: Agent) {
+class ViewCone(agent: Agent) {
   var firstRay: (Rectangle, Float) = (new Rectangle(0, 0, 0, 0), 0)
   var lastRay: (Rectangle, Float) = (new Rectangle(0, 0, 0, 0), 0)
 
@@ -20,8 +20,8 @@ class ViewCone(character: Agent) {
 
   def update(delta: Float) {
 
-    val x: Float = character.shape.getX + character.shape.getWidth / 2
-    val y: Float = character.shape.getY + character.shape.getHeight / 2
+    val x: Float = agent.shape.getX + agent.shape.getWidth / 2
+    val y: Float = agent.shape.getY + agent.shape.getHeight / 2
 
     firstRay = (new Rectangle(0, 0, 0, 0), 0)
     lastRay = (new Rectangle(0, 0, 0, 0), 0)
@@ -31,7 +31,7 @@ class ViewCone(character: Agent) {
       val rect = new Rectangle(x, y, 1200, 1)
       var polygon: Shape = new Polygon(rect.getPoints)
 
-      val radianAngle = character.viewAngle - 60 + i * 5
+      val radianAngle = agent.viewAngle - 60 + i * 5
       val t: Transform = Transform.createRotateTransform(Math.toRadians(radianAngle).toFloat, x, y)
       polygon = polygon.transform(t)
 
@@ -48,10 +48,10 @@ class ViewCone(character: Agent) {
     firstRay._1.setWidth(100)
     lastRay._1.setWidth(100)
 
-    character.room.agentList.filter(c => c != character).foreach(that =>
+    agent.room.agentList.filter(c => c != agent).foreach(that =>
       viewRayList.foreach(rayShape =>
         if (that.shape.intersects(rayShape)) {
-          character.actor ! AgentWithinVision(that, character.getDistanceTo(that), delta)
+          agent.actor ! AgentWithinVision(that, agent.getDistanceTo(that), delta)
         }
       )
     )
@@ -60,13 +60,13 @@ class ViewCone(character: Agent) {
 
   def draw(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
 
-    val x: Float = character.shape.getX + character.shape.getWidth / 2
-    val y: Float = character.shape.getY + character.shape.getHeight / 2
+    val x: Float = agent.shape.getX + agent.shape.getWidth / 2
+    val y: Float = agent.shape.getY + agent.shape.getHeight / 2
 
     val col = new Color(Color.green)
     col.a = 1f
 
-    val t: Transform = Transform.createTranslateTransform(character.room.x - offsetX, character.room.y - offsetY)
+    val t: Transform = Transform.createTranslateTransform(agent.room.x - offsetX, agent.room.y - offsetY)
     var polygon1: Shape = new Polygon(firstRay._1.getPoints)
     val firstRotation: Transform = Transform.createRotateTransform(Math.toRadians(firstRay._2).toFloat, x, y)
     polygon1 = polygon1.transform(firstRotation)

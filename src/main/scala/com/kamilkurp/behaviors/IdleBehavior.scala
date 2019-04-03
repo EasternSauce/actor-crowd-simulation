@@ -7,19 +7,19 @@ import org.newdawn.slick.geom.Vector2f
 import scala.util.Random
 
 class IdleBehavior(agent: Agent) extends Behavior(agent) {
-  override val timer: Timer = new Timer(500)
+  var idleTimer: Timer = new Timer(500)
 
   override def init(): Unit = {
 
   }
 
   def perform(delta: Int): Unit = {
-    timer.update(delta)
+    idleTimer.update(delta)
 
-    if (timer.timedOut()) {
+    if (idleTimer.timedOut()) {
       val inPlace = Random.nextInt(100) < 60
 
-      timer.reset()
+      idleTimer.reset()
 
       if (agent.controlScheme != ControlScheme.Manual) {
         if (inPlace) {
@@ -57,6 +57,6 @@ class IdleBehavior(agent: Agent) extends Behavior(agent) {
     agent.followY = posY
     agent.followDistance = atDistance
     agent.followedAgent = that
-    agent.getBehavior("follow").timer.reset()
+    agent.followTimer.reset()
   }
 }

@@ -26,7 +26,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     "Lovie", "Theola", "Damion", "Petronila", "Corrinne",
     "Arica", "Alfonso", "Madalene", "Alvina", "Eliana", "Jarrod", "Thora")
   var doorImage: Image = _
-  var characterImage: Image = _
+  var agentImage: Image = _
 
   var roomList: ListBuffer[Room] = new ListBuffer[Room]
   var doorList: ListBuffer[Door] = new ListBuffer[Door]
@@ -42,7 +42,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   override def init(gc: GameContainer): Unit = {
     doorImage = new Image("door.png")
-    characterImage = new Image("character.png")
+    agentImage = new Image("character.png")
 
     val filename = "building.txt"
     for (line <- Source.fromFile(filename).getLines) {
@@ -106,24 +106,24 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       val randomName = listOfNames(randomNameIndex) + nameIndices(listOfNames(randomNameIndex))
       nameIndices.put(listOfNames(randomNameIndex), nameIndices(listOfNames(randomNameIndex)) + 1)
 
-      val character = new Agent(randomName, room, ControlScheme.Agent, characterImage)
-      room.agentList += character
-      val actor = system.actorOf(Props(new AgentActor(randomName, character)))
+      val agent = new Agent(randomName, room, ControlScheme.Agent, agentImage)
+      room.agentList += agent
+      val actor = system.actorOf(Props(new AgentActor(randomName, agent)))
       mutableActorList += actor
 
-      character.setActor(actor)
+      agent.setActor(actor)
     }
 
 
     if (addManualAgent) {
       val playerName = "Player"
-      val character = new Agent(playerName, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S), characterImage)
+      val agent = new Agent(playerName, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S), agentImage)
 
-      val actor = system.actorOf(Props(new AgentActor("Player", character)))
+      val actor = system.actorOf(Props(new AgentActor("Player", agent)))
 
-      character.setActor(actor)
+      agent.setActor(actor)
 
-      room1.agentList += character
+      room1.agentList += agent
     }
   }
 

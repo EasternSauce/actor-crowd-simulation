@@ -7,6 +7,7 @@ import com.kamilkurp.utils.ControlScheme.ControlScheme
 import com.kamilkurp.utils.{ControlScheme, Globals, Timer}
 import org.newdawn.slick.geom._
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
+import org.newdawn.slick.geom.Shape
 
 import scala.collection.mutable
 import scala.util.Random
@@ -18,17 +19,17 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
   val chanceToBeLeader: Float = 20
   override var currentVelocityX: Float = 0.0f
   override var currentVelocityY: Float = 0.0f
-  override val shape: Shape = new Rectangle(0, 0, Globals.CHARACTER_SIZE, Globals.CHARACTER_SIZE)
+  override var shape: Shape = new Rectangle(0, 0, Globals.AGENT_SIZE, Globals.AGENT_SIZE)
   var walkAngle: Float = 0
 
 
-  setBehavior("idle")
   var viewAngle: Float = 0
   val viewCone: ViewCone = new ViewCone(this)
   var controls: (Int, Int, Int, Int) = _
   var slow: Float = 0.0f
   val slowTimer: Timer = new Timer(3000)
   val lookTimer: Timer = new Timer(50)
+  val followTimer: Timer = new Timer(5000)
   var slowed: Boolean = false
   var actor: ActorRef = _
   var deviationX: Float = 0
@@ -59,8 +60,8 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
   var doorToEnter: Door = _
 
   while (!isFree) {
-    shape.setX(Random.nextInt(room.w - Globals.CHARACTER_SIZE))
-    shape.setY(Random.nextInt(room.h - Globals.CHARACTER_SIZE))
+    shape.setX(Random.nextInt(room.w - Globals.AGENT_SIZE))
+    shape.setY(Random.nextInt(room.h - Globals.AGENT_SIZE))
 
     val collisionDetails = Globals.manageCollisions(room, this)
 
@@ -68,11 +69,6 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
       isFree = true
     }
 
-  }
-
-
-  if (name == "Player") {
-    setBehavior("leader")
   }
 
   def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int), image: Image) {
@@ -87,7 +83,40 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
     viewCone.update(delta)
 
     if (lookTimer.timedOut() && walkAngle != viewAngle) {
-      adjustViewAngle(Agent.findSideToTurn(viewAngle, walkAngle))
+
+      def findSideToTurn(currentAngle: Float, desiredAngle: Float): Boolean = {
+        var clockwise = false
+        if (currentAngle < 180) {
+          if (desiredAngle - currentAngle >= 0 && desiredAngle - currentAngle < 180) clockwise = true
+          else clockwise = false
+        }
+        else {
+          if (currentAngle - desiredAngle >= 0 && currentAngle - desiredAngle < 180) clockwise = false
+          else clockwise = true
+
+        }
+        clockwise
+      }
+
+
+      def adjustViewAngle(clockwise: Boolean): Unit = {
+        val turnSpeed = 12
+        if (Math.abs(viewAngle - walkAngle) > turnSpeed && Math.abs((viewAngle + 180) % 360 - (walkAngle + 180) % 360) > turnSpeed) {
+          if (clockwise) { // clockwise
+            if (viewAngle + turnSpeed < 360) viewAngle += turnSpeed
+            else viewAngle = viewAngle + turnSpeed - 360
+          }
+          else { // counterclockwise
+            if (viewAngle - turnSpeed > 0) viewAngle -= turnSpeed
+            else viewAngle = viewAngle - turnSpeed + 360
+          }
+        }
+        else {
+          viewAngle = walkAngle
+        }
+      }
+
+      adjustViewAngle(findSideToTurn(viewAngle, walkAngle))
 
       lookTimer.reset()
     }
@@ -115,22 +144,6 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
   }
 
 
-  private def adjustViewAngle(clockwise: Boolean): Unit = {
-    val turnSpeed = 12
-    if (Math.abs(viewAngle - walkAngle) > turnSpeed && Math.abs((viewAngle + 180) % 360 - (walkAngle + 180) % 360) > turnSpeed) {
-      if (clockwise) { // clockwise
-        if (viewAngle + turnSpeed < 360) viewAngle += turnSpeed
-        else viewAngle = viewAngle + turnSpeed - 360
-      }
-      else { // counterclockwise
-        if (viewAngle - turnSpeed > 0) viewAngle -= turnSpeed
-        else viewAngle = viewAngle - turnSpeed + 360
-      }
-    }
-    else {
-      viewAngle = walkAngle
-    }
-  }
 
   override def onCollision(entity: Entity): Unit = {
     if (entity.getClass == classOf[Agent]) {
@@ -144,8 +157,7 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
 
     atDoor = false
 
-
-    getBehavior("follow").timer.start()
+    followTimer.start()
 
     val newRoom: Room = entryDoor.leadingToDoor.room
 
@@ -160,14 +172,14 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
       followDistance = 0
     }
 
-    for (character <- room.agentList) {
-      if (character != this) {
-        character.actor ! AgentEnteredDoor(this, entryDoor, entryDoor.shape.getX, entryDoor.shape.getY)
+    for (agent <- room.agentList) {
+      if (agent != this) {
+        agent.actor ! AgentEnteredDoor(this, entryDoor, entryDoor.shape.getX, entryDoor.shape.getY)
       }
     }
 
-    room.removeCharacter(this)
-    newRoom.addCharacter(this)
+    room.removeAgent(this)
+    newRoom.addAgent(this)
 
     room = newRoom
     shape.setX(newX)
@@ -208,20 +220,3 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
 
 }
 
-
-object Agent {
-  def findSideToTurn(currentAngle: Float, desiredAngle: Float): Boolean = {
-    var clockwise = false
-    if (currentAngle < 180) {
-      if (desiredAngle - currentAngle >= 0 && desiredAngle - currentAngle < 180) clockwise = true
-      else clockwise = false
-    }
-    else {
-      if (currentAngle - desiredAngle >= 0 && currentAngle - desiredAngle < 180) clockwise = false
-      else clockwise = true
-
-    }
-    clockwise
-  }
-
-}

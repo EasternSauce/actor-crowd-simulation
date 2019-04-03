@@ -15,14 +15,21 @@ trait BehaviorManager {
   behaviorMap += ("leader" -> new LeaderBehavior(this))
   behaviorMap += ("holdMeetPoint" -> new HoldMeetPointBehavior(this))
 
+  setBehavior("idle")
+
+  if (name == "Player") {
+    setBehavior("leader")
+  }
+
   def setBehavior(behaviorName: String): Unit = {
     currentBehavior = behaviorName
     behaviorMap(behaviorName).init()
   }
 
-  def follow(character: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
-    getBehavior(currentBehavior).follow(character, posX, posY, atDistance)
+  def follow(agent: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
+    getBehavior(currentBehavior).follow(agent, posX, posY, atDistance)
   }
 
   def getBehavior(behaviorName: String): Behavior = behaviorMap(behaviorName)
+
 }

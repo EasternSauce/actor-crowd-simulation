@@ -9,42 +9,42 @@ object ControlScheme extends Enumeration {
   type ControlScheme = Value
   val Manual, Static, Agent = Value
 
-  def handleManualControls(character: Agent, gc: GameContainer, delta: Int, renderScale: Float): Unit = {
+  def handleManualControls(agent: Agent, gc: GameContainer, delta: Int, renderScale: Float): Unit = {
     var moved = false
 
-    if (gc.getInput.isKeyDown(character.controls._1)) {
-      character.currentVelocityX = -character.speed * delta
+    if (gc.getInput.isKeyDown(agent.controls._1)) {
+      agent.currentVelocityX = -agent.speed * delta
       moved = true
     }
-    else if (gc.getInput.isKeyDown(character.controls._2)) {
-      character.currentVelocityX = character.speed * delta
-      moved = true
-    }
-    else {
-      character.currentVelocityX = 0
-    }
-    if (gc.getInput.isKeyDown(character.controls._3)) {
-      character.currentVelocityY = -character.speed * delta
-      moved = true
-    }
-    else if (gc.getInput.isKeyDown(character.controls._4)) {
-      character.currentVelocityY = character.speed * delta
+    else if (gc.getInput.isKeyDown(agent.controls._2)) {
+      agent.currentVelocityX = agent.speed * delta
       moved = true
     }
     else {
-      character.currentVelocityY = 0
+      agent.currentVelocityX = 0
+    }
+    if (gc.getInput.isKeyDown(agent.controls._3)) {
+      agent.currentVelocityY = -agent.speed * delta
+      moved = true
+    }
+    else if (gc.getInput.isKeyDown(agent.controls._4)) {
+      agent.currentVelocityY = agent.speed * delta
+      moved = true
+    }
+    else {
+      agent.currentVelocityY = 0
     }
 
-    if (character.currentVelocityX != 0 || character.currentVelocityY != 0) {
-      val normalVector = new Vector2f(character.currentVelocityX, character.currentVelocityY)
+    if (agent.currentVelocityX != 0 || agent.currentVelocityY != 0) {
+      val normalVector = new Vector2f(agent.currentVelocityX, agent.currentVelocityY)
       normalVector.normalise()
 
-      character.walkAngle = normalVector.getTheta.floatValue()
+      agent.walkAngle = normalVector.getTheta.floatValue()
     }
 
     if (moved) {
-      CameraView.x = character.room.x + character.shape.getX - Globals.WINDOW_X / renderScale / 2 + character.shape.getWidth / 2
-      CameraView.y = character.room.y + character.shape.getY - Globals.WINDOW_Y / renderScale / 2 + character.shape.getHeight / 2
+      CameraView.x = agent.room.x + agent.shape.getX - Globals.WINDOW_X / renderScale / 2 + agent.shape.getWidth / 2
+      CameraView.y = agent.room.y + agent.shape.getY - Globals.WINDOW_Y / renderScale / 2 + agent.shape.getHeight / 2
     }
   }
 }

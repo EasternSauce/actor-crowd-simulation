@@ -12,12 +12,12 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
 
   var evacuationDoor: Door = _
 
-  def addCharacter(character: Agent): agentList.type = {
-    agentList += character
+  def addAgent(agent: Agent): agentList.type = {
+    agentList += agent
   }
 
-  def removeCharacter(character: Agent): agentList.type = {
-    agentList -= character
+  def removeAgent(agent: Agent): agentList.type = {
+    agentList -= agent
   }
 
   def init(): Unit = {
@@ -40,20 +40,20 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
       meetPoint.draw(g, offsetX, offsetY)
     })
 
-    agentList.foreach(character => {
-      character.draw(g, offsetX, offsetY)
+    agentList.foreach(agent => {
+      agent.draw(g, offsetX, offsetY)
     })
 
-    agentList.foreach(character => {
-      character.drawName(g, offsetX, offsetY)
+    agentList.foreach(agent => {
+      agent.drawName(g, offsetX, offsetY)
     })
 
 
   }
 
   def update(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
-    agentList.foreach(character => {
-      character.update(gc, delta, renderScale)
+    agentList.foreach(agent => {
+      agent.update(gc, delta, renderScale)
     })
 
 

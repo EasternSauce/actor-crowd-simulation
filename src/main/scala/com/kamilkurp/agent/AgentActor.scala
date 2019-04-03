@@ -9,38 +9,38 @@ import scala.util.Random
 
 case class AgentWithinVision(entity: Entity, distance: Float, delta: Float)
 
-case class AgentEnteredDoor(character: Agent, door: Door, locationX: Float, locationY: Float)
+case class AgentEnteredDoor(agent: Agent, door: Door, locationX: Float, locationY: Float)
 
-case class AgentLeading(character: Agent, locationX: Float, locationY: Float)
+case class AgentLeading(agent: Agent, locationX: Float, locationY: Float)
 
 case class MoveOutOfTheWay(entity: Entity, delta: Float)
 
-class AgentActor(val name: String, val character: Agent) extends Actor with ActorLogging {
+class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLogging {
 
-  val char: Agent = character
+  val char: Agent = agent
 
 
   override def receive: Receive = {
     case AgentWithinVision(that: Agent, distance: Float, delta: Float) =>
 
-      if (character.currentBehavior == "idle" || character.currentBehavior == "follow") {
+      if (agent.currentBehavior == "idle" || agent.currentBehavior == "follow") {
         if (that.currentBehavior == "leader" && that.followedAgent == null) {
-          character.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
-          character.lostSightOfFollowedEntity = false
-          character.lastSeenFollowedEntityTimer.reset()
+          agent.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
+          agent.lostSightOfFollowedEntity = false
+          agent.lastSeenFollowedEntityTimer.reset()
         } else if (that.currentBehavior == "follow") {
-          if (character.followedAgent == null || character.lostSightOfFollowedEntity) {
+          if (agent.followedAgent == null || agent.lostSightOfFollowedEntity) {
 
 
             var loopDetected: Boolean = false
             var followChain: Agent = that
-            var lastCharacter: Agent = that
+            var lastAgent: Agent = that
 
             while (followChain != null) {
-              lastCharacter = followChain
+              lastAgent = followChain
 
 
-              if (followChain == character || followChain.lostSightOfFollowedEntity) {
+              if (followChain == agent || followChain.lostSightOfFollowedEntity) {
                 loopDetected = true
                 followChain = null
               }
@@ -50,10 +50,10 @@ class AgentActor(val name: String, val character: Agent) extends Actor with Acto
             }
 
 
-            if (!loopDetected && lastCharacter.currentBehavior == "leader") {
-              character.lostSightOfFollowedEntity = false
-              character.lastSeenFollowedEntityTimer.reset()
-              character.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
+            if (!loopDetected && lastAgent.currentBehavior == "leader") {
+              agent.lostSightOfFollowedEntity = false
+              agent.lastSeenFollowedEntityTimer.reset()
+              agent.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
             }
           }
         }
@@ -62,31 +62,31 @@ class AgentActor(val name: String, val character: Agent) extends Actor with Acto
       }
 
       if (that.currentBehavior == "follow" && distance < 400) {
-        if (character.currentBehavior == "leader" || (character.currentBehavior == "follow" && that.followedAgent == character)) {
-          that.actor ! MoveOutOfTheWay(character, delta)
+        if (agent.currentBehavior == "leader" || (agent.currentBehavior == "follow" && that.followedAgent == agent)) {
+          that.actor ! MoveOutOfTheWay(agent, delta)
         }
       }
 
     case AgentEnteredDoor(that, door, locationX, locationY) =>
-      if (character.followedAgent == that) {
-        character.doorToEnter = door
-        character.follow(that, locationX, locationY, 0)
-        character.getBehavior("follow").timer.stop()
+      if (agent.followedAgent == that) {
+        agent.doorToEnter = door
+        agent.follow(that, locationX, locationY, 0)
+        agent.followTimer.stop()
       }
 
     case AgentLeading(entity, locationX, locationY) =>
-      if (character.currentBehavior == "idle" ||
-        (character.currentBehavior == "follow" && (character.followedAgent == null || character.followedAgent == entity)) ||
-        (character.currentBehavior == "follow" && character.lostSightOfFollowedEntity && !entity.lostSightOfFollowedEntity)) {
+      if (agent.currentBehavior == "idle" ||
+        (agent.currentBehavior == "follow" && (agent.followedAgent == null || agent.followedAgent == entity)) ||
+        (agent.currentBehavior == "follow" && agent.lostSightOfFollowedEntity && !entity.lostSightOfFollowedEntity)) {
 
         var loopDetected: Boolean = false
         var followChain: Agent = entity
-        var lastCharacter: Agent = entity
+        var lastAgent: Agent = entity
 
         while (followChain != null) {
-          lastCharacter = followChain
+          lastAgent = followChain
 
-          if (followChain == character || followChain.lostSightOfFollowedEntity) {
+          if (followChain == agent || followChain.lostSightOfFollowedEntity) {
             loopDetected = true
             followChain = null
           }
@@ -96,20 +96,20 @@ class AgentActor(val name: String, val character: Agent) extends Actor with Acto
         }
 
         if (!loopDetected) {
-          val normalVector = new Vector2f(locationX - character.shape.getCenterX, locationY - character.shape.getCenterY)
+          val normalVector = new Vector2f(locationX - agent.shape.getCenterX, locationY - agent.shape.getCenterY)
           normalVector.normalise()
 
-          character.walkAngle = normalVector.getTheta.floatValue()
-          character.viewAngle = normalVector.getTheta.floatValue()
+          agent.walkAngle = normalVector.getTheta.floatValue()
+          agent.viewAngle = normalVector.getTheta.floatValue()
         }
 
 
       }
 
     case MoveOutOfTheWay(entity, delta) =>
-      if (!character.movingOutOfTheWay) {
-        character.movingOutOfTheWay = true
-        character.outOfWayTimer.reset()
+      if (!agent.movingOutOfTheWay) {
+        agent.movingOutOfTheWay = true
+        agent.outOfWayTimer.reset()
 
         val normalVector = new Vector2f(entity.currentVelocityX, entity.currentVelocityY)
         normalVector.normalise()
@@ -123,8 +123,8 @@ class AgentActor(val name: String, val character: Agent) extends Actor with Acto
           normalVector.setTheta(normalVector.getTheta - 90)
         }
 
-        character.currentVelocityX = character.speed * normalVector.x * delta
-        character.currentVelocityY = character.speed * normalVector.y * delta
+        agent.currentVelocityX = agent.speed * normalVector.x * delta
+        agent.currentVelocityY = agent.speed * normalVector.y * delta
       }
 
 
