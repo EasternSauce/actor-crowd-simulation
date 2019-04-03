@@ -28,10 +28,10 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   val behaviorMap: mutable.HashMap[String, Behavior] = mutable.HashMap.empty[String,Behavior]
 
-  behaviorMap += ("follow" -> new FollowBehavior)
-  behaviorMap += ("idle" -> new IdleBehavior)
-  behaviorMap += ("leader" -> new LeaderBehavior)
-  behaviorMap += ("holdMeetPoint" -> new HoldMeetPointBehavior)
+  behaviorMap += ("follow" -> new FollowBehavior(this))
+  behaviorMap += ("idle" -> new IdleBehavior(this))
+  behaviorMap += ("leader" -> new LeaderBehavior(this))
+  behaviorMap += ("holdMeetPoint" -> new HoldMeetPointBehavior(this))
 
   setBehavior("idle")
 
@@ -117,7 +117,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     }
 
     if (controlScheme == ControlScheme.Agent) {
-      getBehavior(currentBehavior).perform(this, delta)
+      getBehavior(currentBehavior).perform(delta)
     }
     else if (controlScheme == ControlScheme.Manual) {
       ControlScheme.handleManualControls(this, gc, delta, renderScale)
@@ -216,7 +216,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     if (currentBehavior == "holdMeetPoint") g.setColor(Color.green)
 
     var tag: String = ""
-    if (currentBehavior == "follow") {
+    if (currentBehavior == "follow" && followedCharacter != null) {
       tag = "[" + currentBehavior + " " + followedCharacter.name +  "]"
     }
     else {
@@ -249,7 +249,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   def setBehavior(behaviorName: String): Unit = {
     currentBehavior = behaviorName
-    behaviorMap(behaviorName).init(this)
+    behaviorMap(behaviorName).init()
   }
 
 

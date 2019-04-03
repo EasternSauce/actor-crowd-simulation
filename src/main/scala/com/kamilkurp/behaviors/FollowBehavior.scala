@@ -7,7 +7,7 @@ import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
-class FollowBehavior extends Behavior {
+class FollowBehavior(character: Character) extends Behavior(character) {
 
   override var timer: Timer = new Timer(5000)
   var deviationTimer: Timer = new Timer(500)
@@ -16,12 +16,12 @@ class FollowBehavior extends Behavior {
   var deviationY: Float = 0
 
 
-  override def init(character: Character): Unit = {
+  override def init(): Unit = {
 
   }
 
 
-  def perform(character: Character, delta: Int): Unit = {
+  def perform(delta: Int): Unit = {
     timer.update(delta)
     deviationTimer.update(delta)
     broadcastTimer.update(delta)

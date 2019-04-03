@@ -3,11 +3,11 @@ package com.kamilkurp.behaviors
 import com.kamilkurp.entities.Character
 import com.kamilkurp.utils.Timer
 
-abstract class Behavior {
+abstract class Behavior(character: Character) {
   var timer: Timer
 
-  def init(character: Character): Unit
+  def init(): Unit
 
-  def perform(character: Character, delta: Int): Unit
+  def perform(delta: Int): Unit
 
 }

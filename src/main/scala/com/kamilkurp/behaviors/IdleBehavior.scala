@@ -7,14 +7,14 @@ import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
-class IdleBehavior extends Behavior {
+class IdleBehavior(character: Character) extends Behavior(character) {
   override var timer: Timer = new Timer(500)
 
-  override def init(character: Character): Unit = {
+  override def init(): Unit = {
 
   }
 
-  def perform(character: Character, delta: Int): Unit = {
+  def perform(delta: Int): Unit = {
     timer.update(delta)
 
     if (timer.timedOut()) {
