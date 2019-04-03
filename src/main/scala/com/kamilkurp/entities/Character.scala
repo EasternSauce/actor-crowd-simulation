@@ -9,7 +9,6 @@ import org.newdawn.slick.geom._
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 class Character(val name: String, var room: Room, val controlScheme: ControlScheme, var image: Image) extends Entity {
@@ -17,7 +16,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   override var currentVelocityX: Float = 0.0f
   override var currentVelocityY: Float = 0.0f
   override var shape: Shape = new Rectangle(0, 0, Globals.CHARACTER_SIZE, Globals.CHARACTER_SIZE)
-//  override var allowChangeRoom: Boolean = false
 
   var currentBehavior: String = _
 
@@ -27,12 +25,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var viewCone: ViewCone = new ViewCone(this)
 
   val rememberedRoute: mutable.Map[String, (Float, Float)] = mutable.Map[String, (Float, Float)]()
-
-
-
-
-
-
 
   val behaviorMap: mutable.HashMap[String, Behavior] = mutable.HashMap.empty[String,Behavior]
 
@@ -87,7 +79,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var doorToEnter: Door = _
 
   while (!isFree) {
-//    println("looking for free spot for " + name)
     shape.setX(Random.nextInt(room.w - Globals.CHARACTER_SIZE))
     shape.setY(Random.nextInt(room.h - Globals.CHARACTER_SIZE))
 
@@ -95,37 +86,42 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
     if (!collisionDetails.colX && !collisionDetails.colY) {
       isFree = true
-//      println("found spot at " + shape.getX + " " + shape.getY)
     }
 
   }
 
 
   if (name == "Player") {
-//    println("setting for player")
     setBehavior("leader")
   }
 
   def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int), image: Image) {
     this(name, room, controlScheme, image)
     this.controls = controls
-
-
-
   }
 
   def update(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
     slowTimer.update(delta)
     lookTimer.update(delta)
 
-    viewCone.update()
+    viewCone.update(delta)
 
-//    if (currentVelocityX == 0 && currentVelocityY == 0) {
-//      println(name + "\'s followX: " + followX + " followY: " + followY)
-//    }
+    if (lookTimer.timedOut() && walkAngle != viewAngle) {
+      adjustViewAngle(Character.findSideToTurn(viewAngle, walkAngle))
 
-    if (controlScheme == ControlScheme.Agent) updateAgent(delta)
-    else if (controlScheme == ControlScheme.Manual) updateManual(gc, delta, renderScale)
+      lookTimer.reset()
+    }
+
+    if (slowTimer.timedOut()) {
+      slow = 0f
+    }
+
+    if (controlScheme == ControlScheme.Agent) {
+      getBehavior(currentBehavior).perform(this, delta)
+    }
+    else if (controlScheme == ControlScheme.Manual) {
+      ControlScheme.handleManualControls(this, gc, delta, renderScale)
+    }
 
     val collisionDetails = Globals.manageCollisions(room, this)
     if (!collisionDetails.colX) {
@@ -138,65 +134,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   }
 
-  private def updateAgent(delta: Int): Unit = {
-    if (slowTimer.timedOut()) {
-      slow = 0f
-    }
-
-    if (lookTimer.timedOut() && walkAngle != viewAngle) {
-      adjustViewAngle(Character.findSideToTurn(viewAngle, walkAngle))
-
-      lookTimer.reset()
-    }
-
-    getBehavior(currentBehavior).perform(this, delta)
-  }
-
-  private def updateManual(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
-    var moved = false
-
-    if (lookTimer.timedOut() && walkAngle != viewAngle) {
-      adjustViewAngle(Character.findSideToTurn(viewAngle, walkAngle))
-      lookTimer.reset()
-    }
-
-    if (gc.getInput.isKeyDown(controls._1)) {
-      currentVelocityX = -speed
-      moved = true
-    }
-    else if (gc.getInput.isKeyDown(controls._2)) {
-      currentVelocityX = speed
-      moved = true
-    }
-    else {
-      currentVelocityX = 0
-    }
-    if (gc.getInput.isKeyDown(controls._3)) {
-      currentVelocityY = -speed
-      moved = true
-    }
-    else if (gc.getInput.isKeyDown(controls._4)) {
-      currentVelocityY = speed
-      moved = true
-    }
-    else {
-      currentVelocityY = 0
-    }
-
-    if (currentVelocityX != 0 || currentVelocityY != 0) {
-      val normalVector = new Vector2f(currentVelocityX, currentVelocityY)
-      normalVector.normalise()
-
-      walkAngle = normalVector.getTheta.floatValue()
-    }
-
-    if (moved) {
-      CameraView.x = room.x + shape.getX - Globals.WINDOW_X/ renderScale/ 2 + shape.getWidth / 2
-      CameraView.y = room.y + shape.getY - Globals.WINDOW_Y/renderScale / 2 + shape.getHeight / 2
-    }
-
-    getBehavior(currentBehavior).perform(this, delta)
-  }
 
 
   private def adjustViewAngle(clockwise: Boolean): Unit = {
@@ -224,15 +161,10 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
   override def changeRoom(entryDoor: Door, newX: Float, newY: Float): Unit = {
-    if (doorToEnter != entryDoor) return
+    if (controlScheme != ControlScheme.Manual && doorToEnter != entryDoor) return
 
     atDoor = false
-//    lostSightOfFollowedEntity = true
-//    if (!allowChangeRoom) return
-//
-//    if (currentBehavior != "leader") {
-//      allowChangeRoom = false
-//    }
+
 
     getBehavior("follow").timer.start()
 
@@ -247,7 +179,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       followX = newRoom.w/2
       followY = newRoom.h/2
       followDistance = 0
-//      println(name + ": setting follow to center of room")
     }
 
     for (character <- room.characterList) {
@@ -271,6 +202,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   def draw(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
     g.drawImage(image, room.x + shape.getX - offsetX, room.y + shape.getY - offsetY)
 
+    viewCone.update(15) // workaround - otherwise cone not drawn properly
     viewCone.draw(g, offsetX, offsetY)
   }
 
@@ -292,10 +224,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
     }
     g.drawString(tag, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 25 - offsetY)
-
-//    if (allowChangeRoom) {
-//      g.drawString("wants to enter door", room.x + shape.getX - 10 - offsetX, room.y + shape.getY + 25 - offsetY)
-//    }
 
   }
 
@@ -326,10 +254,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
 
   def follow(character: Character, posX: Float, posY: Float, atDistance: Float): Unit = {
-
-//    if (this.getDistanceTo(posX, posY) < 40+atDistance) {
-//      println(name + " arrived")
-//    }
 
     if (currentBehavior == "idle") {
       setBehavior("follow")

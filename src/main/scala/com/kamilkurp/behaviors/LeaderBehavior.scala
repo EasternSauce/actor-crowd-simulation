@@ -20,8 +20,7 @@ class LeaderBehavior extends Behavior {
   var deviationY: Float = 0
 
   override def init(character: Character): Unit = {
-//    character.allowChangeRoom = true
-//    character.doorToEnter = character.room.evacuationDoor
+
   }
 
   def perform(character: Character, delta: Int): Unit = {
@@ -32,9 +31,7 @@ class LeaderBehavior extends Behavior {
 
     if (broadcastTimer.timedOut()) {
       character.room.characterList.foreach(that => {
-        if ( /*Math.abs(that.shape.getX - character.shape.getX) <= 700
-          && Math.abs(that.shape.getY - character.shape.getY) <= 700
-          && */ that != character) {
+        if (that != character) {
           that.actor ! CharacterLeading(character, character.shape.getCenterX, character.shape.getCenterY)
         }
       })

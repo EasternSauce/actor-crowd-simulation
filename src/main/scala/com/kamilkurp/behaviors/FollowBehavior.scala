@@ -9,7 +9,7 @@ import scala.util.Random
 
 class FollowBehavior extends Behavior {
 
-  override var timer: Timer = new Timer(999999)
+  override var timer: Timer = new Timer(5000)
   var deviationTimer: Timer = new Timer(500)
   var broadcastTimer: Timer = new Timer(300)
   var deviationX: Float = 0
@@ -31,9 +31,7 @@ class FollowBehavior extends Behavior {
 
     if (broadcastTimer.timedOut()) {
       character.room.characterList.foreach(that => {
-        if (/*Math.abs(that.shape.getX - character.shape.getX) <= 1100
-          && Math.abs(that.shape.getY - character.shape.getY) <= 1100
-          &&*/ that != character) {
+        if (that != character) {
           that.actor ! CharacterLeading(character, character.shape.getCenterX, character.shape.getCenterY)
         }
       })
@@ -62,35 +60,20 @@ class FollowBehavior extends Behavior {
 
     character.walkAngle = normalVector.getTheta.floatValue()
 
-//    print(character.name +  " follows ")
     if (character.outOfWayTimer.timedOut()) {
-//        print(" 1")
-
       character.movingOutOfTheWay = false
       if (character.controlScheme != ControlScheme.Manual) {
-//          print(" 2")
 
         if (character.getDistanceTo(character.followX, character.followY) > character.followDistance) {
           character.currentVelocityX = (normalVector.x + deviationX) * character.speed * (1f - character.slow) * delta
           character.currentVelocityY = (normalVector.y + deviationY) * character.speed * (1f - character.slow) * delta
-
-//          print(" 3.1")
-//          print(" " + character.currentVelocityX + " " + character.currentVelocityY + " " + character.followX + " " + character.followY)
-
         }
         else {
-//            print(" 3.2")
-
-
           character.currentVelocityX = 0
           character.currentVelocityY = 0
         }
-
       }
     }
-//    println
-
-
 
     if (character.room.meetPointList.nonEmpty) {
       character.followX = character.room.meetPointList.head.shape.getCenterX

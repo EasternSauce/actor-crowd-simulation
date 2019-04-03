@@ -18,7 +18,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   val system: ActorSystem = ActorSystem("crowd_sim_system")
   val numberOfAgents: Int = 100
   val addManualAgent: Boolean = true
-  // load resources
+
   var listOfNames = Array("Virgil", "Dominique", "Hermina",
     "Carolynn", "Adina", "Elida", "Classie", "Raymonde",
     "Lovie", "Theola", "Damion", "Petronila", "Corrinne",
@@ -71,7 +71,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
           }
           val door = new Door(split(1), room, split(3).toInt, split(4).toInt, doorImage)
           if (linkToDoor != null) door.connectWith(linkToDoor)
-//          println("room " + room.name + " door list size: " + room.doorList.length)
           if (split(2) == "1") {
             room.evacuationDoor = door
           }
@@ -92,28 +91,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       }
     }
 
-//    val room1 = new Room("", 100, 100, 400, 900)
-//    val room2 = new Room("", 100, 1100, 1200, 500)
-//    val room3 = new Room("", 1400, 1100, 500, 1500)
-//    val room4 = new Room("", 800, 2100, 500, 500)
-//
-//    val doorAB = new Door("", room1, 170, 845, doorImage)
-//    val doorBA = new Door("", room2, 180, 10, doorImage)
-//    doorAB.connectWith(doorBA)
-//    room1.evacuationDoor = doorAB
-//
-//    val doorBC = new Door("", room2, 1160, 215, doorImage)
-//    val doorCB = new Door("", room3, 10, 215, doorImage)
-//    doorBC.connectWith(doorCB)
-//    room2.evacuationDoor = doorBC
-//
-//    val doorCD = new Door("", room3, 10, 1215, doorImage)
-//    val doorDC = new Door("", room4, 460, 215, doorImage)
-//    doorCD.connectWith(doorDC)
-//    room3.evacuationDoor = doorCD
-//
-//    roomList += (room1, room2, room3, room4)
-
     val roomsFiltered = roomList.filter(room => room.name == "roomA")
     val room1 = if (roomsFiltered.nonEmpty) roomsFiltered.head else null
 
@@ -129,7 +106,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       val randomName = listOfNames(randomNameIndex) + nameIndeces(listOfNames(randomNameIndex))
       nameIndeces.put(listOfNames(randomNameIndex), nameIndeces(listOfNames(randomNameIndex)) + 1)
 
-      //      listOfNames = listOfNames.take(randomNameIndex) ++ listOfNames.drop(randomNameIndex + 1)
       val character = new entities.Character(randomName, room, ControlScheme.Agent, characterImage)
       room.characterList += character
       val actor = system.actorOf(Props(new CharacterActor(randomName, character)))
@@ -137,10 +113,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
       character.setActor(actor)
     }
-//
-//    for (i <- 0 until 1) {
-//      if (room1 != null) room1.characterList(i).setBehavior("leader")
-//    }
+
 
     if (addManualAgent) {
       val playerName = "Player"
@@ -152,11 +125,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
       room1.characterList += character
     }
-
-
-
-
-//    room4.meetPointList += new MeetPoint("", room4, 100, 100)
   }
 
   override def update(gc: GameContainer, i: Int): Unit = {
@@ -200,7 +168,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   override def render(gc: GameContainer, g: Graphics): Unit = {
     g.scale(renderScale, renderScale)
     roomList.foreach(room => {
-//      println((CameraView.x + gc.getInput.getMouseX * 1/renderScale) + " " + (CameraView.y + gc.getInput.getMouseY * 1/renderScale))
 
       room.render(g, doorImage, CameraView.x, CameraView.y)
     })

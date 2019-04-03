@@ -20,7 +20,7 @@ class ViewCone(character: Character) {
   }
 
 
-  def update() {
+  def update(delta: Float) {
 
     val x: Float = character.shape.getX + character.shape.getWidth / 2
     val y: Float = character.shape.getY + character.shape.getHeight / 2
@@ -53,7 +53,7 @@ class ViewCone(character: Character) {
     character.room.characterList.filter(c => c != character).foreach(that =>
       viewRayList.foreach(rayShape =>
         if (that.shape.intersects(rayShape)) {
-          character.actor ! CharacterWithinVision(that, character.getDistanceTo(that))
+          character.actor ! CharacterWithinVision(that, character.getDistanceTo(that), delta)
         }
       )
     )
