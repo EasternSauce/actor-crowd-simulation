@@ -9,11 +9,11 @@ import scala.util.Random
 
 class LeaderBehavior(agent: Agent) extends Behavior(agent) {
 
-  override var timer: Timer = new Timer(3000)
-  var deviationTimer: Timer = new Timer(500)
-  var broadcastTimer: Timer = new Timer(300)
+  override val timer: Timer = new Timer(3000)
+  val deviationTimer: Timer = new Timer(500)
+  val broadcastTimer: Timer = new Timer(300)
 
-  var waitAtDoorTimer: Timer = new Timer(300)
+  val waitAtDoorTimer: Timer = new Timer(300)
   waitAtDoorTimer.time = waitAtDoorTimer.timeout
 
   var deviationX: Float = 0

@@ -20,8 +20,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   val system: ActorSystem = ActorSystem("crowd_sim_system")
   val numberOfAgents: Int = 100
   val addManualAgent: Boolean = true
-  val nameIndeces: mutable.Map[String, Int] = mutable.Map[String, Int]()
-  var listOfNames = Array("Virgil", "Dominique", "Hermina",
+  val nameIndices: mutable.Map[String, Int] = mutable.Map[String, Int]()
+  val listOfNames = Array("Virgil", "Dominique", "Hermina",
     "Carolynn", "Adina", "Elida", "Classie", "Raymonde",
     "Lovie", "Theola", "Damion", "Petronila", "Corrinne",
     "Arica", "Alfonso", "Madalene", "Alvina", "Eliana", "Jarrod", "Thora")
@@ -47,7 +47,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     val filename = "building.txt"
     for (line <- Source.fromFile(filename).getLines) {
       if (!line.isEmpty) {
-        var split: Array[String] = line.split(" ")
+        val split: Array[String] = line.split(" ")
 
         if (split(0) == "room") {
           val room = new Room(split(1), split(2).toInt, split(3).toInt, split(4).toInt, split(5).toInt)
@@ -95,7 +95,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     val room1 = if (roomsFiltered.nonEmpty) roomsFiltered.head else null
 
     for (name <- listOfNames) {
-      nameIndeces.put(name, 0)
+      nameIndices.put(name, 0)
     }
 
     for (_ <- 0 until numberOfAgents) {
@@ -103,8 +103,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       val room: Room = officeList(Random.nextInt(officeList.length))
 
       val randomNameIndex = Random.nextInt(listOfNames.length)
-      val randomName = listOfNames(randomNameIndex) + nameIndeces(listOfNames(randomNameIndex))
-      nameIndeces.put(listOfNames(randomNameIndex), nameIndeces(listOfNames(randomNameIndex)) + 1)
+      val randomName = listOfNames(randomNameIndex) + nameIndices(listOfNames(randomNameIndex))
+      nameIndices.put(listOfNames(randomNameIndex), nameIndices(listOfNames(randomNameIndex)) + 1)
 
       val character = new Agent(randomName, room, ControlScheme.Agent, characterImage)
       room.agentList += character

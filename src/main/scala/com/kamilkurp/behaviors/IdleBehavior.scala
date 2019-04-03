@@ -7,7 +7,7 @@ import org.newdawn.slick.geom.Vector2f
 import scala.util.Random
 
 class IdleBehavior(agent: Agent) extends Behavior(agent) {
-  override var timer: Timer = new Timer(500)
+  override val timer: Timer = new Timer(500)
 
   override def init(): Unit = {
 

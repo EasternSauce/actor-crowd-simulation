@@ -8,9 +8,9 @@ import scala.util.Random
 
 class FollowBehavior(agent: Agent) extends Behavior(agent) {
 
-  override var timer: Timer = new Timer(5000)
-  var deviationTimer: Timer = new Timer(500)
-  var broadcastTimer: Timer = new Timer(300)
+  override val timer: Timer = new Timer(5000)
+  val deviationTimer: Timer = new Timer(500)
+  val broadcastTimer: Timer = new Timer(300)
   var deviationX: Float = 0
   var deviationY: Float = 0
 

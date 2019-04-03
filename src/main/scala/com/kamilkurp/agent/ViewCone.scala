@@ -58,7 +58,7 @@ class ViewCone(character: Agent) {
   }
 
 
-  def draw(g: Graphics, offsetX: Float, offsetY: Float) = {
+  def draw(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
 
     val x: Float = character.shape.getX + character.shape.getWidth / 2
     val y: Float = character.shape.getY + character.shape.getHeight / 2

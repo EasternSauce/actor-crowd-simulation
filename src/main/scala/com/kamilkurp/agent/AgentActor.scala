@@ -67,15 +67,14 @@ class AgentActor(val name: String, val character: Agent) extends Actor with Acto
         }
       }
 
-    case AgentEnteredDoor(that, door, locationX, locationY) => {
+    case AgentEnteredDoor(that, door, locationX, locationY) =>
       if (character.followedAgent == that) {
         character.doorToEnter = door
         character.follow(that, locationX, locationY, 0)
         character.getBehavior("follow").timer.stop()
       }
-    }
 
-    case AgentLeading(entity, locationX, locationY) => {
+    case AgentLeading(entity, locationX, locationY) =>
       if (character.currentBehavior == "idle" ||
         (character.currentBehavior == "follow" && (character.followedAgent == null || character.followedAgent == entity)) ||
         (character.currentBehavior == "follow" && character.lostSightOfFollowedEntity && !entity.lostSightOfFollowedEntity)) {
@@ -106,7 +105,6 @@ class AgentActor(val name: String, val character: Agent) extends Actor with Acto
 
 
       }
-    }
 
     case MoveOutOfTheWay(entity, delta) =>
       if (!character.movingOutOfTheWay) {

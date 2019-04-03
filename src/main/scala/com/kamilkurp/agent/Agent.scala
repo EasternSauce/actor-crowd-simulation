@@ -18,17 +18,17 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
   val chanceToBeLeader: Float = 20
   override var currentVelocityX: Float = 0.0f
   override var currentVelocityY: Float = 0.0f
-  override var shape: Shape = new Rectangle(0, 0, Globals.CHARACTER_SIZE, Globals.CHARACTER_SIZE)
+  override val shape: Shape = new Rectangle(0, 0, Globals.CHARACTER_SIZE, Globals.CHARACTER_SIZE)
   var walkAngle: Float = 0
 
 
   setBehavior("idle")
   var viewAngle: Float = 0
-  var viewCone: ViewCone = new ViewCone(this)
+  val viewCone: ViewCone = new ViewCone(this)
   var controls: (Int, Int, Int, Int) = _
   var slow: Float = 0.0f
-  var slowTimer: Timer = new Timer(3000)
-  var lookTimer: Timer = new Timer(50)
+  val slowTimer: Timer = new Timer(3000)
+  val lookTimer: Timer = new Timer(50)
   var slowed: Boolean = false
   var actor: ActorRef = _
   var deviationX: Float = 0
@@ -45,12 +45,12 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
 
   var followedAgent: Agent = _
 
-  var outOfWayTimer: Timer = new Timer(1000)
+  val outOfWayTimer: Timer = new Timer(1000)
   outOfWayTimer.set(outOfWayTimer.timeout)
 
   var movingOutOfTheWay: Boolean = false
 
-  var lastSeenFollowedEntityTimer = new Timer(1000 + new Random().nextInt(600))
+  val lastSeenFollowedEntityTimer = new Timer(1000 + new Random().nextInt(600))
 
   var lostSightOfFollowedEntity: Boolean = false
 
