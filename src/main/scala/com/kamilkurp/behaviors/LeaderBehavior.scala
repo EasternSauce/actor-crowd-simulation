@@ -1,7 +1,8 @@
 package com.kamilkurp.behaviors
 
 import com.kamilkurp.entities.{Character, Door}
-import com.kamilkurp.{CharacterLeading, ControlScheme, Timer}
+import com.kamilkurp.utils.Timer
+import com.kamilkurp.{CharacterLeading, ControlScheme}
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
@@ -11,6 +12,9 @@ class LeaderBehavior extends Behavior {
   override var timer: Timer = new Timer(3000)
   var deviationTimer: Timer = new Timer(500)
   var broadcastTimer: Timer = new Timer(300)
+
+  var waitAtDoorTimer: Timer = new Timer(300)
+  waitAtDoorTimer.time = waitAtDoorTimer.timeout
 
   var deviationX: Float = 0
   var deviationY: Float = 0
@@ -24,6 +28,7 @@ class LeaderBehavior extends Behavior {
     timer.update(delta)
     deviationTimer.update(delta)
     broadcastTimer.update(delta)
+    waitAtDoorTimer.update(delta)
 
     if (broadcastTimer.timedOut()) {
       character.room.characterList.foreach(that => {
@@ -48,13 +53,30 @@ class LeaderBehavior extends Behavior {
 
 
       if (character.controlScheme != ControlScheme.Manual) {
-        val normalVector = new Vector2f(door.posX - character.shape.getX, door.posY - character.shape.getY)
+        val normalVector = new Vector2f(door.shape.getCenterX - character.shape.getCenterX, door.shape.getCenterY - character.shape.getCenterY)
         normalVector.normalise()
 
-        character.walkAngle = normalVector.getTheta.floatValue()
+        if (!character.atDoor) {
+          character.currentVelocityX = (normalVector.x + deviationX) * character.speed * (1f - character.slow) * delta
+          character.currentVelocityY = (normalVector.y + deviationY) * character.speed * (1f - character.slow) * delta
 
-        character.currentVelocityX = (normalVector.x + deviationX) * character.speed * (1f - character.slow) * delta
-        character.currentVelocityY = (normalVector.y + deviationY) * character.speed * (1f - character.slow) * delta
+          if (character.getDistanceTo(character.doorToEnter.shape.getCenterX, character.doorToEnter.shape.getCenterY) < 100) {
+            waitAtDoorTimer.reset()
+            character.atDoor = true
+          }
+        }
+        else {
+          if (!waitAtDoorTimer.timedOut()) {
+            character.currentVelocityX = 0
+            character.currentVelocityY = 0
+          }
+          else {
+            character.currentVelocityX = (normalVector.x + deviationX) * character.speed * (1f - character.slow) * delta
+            character.currentVelocityY = (normalVector.y + deviationY) * character.speed * (1f - character.slow) * delta
+          }
+        }
+
+
       }
 
     }

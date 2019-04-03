@@ -1,7 +1,7 @@
 package com.kamilkurp.behaviors
 
 import com.kamilkurp.entities.Character
-import com.kamilkurp.{Timer}
+import com.kamilkurp.utils.Timer
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random

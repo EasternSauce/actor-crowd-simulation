@@ -4,6 +4,7 @@ import akka.actor.ActorRef
 import com.kamilkurp.ControlScheme.ControlScheme
 import com.kamilkurp._
 import com.kamilkurp.behaviors._
+import com.kamilkurp.utils.Timer
 import org.newdawn.slick.geom._
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
@@ -23,14 +24,15 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var walkAngle: Float = 0
   var viewAngle: Float = 0
 
+  var viewCone: ViewCone = new ViewCone(this)
+
   val rememberedRoute: mutable.Map[String, (Float, Float)] = mutable.Map[String, (Float, Float)]()
 
-  var viewRayList: ListBuffer[Shape] = ListBuffer[Shape]()
 
-  for (_ <- 0 until 24) {
-    var polygon: Shape = new Polygon(new Rectangle(0, 0, 200, 1).getPoints)
-    viewRayList += polygon
-  }
+
+
+
+
 
   val behaviorMap: mutable.HashMap[String, Behavior] = mutable.HashMap.empty[String,Behavior]
 
@@ -58,6 +60,8 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var deviationY: Float = 0
 
   val chanceToBeLeader: Float = 20
+
+  var atDoor: Boolean = false
 
   if (Random.nextInt(100) < chanceToBeLeader) {
     setBehavior("leader")
@@ -89,7 +93,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
     val collisionDetails = Globals.manageCollisions(room, this)
 
-    if (!collisionDetails.colX || !collisionDetails.colY) {
+    if (!collisionDetails.colX && !collisionDetails.colY) {
       isFree = true
 //      println("found spot at " + shape.getX + " " + shape.getY)
     }
@@ -114,6 +118,8 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     slowTimer.update(delta)
     lookTimer.update(delta)
 
+    viewCone.update()
+
 //    if (currentVelocityX == 0 && currentVelocityY == 0) {
 //      println(name + "\'s followX: " + followX + " followY: " + followY)
 //    }
@@ -129,13 +135,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       shape.setY(shape.getY + currentVelocityY)
     }
 
-    room.characterList.filter(c => c != this).foreach(character =>
-      viewRayList.foreach(rayShape =>
-        if (character.shape.intersects(rayShape)) {
-          actor ! CharacterWithinVision(character, getDistanceTo(character))
-        }
-      )
-    )
+
   }
 
   private def updateAgent(delta: Int): Unit = {
@@ -225,6 +225,9 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   override def changeRoom(entryDoor: Door, newX: Float, newY: Float): Unit = {
     if (doorToEnter != entryDoor) return
+
+    atDoor = false
+//    lostSightOfFollowedEntity = true
 //    if (!allowChangeRoom) return
 //
 //    if (currentBehavior != "leader") {
@@ -268,7 +271,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   def draw(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
     g.drawImage(image, room.x + shape.getX - offsetX, room.y + shape.getY - offsetY)
 
-    drawViewRays(g, offsetX, offsetY, room.x, room.y)
+    viewCone.draw(g, offsetX, offsetY)
   }
 
   def drawName(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
@@ -294,53 +297,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 //      g.drawString("wants to enter door", room.x + shape.getX - 10 - offsetX, room.y + shape.getY + 25 - offsetY)
 //    }
 
-  }
-
-  private def drawViewRays(g: Graphics, offsetX: Float, offsetY: Float, roomX: Float, roomY: Float) {
-    var firstRay: (Rectangle, Float) = (new Rectangle(0,0,0,0), 0)
-    var lastRay: (Rectangle, Float) = (new Rectangle(0,0,0,0), 0)
-
-    val x: Float = shape.getX + shape.getWidth / 2
-    val y: Float = shape.getY + shape.getHeight / 2
-
-    for (i <- viewRayList.indices) {
-      val rect = new Rectangle(x, y, 1200, 1)
-      var polygon: Shape = new Polygon(rect.getPoints)
-
-      val radianAngle = this.viewAngle - 60 + i * 5
-      val t: Transform = Transform.createRotateTransform(Math.toRadians(radianAngle).toFloat, x, y)
-      polygon = polygon.transform(t)
-
-      viewRayList(i) = polygon
-
-      if(i == 0) {
-        firstRay = (rect, radianAngle)
-      }
-      if(i == viewRayList.length - 1) {
-        lastRay = (rect, radianAngle)
-      }
-    }
-
-    firstRay._1.setWidth(100)
-    lastRay._1.setWidth(100)
-
-    val col = new Color(Color.green)
-    col.a = 1f
-    g.setColor(col)
-
-    val t: Transform = Transform.createTranslateTransform(roomX - offsetX, roomY - offsetY)
-    var polygon1: Shape = new Polygon(firstRay._1.getPoints)
-    val firstRotation: Transform = Transform.createRotateTransform(Math.toRadians(firstRay._2).toFloat, x, y)
-    polygon1 = polygon1.transform(firstRotation)
-    polygon1 = polygon1.transform(t)
-    var polygon2: Shape = new Polygon(lastRay._1.getPoints)
-    val lastRotation: Transform = Transform.createRotateTransform(Math.toRadians(lastRay._2).toFloat, x, y)
-    polygon2 = polygon2.transform(lastRotation)
-    polygon2 = polygon2.transform(t)
-
-
-    g.draw(polygon1)
-    g.draw(polygon2)
   }
 
 

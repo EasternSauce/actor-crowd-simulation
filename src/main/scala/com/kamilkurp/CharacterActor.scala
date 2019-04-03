@@ -74,7 +74,7 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
 
       }
 
-      if (that.currentBehavior == "follow" && distance < 200) {
+      if (that.currentBehavior == "follow" && distance < 400) {
         if (character.currentBehavior == "leader" || (character.currentBehavior == "follow" && that.followedCharacter == character)) {
           that.actor ! MoveOutOfTheWay(character)
         }

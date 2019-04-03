@@ -1,4 +1,4 @@
-package com.kamilkurp
+package com.kamilkurp.utils
 
 class Timer(val timeout: Int) {
   var time: Int = 0

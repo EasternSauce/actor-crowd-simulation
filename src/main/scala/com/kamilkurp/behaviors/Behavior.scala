@@ -1,7 +1,7 @@
 package com.kamilkurp.behaviors
 
-import com.kamilkurp.Timer
 import com.kamilkurp.entities.Character
+import com.kamilkurp.utils.Timer
 
 abstract class Behavior {
   var timer: Timer
