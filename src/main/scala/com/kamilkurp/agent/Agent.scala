@@ -12,7 +12,7 @@ import org.newdawn.slick.geom.Shape
 import scala.collection.mutable
 import scala.util.Random
 
-class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, var image: Image) extends Entity with BehaviorManager {
+class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, var image: Image) extends Entity with BehaviorManager with Follower {
 
   val rememberedRoute: mutable.Map[String, (Float, Float)] = mutable.Map[String, (Float, Float)]()
   val speed: Float = 0.5f
@@ -20,17 +20,15 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
   override var currentVelocityX: Float = 0.0f
   override var currentVelocityY: Float = 0.0f
   override var shape: Shape = new Rectangle(0, 0, Globals.AGENT_SIZE, Globals.AGENT_SIZE)
+
   var walkAngle: Float = 0
-
-
   var viewAngle: Float = 0
+
   val viewCone: ViewCone = new ViewCone(this)
   var controls: (Int, Int, Int, Int) = _
   var slow: Float = 0.0f
   val slowTimer: Timer = new Timer(3000)
   val lookTimer: Timer = new Timer(50)
-  val followTimer: Timer = new Timer(5000)
-  var slowed: Boolean = false
   var actor: ActorRef = _
   var deviationX: Float = 0
   var deviationY: Float = 0
@@ -40,20 +38,11 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
     setBehavior("leader")
   }
 
-  var followX: Float = 0
-  var followY: Float = 0
-  var followDistance: Float = 0
-
-  var followedAgent: Agent = _
 
   val outOfWayTimer: Timer = new Timer(1000)
   outOfWayTimer.set(outOfWayTimer.timeout)
-
   var movingOutOfTheWay: Boolean = false
 
-  val lastSeenFollowedEntityTimer = new Timer(1000 + new Random().nextInt(600))
-
-  var lostSightOfFollowedEntity: Boolean = false
 
   var isFree = false
 

@@ -51,6 +51,8 @@ class LeaderBehavior(agent: Agent) extends Behavior(agent) {
         val normalVector = new Vector2f(door.shape.getCenterX - agent.shape.getCenterX, door.shape.getCenterY - agent.shape.getCenterY)
         normalVector.normalise()
 
+        agent.walkAngle = normalVector.getTheta.floatValue()
+
         if (!agent.atDoor) {
           agent.currentVelocityX = (normalVector.x + deviationX) * agent.speed * (1f - agent.slow) * delta
           agent.currentVelocityY = (normalVector.y + deviationY) * agent.speed * (1f - agent.slow) * delta
