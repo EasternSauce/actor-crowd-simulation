@@ -1,15 +1,13 @@
-package com.kamilkurp
+package com.kamilkurp.agent
 
-import org.newdawn.slick.{Color, Graphics}
 import org.newdawn.slick.geom.{Polygon, Rectangle, Shape, Transform}
+import org.newdawn.slick.{Color, Graphics}
 
 import scala.collection.mutable.ListBuffer
 
-import com.kamilkurp.entities.Character
-
-class ViewCone(character: Character) {
-  var firstRay: (Rectangle, Float) = (new Rectangle(0,0,0,0), 0)
-  var lastRay: (Rectangle, Float) = (new Rectangle(0,0,0,0), 0)
+class ViewCone(character: Agent) {
+  var firstRay: (Rectangle, Float) = (new Rectangle(0, 0, 0, 0), 0)
+  var lastRay: (Rectangle, Float) = (new Rectangle(0, 0, 0, 0), 0)
 
   var viewRayList: ListBuffer[Shape] = ListBuffer[Shape]()
 
@@ -25,8 +23,8 @@ class ViewCone(character: Character) {
     val x: Float = character.shape.getX + character.shape.getWidth / 2
     val y: Float = character.shape.getY + character.shape.getHeight / 2
 
-    firstRay = (new Rectangle(0,0,0,0), 0)
-    lastRay = (new Rectangle(0,0,0,0), 0)
+    firstRay = (new Rectangle(0, 0, 0, 0), 0)
+    lastRay = (new Rectangle(0, 0, 0, 0), 0)
 
 
     for (i <- viewRayList.indices) {
@@ -39,10 +37,10 @@ class ViewCone(character: Character) {
 
       viewRayList(i) = polygon
 
-      if(i == 0) {
+      if (i == 0) {
         firstRay = (rect, radianAngle)
       }
-      if(i == viewRayList.length - 1) {
+      if (i == viewRayList.length - 1) {
         lastRay = (rect, radianAngle)
       }
     }
@@ -50,15 +48,14 @@ class ViewCone(character: Character) {
     firstRay._1.setWidth(100)
     lastRay._1.setWidth(100)
 
-    character.room.characterList.filter(c => c != character).foreach(that =>
+    character.room.agentList.filter(c => c != character).foreach(that =>
       viewRayList.foreach(rayShape =>
         if (that.shape.intersects(rayShape)) {
-          character.actor ! CharacterWithinVision(that, character.getDistanceTo(that), delta)
+          character.actor ! AgentWithinVision(that, character.getDistanceTo(that), delta)
         }
       )
     )
   }
-
 
 
   def draw(g: Graphics, offsetX: Float, offsetY: Float) = {

@@ -1,6 +1,6 @@
-package com.kamilkurp.entities
+package com.kamilkurp.building
 
-import com.kamilkurp.Room
+import com.kamilkurp.entity.Entity
 import org.newdawn.slick.geom.{Rectangle, Shape, Transform}
 import org.newdawn.slick.{Color, Graphics, Image}
 

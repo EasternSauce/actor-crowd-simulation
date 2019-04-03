@@ -1,6 +1,7 @@
-package com.kamilkurp
+package com.kamilkurp.utils
 
-import com.kamilkurp.entities.Entity
+import com.kamilkurp.building.Room
+import com.kamilkurp.entity.Entity
 
 object Globals {
   val CHARACTER_SIZE: Int = 40
@@ -16,7 +17,7 @@ object Globals {
     if (entity.shape.getX + entity.currentVelocityX < 0 || entity.shape.getX + entity.currentVelocityX > room.w - entity.shape.getWidth) collisionDetails.colX = true
     if (entity.shape.getY + entity.currentVelocityY < 0 || entity.shape.getY + entity.currentVelocityY > room.h - entity.shape.getHeight) collisionDetails.colY = true
 
-    room.characterList.filter(character => character != entity).foreach(character => {
+    room.agentList.filter(character => character != entity).foreach(character => {
 
       var collided = false
 
@@ -70,7 +71,7 @@ object Globals {
     if (x < 0 || x > room.w - w) occupied = true
     if (y < 0 || y > room.h - h) occupied = true
 
-    room.characterList.foreach(character => {
+    room.agentList.foreach(character => {
       if (intersects(character, x, y, w, h)) {
         occupied = true
       }

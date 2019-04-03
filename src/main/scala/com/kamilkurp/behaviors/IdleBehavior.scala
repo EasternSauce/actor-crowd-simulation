@@ -1,13 +1,12 @@
 package com.kamilkurp.behaviors
 
-import com.kamilkurp.ControlScheme
-import com.kamilkurp.entities.Character
-import com.kamilkurp.utils.Timer
+import com.kamilkurp.agent.Agent
+import com.kamilkurp.utils.{ControlScheme, Timer}
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
-class IdleBehavior(character: Character) extends Behavior(character) {
+class IdleBehavior(agent: Agent) extends Behavior(agent) {
   override var timer: Timer = new Timer(500)
 
   override def init(): Unit = {
@@ -22,34 +21,42 @@ class IdleBehavior(character: Character) extends Behavior(character) {
 
       timer.reset()
 
-      if (character.controlScheme != ControlScheme.Manual) {
+      if (agent.controlScheme != ControlScheme.Manual) {
         if (inPlace) {
-          character.currentVelocityX = 0
-          character.currentVelocityY = 0
+          agent.currentVelocityX = 0
+          agent.currentVelocityY = 0
         }
         else {
-          character.currentVelocityX = (Random.nextInt(3) - 1) * character.speed * (1f - character.slow) * 0.8f * delta
-          character.currentVelocityY = (Random.nextInt(3) - 1) * character.speed * (1f - character.slow) * 0.8f * delta
+          agent.currentVelocityX = (Random.nextInt(3) - 1) * agent.speed * (1f - agent.slow) * 0.8f * delta
+          agent.currentVelocityY = (Random.nextInt(3) - 1) * agent.speed * (1f - agent.slow) * 0.8f * delta
         }
       }
 
 
-      if (character.currentVelocityX != 0 || character.currentVelocityY != 0) {
-        val normalVector = new Vector2f(character.currentVelocityX, character.currentVelocityY)
+      if (agent.currentVelocityX != 0 || agent.currentVelocityY != 0) {
+        val normalVector = new Vector2f(agent.currentVelocityX, agent.currentVelocityY)
         normalVector.normalise()
 
-        character.walkAngle = normalVector.getTheta.floatValue()
+        agent.walkAngle = normalVector.getTheta.floatValue()
       }
 
-      if (character.room.meetPointList.nonEmpty) {
-        character.followX = character.room.meetPointList.head.shape.getCenterX
-        character.followY = character.room.meetPointList.head.shape.getCenterY
+      if (agent.room.meetPointList.nonEmpty) {
+        agent.followX = agent.room.meetPointList.head.shape.getCenterX
+        agent.followY = agent.room.meetPointList.head.shape.getCenterY
 
-        character.setBehavior("holdMeetPoint")
+        agent.setBehavior("holdMeetPoint")
       }
 
 
     }
   }
 
+  override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
+    agent.setBehavior("follow")
+    agent.followX = posX
+    agent.followY = posY
+    agent.followDistance = atDistance
+    agent.followedAgent = that
+    agent.getBehavior("follow").timer.reset()
+  }
 }

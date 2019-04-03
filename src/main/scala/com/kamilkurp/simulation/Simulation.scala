@@ -1,7 +1,9 @@
-package com.kamilkurp
+package com.kamilkurp.simulation
 
 import akka.actor.{ActorRef, ActorSystem, Props}
-import com.kamilkurp.entities.{Door, MeetPoint}
+import com.kamilkurp.agent.{Agent, AgentActor}
+import com.kamilkurp.building.{Door, MeetPoint, Room}
+import com.kamilkurp.utils.{ControlScheme, Globals}
 import org.newdawn.slick._
 
 import scala.collection.mutable
@@ -18,13 +20,11 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   val system: ActorSystem = ActorSystem("crowd_sim_system")
   val numberOfAgents: Int = 100
   val addManualAgent: Boolean = true
-
+  val nameIndeces: mutable.Map[String, Int] = mutable.Map[String, Int]()
   var listOfNames = Array("Virgil", "Dominique", "Hermina",
     "Carolynn", "Adina", "Elida", "Classie", "Raymonde",
     "Lovie", "Theola", "Damion", "Petronila", "Corrinne",
     "Arica", "Alfonso", "Madalene", "Alvina", "Eliana", "Jarrod", "Thora")
-  val nameIndeces: mutable.Map[String, Int] = mutable.Map[String, Int]()
-
   var doorImage: Image = _
   var characterImage: Image = _
 
@@ -106,9 +106,9 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       val randomName = listOfNames(randomNameIndex) + nameIndeces(listOfNames(randomNameIndex))
       nameIndeces.put(listOfNames(randomNameIndex), nameIndeces(listOfNames(randomNameIndex)) + 1)
 
-      val character = new entities.Character(randomName, room, ControlScheme.Agent, characterImage)
-      room.characterList += character
-      val actor = system.actorOf(Props(new CharacterActor(randomName, character)))
+      val character = new Agent(randomName, room, ControlScheme.Agent, characterImage)
+      room.agentList += character
+      val actor = system.actorOf(Props(new AgentActor(randomName, character)))
       mutableActorList += actor
 
       character.setActor(actor)
@@ -117,13 +117,13 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     if (addManualAgent) {
       val playerName = "Player"
-      val character = new entities.Character(playerName, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S), characterImage)
+      val character = new Agent(playerName, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S), characterImage)
 
-      val actor = system.actorOf(Props(new CharacterActor("Player", character)))
+      val actor = system.actorOf(Props(new AgentActor("Player", character)))
 
       character.setActor(actor)
 
-      room1.characterList += character
+      room1.agentList += character
     }
   }
 
@@ -143,19 +143,19 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     }
 
     if (gc.getInput.isKeyDown(Input.KEY_SUBTRACT)) {
-      val centerX = CameraView.x + Globals.WINDOW_X * 1/renderScale / 2
-      val centerY = CameraView.y + Globals.WINDOW_Y * 1/renderScale / 2
+      val centerX = CameraView.x + Globals.WINDOW_X * 1 / renderScale / 2
+      val centerY = CameraView.y + Globals.WINDOW_Y * 1 / renderScale / 2
       renderScale /= 1 + 0.005f
-      CameraView.x = centerX - (Globals.WINDOW_X * 1/renderScale / 2)
-      CameraView.y = centerY - (Globals.WINDOW_Y * 1/renderScale / 2)
+      CameraView.x = centerX - (Globals.WINDOW_X * 1 / renderScale / 2)
+      CameraView.y = centerY - (Globals.WINDOW_Y * 1 / renderScale / 2)
 
     }
     if (gc.getInput.isKeyDown(Input.KEY_ADD)) {
-      val centerX = CameraView.x + Globals.WINDOW_X * 1/renderScale / 2
-      val centerY = CameraView.y + Globals.WINDOW_Y * 1/renderScale / 2
+      val centerX = CameraView.x + Globals.WINDOW_X * 1 / renderScale / 2
+      val centerY = CameraView.y + Globals.WINDOW_Y * 1 / renderScale / 2
       renderScale *= 1 + 0.005f
-      CameraView.x = centerX - (Globals.WINDOW_X * 1/renderScale / 2)
-      CameraView.y = centerY - (Globals.WINDOW_Y * 1/renderScale / 2)
+      CameraView.x = centerX - (Globals.WINDOW_X * 1 / renderScale / 2)
+      CameraView.y = centerY - (Globals.WINDOW_Y * 1 / renderScale / 2)
     }
 
 

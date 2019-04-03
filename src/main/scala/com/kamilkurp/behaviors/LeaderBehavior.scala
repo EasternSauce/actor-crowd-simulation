@@ -1,13 +1,13 @@
 package com.kamilkurp.behaviors
 
-import com.kamilkurp.entities.{Character, Door}
-import com.kamilkurp.utils.Timer
-import com.kamilkurp.{CharacterLeading, ControlScheme}
+import com.kamilkurp.agent.{Agent, AgentLeading}
+import com.kamilkurp.building.Door
+import com.kamilkurp.utils.{ControlScheme, Timer}
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
-class LeaderBehavior(character: Character) extends Behavior(character) {
+class LeaderBehavior(agent: Agent) extends Behavior(agent) {
 
   override var timer: Timer = new Timer(3000)
   var deviationTimer: Timer = new Timer(500)
@@ -30,18 +30,18 @@ class LeaderBehavior(character: Character) extends Behavior(character) {
     waitAtDoorTimer.update(delta)
 
     if (broadcastTimer.timedOut()) {
-      character.room.characterList.foreach(that => {
-        if (that != character) {
-          that.actor ! CharacterLeading(character, character.shape.getCenterX, character.shape.getCenterY)
+      agent.room.agentList.foreach(that => {
+        if (that != agent) {
+          that.actor ! AgentLeading(agent, agent.shape.getCenterX, agent.shape.getCenterY)
         }
       })
       broadcastTimer.reset()
     }
 
 
-    val door: Door = character.room.evacuationDoor
+    val door: Door = agent.room.evacuationDoor
     if (door != null) {
-      character.doorToEnter = door
+      agent.doorToEnter = door
       if (deviationTimer.timedOut()) {
         deviationX = 0.3f * Random.nextFloat() - 0.15f
         deviationY = 0.3f * Random.nextFloat() - 0.15f
@@ -49,27 +49,27 @@ class LeaderBehavior(character: Character) extends Behavior(character) {
       }
 
 
-      if (character.controlScheme != ControlScheme.Manual) {
-        val normalVector = new Vector2f(door.shape.getCenterX - character.shape.getCenterX, door.shape.getCenterY - character.shape.getCenterY)
+      if (agent.controlScheme != ControlScheme.Manual) {
+        val normalVector = new Vector2f(door.shape.getCenterX - agent.shape.getCenterX, door.shape.getCenterY - agent.shape.getCenterY)
         normalVector.normalise()
 
-        if (!character.atDoor) {
-          character.currentVelocityX = (normalVector.x + deviationX) * character.speed * (1f - character.slow) * delta
-          character.currentVelocityY = (normalVector.y + deviationY) * character.speed * (1f - character.slow) * delta
+        if (!agent.atDoor) {
+          agent.currentVelocityX = (normalVector.x + deviationX) * agent.speed * (1f - agent.slow) * delta
+          agent.currentVelocityY = (normalVector.y + deviationY) * agent.speed * (1f - agent.slow) * delta
 
-          if (character.getDistanceTo(character.doorToEnter.shape.getCenterX, character.doorToEnter.shape.getCenterY) < 100) {
+          if (agent.getDistanceTo(agent.doorToEnter.shape.getCenterX, agent.doorToEnter.shape.getCenterY) < 100) {
             waitAtDoorTimer.reset()
-            character.atDoor = true
+            agent.atDoor = true
           }
         }
         else {
           if (!waitAtDoorTimer.timedOut()) {
-            character.currentVelocityX = 0
-            character.currentVelocityY = 0
+            agent.currentVelocityX = 0
+            agent.currentVelocityY = 0
           }
           else {
-            character.currentVelocityX = (normalVector.x + deviationX) * character.speed * (1f - character.slow) * delta
-            character.currentVelocityY = (normalVector.y + deviationY) * character.speed * (1f - character.slow) * delta
+            agent.currentVelocityX = (normalVector.x + deviationX) * agent.speed * (1f - agent.slow) * delta
+            agent.currentVelocityY = (normalVector.y + deviationY) * agent.speed * (1f - agent.slow) * delta
           }
         }
 
@@ -77,11 +77,15 @@ class LeaderBehavior(character: Character) extends Behavior(character) {
       }
 
     }
-    else if (character.room.meetPointList.nonEmpty) {
-      character.followX = character.room.meetPointList.head.shape.getCenterX
-      character.followY = character.room.meetPointList.head.shape.getCenterY
+    else if (agent.room.meetPointList.nonEmpty) {
+      agent.followX = agent.room.meetPointList.head.shape.getCenterX
+      agent.followY = agent.room.meetPointList.head.shape.getCenterY
 
-      character.setBehavior("holdMeetPoint")
+      agent.setBehavior("holdMeetPoint")
     }
+  }
+
+  override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
+
   }
 }

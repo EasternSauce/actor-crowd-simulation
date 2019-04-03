@@ -1,6 +1,6 @@
-package com.kamilkurp.entities
+package com.kamilkurp.entity
 
-import com.kamilkurp.Room
+import com.kamilkurp.building.{Door, Room}
 import org.newdawn.slick.Image
 import org.newdawn.slick.geom.Shape
 

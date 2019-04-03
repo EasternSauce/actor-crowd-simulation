@@ -1,39 +1,40 @@
-package com.kamilkurp
+package com.kamilkurp.agent
 
-import akka.actor.{Actor, ActorLogging, ActorRef}
-import com.kamilkurp.entities.{Character, Door, Entity}
+import akka.actor.{Actor, ActorLogging}
+import com.kamilkurp.building.Door
+import com.kamilkurp.entity.Entity
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
-case class CharacterWithinVision(entity: Entity, distance: Float, delta: Float)
+case class AgentWithinVision(entity: Entity, distance: Float, delta: Float)
 
-case class CharacterEnteredDoor(character: Character, door: Door, locationX: Float, locationY: Float)
+case class AgentEnteredDoor(character: Agent, door: Door, locationX: Float, locationY: Float)
 
-case class CharacterLeading(character: Character, locationX: Float, locationY: Float)
+case class AgentLeading(character: Agent, locationX: Float, locationY: Float)
 
 case class MoveOutOfTheWay(entity: Entity, delta: Float)
 
-class CharacterActor(val name: String, val character: Character) extends Actor with ActorLogging {
+class AgentActor(val name: String, val character: Agent) extends Actor with ActorLogging {
 
-  val char: entities.Character = character
+  val char: Agent = character
 
 
   override def receive: Receive = {
-    case CharacterWithinVision(that: Character, distance: Float, delta: Float) =>
+    case AgentWithinVision(that: Agent, distance: Float, delta: Float) =>
 
       if (character.currentBehavior == "idle" || character.currentBehavior == "follow") {
-        if (that.currentBehavior == "leader" && that.followedCharacter == null) {
+        if (that.currentBehavior == "leader" && that.followedAgent == null) {
           character.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
           character.lostSightOfFollowedEntity = false
           character.lastSeenFollowedEntityTimer.reset()
         } else if (that.currentBehavior == "follow") {
-          if (character.followedCharacter == null || character.lostSightOfFollowedEntity) {
+          if (character.followedAgent == null || character.lostSightOfFollowedEntity) {
 
 
             var loopDetected: Boolean = false
-            var followChain: Character = that
-            var lastCharacter: Character = that
+            var followChain: Agent = that
+            var lastCharacter: Agent = that
 
             while (followChain != null) {
               lastCharacter = followChain
@@ -44,12 +45,9 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
                 followChain = null
               }
               else {
-                followChain = followChain.followedCharacter
+                followChain = followChain.followedAgent
               }
             }
-
-
-
 
 
             if (!loopDetected && lastCharacter.currentBehavior == "leader") {
@@ -64,27 +62,27 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
       }
 
       if (that.currentBehavior == "follow" && distance < 400) {
-        if (character.currentBehavior == "leader" || (character.currentBehavior == "follow" && that.followedCharacter == character)) {
+        if (character.currentBehavior == "leader" || (character.currentBehavior == "follow" && that.followedAgent == character)) {
           that.actor ! MoveOutOfTheWay(character, delta)
         }
       }
 
-    case CharacterEnteredDoor(that, door, locationX, locationY) => {
-      if (character.followedCharacter == that) {
+    case AgentEnteredDoor(that, door, locationX, locationY) => {
+      if (character.followedAgent == that) {
         character.doorToEnter = door
         character.follow(that, locationX, locationY, 0)
         character.getBehavior("follow").timer.stop()
       }
     }
 
-    case CharacterLeading(entity, locationX, locationY) => {
+    case AgentLeading(entity, locationX, locationY) => {
       if (character.currentBehavior == "idle" ||
-        (character.currentBehavior == "follow" && (character.followedCharacter == null || character.followedCharacter == entity)) ||
+        (character.currentBehavior == "follow" && (character.followedAgent == null || character.followedAgent == entity)) ||
         (character.currentBehavior == "follow" && character.lostSightOfFollowedEntity && !entity.lostSightOfFollowedEntity)) {
 
         var loopDetected: Boolean = false
-        var followChain: Character = entity
-        var lastCharacter: Character = entity
+        var followChain: Agent = entity
+        var lastCharacter: Agent = entity
 
         while (followChain != null) {
           lastCharacter = followChain
@@ -94,7 +92,7 @@ class CharacterActor(val name: String, val character: Character) extends Actor w
             followChain = null
           }
           else {
-            followChain = followChain.followedCharacter
+            followChain = followChain.followedAgent
           }
         }
 

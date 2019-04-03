@@ -1,25 +1,24 @@
 package com.kamilkurp.behaviors
 
-import com.kamilkurp.entities.Character
+import com.kamilkurp.agent.Agent
 import com.kamilkurp.utils.Timer
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
-class HoldMeetPointBehavior(character: Character) extends Behavior(character) {
+class HoldMeetPointBehavior(agent: Agent) extends Behavior(agent) {
+
+  override var timer: Timer = new Timer(3000)
+  var deviationTimer: Timer = new Timer(500)
+  var deviationX: Float = 0
+  var deviationY: Float = 0
 
   override def init(): Unit = {
 
   }
 
-  override var timer: Timer = new Timer(3000)
-  var deviationTimer: Timer = new Timer(500)
-
-  var deviationX: Float = 0
-  var deviationY: Float = 0
-
   override def perform(delta: Int): Unit = {
-    val normalVector = new Vector2f(character.followX - character.shape.getCenterX, character.followY - character.shape.getCenterY)
+    val normalVector = new Vector2f(agent.followX - agent.shape.getCenterX, agent.followY - agent.shape.getCenterY)
     normalVector.normalise()
 
     if (deviationTimer.timedOut()) {
@@ -27,7 +26,11 @@ class HoldMeetPointBehavior(character: Character) extends Behavior(character) {
       deviationY = 0.3f * Random.nextFloat() - 0.15f
       deviationTimer.reset()
     }
-    character.currentVelocityX = (normalVector.x + deviationX) * character.speed * (1f - character.slow) * delta
-    character.currentVelocityY = (normalVector.y + deviationY) * character.speed * (1f - character.slow) * delta
+    agent.currentVelocityX = (normalVector.x + deviationX) * agent.speed * (1f - agent.slow) * delta
+    agent.currentVelocityY = (normalVector.y + deviationY) * agent.speed * (1f - agent.slow) * delta
+  }
+
+  override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
+
   }
 }

@@ -1,58 +1,38 @@
-package com.kamilkurp.entities
+package com.kamilkurp.agent
 
 import akka.actor.ActorRef
-import com.kamilkurp.ControlScheme.ControlScheme
-import com.kamilkurp._
-import com.kamilkurp.behaviors._
-import com.kamilkurp.utils.Timer
+import com.kamilkurp.building.{Door, Room}
+import com.kamilkurp.entity.Entity
+import com.kamilkurp.utils.ControlScheme.ControlScheme
+import com.kamilkurp.utils.{ControlScheme, Globals, Timer}
 import org.newdawn.slick.geom._
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
 import scala.collection.mutable
 import scala.util.Random
 
-class Character(val name: String, var room: Room, val controlScheme: ControlScheme, var image: Image) extends Entity {
+class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, var image: Image) extends Entity with BehaviorManager {
 
+  val rememberedRoute: mutable.Map[String, (Float, Float)] = mutable.Map[String, (Float, Float)]()
+  val speed: Float = 0.5f
+  val chanceToBeLeader: Float = 20
   override var currentVelocityX: Float = 0.0f
   override var currentVelocityY: Float = 0.0f
   override var shape: Shape = new Rectangle(0, 0, Globals.CHARACTER_SIZE, Globals.CHARACTER_SIZE)
-
-  var currentBehavior: String = _
-
   var walkAngle: Float = 0
-  var viewAngle: Float = 0
 
-  var viewCone: ViewCone = new ViewCone(this)
-
-  val rememberedRoute: mutable.Map[String, (Float, Float)] = mutable.Map[String, (Float, Float)]()
-
-  val behaviorMap: mutable.HashMap[String, Behavior] = mutable.HashMap.empty[String,Behavior]
-
-  behaviorMap += ("follow" -> new FollowBehavior(this))
-  behaviorMap += ("idle" -> new IdleBehavior(this))
-  behaviorMap += ("leader" -> new LeaderBehavior(this))
-  behaviorMap += ("holdMeetPoint" -> new HoldMeetPointBehavior(this))
 
   setBehavior("idle")
-
+  var viewAngle: Float = 0
+  var viewCone: ViewCone = new ViewCone(this)
   var controls: (Int, Int, Int, Int) = _
-
-  val speed: Float = 0.5f
-
   var slow: Float = 0.0f
   var slowTimer: Timer = new Timer(3000)
-
   var lookTimer: Timer = new Timer(50)
-
   var slowed: Boolean = false
-
   var actor: ActorRef = _
-
   var deviationX: Float = 0
   var deviationY: Float = 0
-
-  val chanceToBeLeader: Float = 20
-
   var atDoor: Boolean = false
 
   if (Random.nextInt(100) < chanceToBeLeader) {
@@ -63,7 +43,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   var followY: Float = 0
   var followDistance: Float = 0
 
-  var followedCharacter: Character = _
+  var followedAgent: Agent = _
 
   var outOfWayTimer: Timer = new Timer(1000)
   outOfWayTimer.set(outOfWayTimer.timeout)
@@ -72,7 +52,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   var lastSeenFollowedEntityTimer = new Timer(1000 + new Random().nextInt(600))
 
-  var lostSightOfFollowedEntity: Boolean =  false
+  var lostSightOfFollowedEntity: Boolean = false
 
   var isFree = false
 
@@ -107,7 +87,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     viewCone.update(delta)
 
     if (lookTimer.timedOut() && walkAngle != viewAngle) {
-      adjustViewAngle(Character.findSideToTurn(viewAngle, walkAngle))
+      adjustViewAngle(Agent.findSideToTurn(viewAngle, walkAngle))
 
       lookTimer.reset()
     }
@@ -135,7 +115,6 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
 
-
   private def adjustViewAngle(clockwise: Boolean): Unit = {
     val turnSpeed = 12
     if (Math.abs(viewAngle - walkAngle) > turnSpeed && Math.abs((viewAngle + 180) % 360 - (walkAngle + 180) % 360) > turnSpeed) {
@@ -154,7 +133,7 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
   }
 
   override def onCollision(entity: Entity): Unit = {
-    if (entity.getClass == classOf[Character]) {
+    if (entity.getClass == classOf[Agent]) {
       slowTimer.reset()
       slow = 0.2f
     }
@@ -176,14 +155,14 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
       followDistance = 0
     }
     else {
-      followX = newRoom.w/2
-      followY = newRoom.h/2
+      followX = newRoom.w / 2
+      followY = newRoom.h / 2
       followDistance = 0
     }
 
-    for (character <- room.characterList) {
+    for (character <- room.agentList) {
       if (character != this) {
-        character.actor ! CharacterEnteredDoor(this, entryDoor, entryDoor.shape.getX, entryDoor.shape.getY)
+        character.actor ! AgentEnteredDoor(this, entryDoor, entryDoor.shape.getX, entryDoor.shape.getY)
       }
     }
 
@@ -216,8 +195,8 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
     if (currentBehavior == "holdMeetPoint") g.setColor(Color.green)
 
     var tag: String = ""
-    if (currentBehavior == "follow" && followedCharacter != null) {
-      tag = "[" + currentBehavior + " " + followedCharacter.name +  "]"
+    if (currentBehavior == "follow" && followedAgent != null) {
+      tag = "[" + currentBehavior + " " + followedAgent.name + "]"
     }
     else {
       tag = "[" + currentBehavior + "]"
@@ -227,65 +206,10 @@ class Character(val name: String, var room: Room, val controlScheme: ControlSche
 
   }
 
-
-  def getDistanceTo(entity: Entity): Float = {
-    val differenceSquaredX = Math.pow(entity.shape.getCenterX.doubleValue() - shape.getCenterX.doubleValue(),2)
-    val differenceSquaredY = Math.pow(entity.shape.getCenterY.doubleValue() - shape.getCenterY.doubleValue(),2)
-    Math.sqrt(differenceSquaredX + differenceSquaredY).floatValue()
-  }
-
-  def getDistanceTo(x: Float, y: Float): Float = {
-    val differenceSquaredX = Math.pow(x.doubleValue() - shape.getCenterX.doubleValue(),2)
-    val differenceSquaredY = Math.pow(y.doubleValue() - shape.getCenterY.doubleValue(),2)
-    Math.sqrt(differenceSquaredX + differenceSquaredY).floatValue()
-  }
-
-
-
-
-
-
-  def getBehavior(behaviorName: String): Behavior = behaviorMap(behaviorName)
-
-  def setBehavior(behaviorName: String): Unit = {
-    currentBehavior = behaviorName
-    behaviorMap(behaviorName).init()
-  }
-
-
-  def follow(character: Character, posX: Float, posY: Float, atDistance: Float): Unit = {
-
-    if (currentBehavior == "idle") {
-      setBehavior("follow")
-      followX = posX
-      followY = posY
-      followDistance = atDistance
-      followedCharacter = character
-      getBehavior("follow").timer.reset()
-    }
-    else if (currentBehavior == "follow") {
-      if (character == followedCharacter) {
-        followX = posX
-        followY = posY
-        getBehavior("follow").timer.reset()
-        followDistance = atDistance
-      }
-      else {
-        followX = posX
-        followY = posY
-        followDistance = atDistance
-        followedCharacter = character
-        getBehavior("follow").timer.reset()
-      }
-    }
-
-
-  }
-
 }
 
 
-object Character {
+object Agent {
   def findSideToTurn(currentAngle: Float, desiredAngle: Float): Boolean = {
     var clockwise = false
     if (currentAngle < 180) {

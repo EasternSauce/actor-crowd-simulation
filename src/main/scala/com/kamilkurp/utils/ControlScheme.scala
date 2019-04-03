@@ -1,15 +1,15 @@
-package com.kamilkurp
+package com.kamilkurp.utils
 
+import com.kamilkurp.agent.Agent
+import com.kamilkurp.simulation.CameraView
 import org.newdawn.slick.GameContainer
 import org.newdawn.slick.geom.Vector2f
-
-import com.kamilkurp.entities.Character
 
 object ControlScheme extends Enumeration {
   type ControlScheme = Value
   val Manual, Static, Agent = Value
 
-  def handleManualControls(character: Character, gc: GameContainer, delta: Int, renderScale: Float): Unit = {
+  def handleManualControls(character: Agent, gc: GameContainer, delta: Int, renderScale: Float): Unit = {
     var moved = false
 
     if (gc.getInput.isKeyDown(character.controls._1)) {
@@ -43,8 +43,8 @@ object ControlScheme extends Enumeration {
     }
 
     if (moved) {
-      CameraView.x = character.room.x + character.shape.getX - Globals.WINDOW_X/ renderScale/ 2 + character.shape.getWidth / 2
-      CameraView.y = character.room.y + character.shape.getY - Globals.WINDOW_Y/renderScale / 2 + character.shape.getHeight / 2
+      CameraView.x = character.room.x + character.shape.getX - Globals.WINDOW_X / renderScale / 2 + character.shape.getWidth / 2
+      CameraView.y = character.room.y + character.shape.getY - Globals.WINDOW_Y / renderScale / 2 + character.shape.getHeight / 2
     }
   }
 }

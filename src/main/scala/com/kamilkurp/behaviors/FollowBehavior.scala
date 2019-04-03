@@ -1,13 +1,12 @@
 package com.kamilkurp.behaviors
 
-import com.kamilkurp.entities.Character
-import com.kamilkurp.utils.Timer
-import com.kamilkurp.{CharacterLeading, ControlScheme}
+import com.kamilkurp.agent.{Agent, AgentLeading}
+import com.kamilkurp.utils.{ControlScheme, Timer}
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
-class FollowBehavior(character: Character) extends Behavior(character) {
+class FollowBehavior(agent: Agent) extends Behavior(agent) {
 
   override var timer: Timer = new Timer(5000)
   var deviationTimer: Timer = new Timer(500)
@@ -25,28 +24,28 @@ class FollowBehavior(character: Character) extends Behavior(character) {
     timer.update(delta)
     deviationTimer.update(delta)
     broadcastTimer.update(delta)
-    character.outOfWayTimer.update(delta)
+    agent.outOfWayTimer.update(delta)
 
-    if (!character.lostSightOfFollowedEntity) character.lastSeenFollowedEntityTimer.update(delta)
+    if (!agent.lostSightOfFollowedEntity) agent.lastSeenFollowedEntityTimer.update(delta)
 
     if (broadcastTimer.timedOut()) {
-      character.room.characterList.foreach(that => {
-        if (that != character) {
-          that.actor ! CharacterLeading(character, character.shape.getCenterX, character.shape.getCenterY)
+      agent.room.agentList.foreach(that => {
+        if (that != agent) {
+          that.actor ! AgentLeading(agent, agent.shape.getCenterX, agent.shape.getCenterY)
         }
       })
       broadcastTimer.reset()
     }
 
     if (timer.timedOut()) {
-      character.setBehavior("idle")
-      character.followedCharacter = null
+      agent.setBehavior("idle")
+      agent.followedAgent = null
       return
     }
 
-    if (character.lastSeenFollowedEntityTimer.timedOut()) {
-      character.lostSightOfFollowedEntity = true
-      character.lastSeenFollowedEntityTimer.reset()
+    if (agent.lastSeenFollowedEntityTimer.timedOut()) {
+      agent.lostSightOfFollowedEntity = true
+      agent.lastSeenFollowedEntityTimer.reset()
     }
 
     if (deviationTimer.timedOut()) {
@@ -55,35 +54,50 @@ class FollowBehavior(character: Character) extends Behavior(character) {
       deviationTimer.reset()
     }
 
-    val normalVector = new Vector2f(character.followX - character.shape.getCenterX, character.followY - character.shape.getCenterY)
+    val normalVector = new Vector2f(agent.followX - agent.shape.getCenterX, agent.followY - agent.shape.getCenterY)
     normalVector.normalise()
 
-    character.walkAngle = normalVector.getTheta.floatValue()
+    agent.walkAngle = normalVector.getTheta.floatValue()
 
-    if (character.outOfWayTimer.timedOut()) {
-      character.movingOutOfTheWay = false
-      if (character.controlScheme != ControlScheme.Manual) {
+    if (agent.outOfWayTimer.timedOut()) {
+      agent.movingOutOfTheWay = false
+      if (agent.controlScheme != ControlScheme.Manual) {
 
-        if (character.getDistanceTo(character.followX, character.followY) > character.followDistance) {
-          character.currentVelocityX = (normalVector.x + deviationX) * character.speed * (1f - character.slow) * delta
-          character.currentVelocityY = (normalVector.y + deviationY) * character.speed * (1f - character.slow) * delta
+        if (agent.getDistanceTo(agent.followX, agent.followY) > agent.followDistance) {
+          agent.currentVelocityX = (normalVector.x + deviationX) * agent.speed * (1f - agent.slow) * delta
+          agent.currentVelocityY = (normalVector.y + deviationY) * agent.speed * (1f - agent.slow) * delta
         }
         else {
-          character.currentVelocityX = 0
-          character.currentVelocityY = 0
+          agent.currentVelocityX = 0
+          agent.currentVelocityY = 0
         }
       }
     }
 
-    if (character.room.meetPointList.nonEmpty) {
-      character.followX = character.room.meetPointList.head.shape.getCenterX
-      character.followY = character.room.meetPointList.head.shape.getCenterY
+    if (agent.room.meetPointList.nonEmpty) {
+      agent.followX = agent.room.meetPointList.head.shape.getCenterX
+      agent.followY = agent.room.meetPointList.head.shape.getCenterY
 
-      character.setBehavior("holdMeetPoint")
+      agent.setBehavior("holdMeetPoint")
     }
 
 
   }
 
+  override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
+    if (that == agent.followedAgent) {
+      agent.followX = posX
+      agent.followY = posY
+      agent.getBehavior("follow").timer.reset()
+      agent.followDistance = atDistance
+    }
+    else {
+      agent.followX = posX
+      agent.followY = posY
+      agent.followDistance = atDistance
+      agent.followedAgent = that
+      agent.getBehavior("follow").timer.reset()
+    }
+  }
 }
 

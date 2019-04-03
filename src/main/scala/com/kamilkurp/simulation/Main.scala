@@ -1,6 +1,6 @@
-package com.kamilkurp
+package com.kamilkurp.simulation
 
-import scala.language.postfixOps
+import com.kamilkurp.utils.Globals
 
 object Main extends App {
 
