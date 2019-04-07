@@ -4,6 +4,8 @@ import akka.actor.{ActorRef, ActorSystem, Props}
 import com.kamilkurp.agent.{Agent, AgentActor}
 import com.kamilkurp.building.{Door, MeetPoint, Room}
 import com.kamilkurp.utils.{ControlScheme, Globals}
+import org.jgrapht.Graph
+import org.jgrapht.graph.{DefaultEdge, SimpleGraph}
 import org.newdawn.slick._
 
 import scala.collection.mutable
@@ -39,6 +41,9 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   var actorList: List[ActorRef] = mutableActorList.toList
 
   var renderScale: Float = 1.5f
+
+  val roomGraph: Graph[Room, DefaultEdge] = new SimpleGraph[Room, DefaultEdge](classOf[DefaultEdge])
+
 
   override def init(gc: GameContainer): Unit = {
     doorImage = new Image("door.png")
@@ -91,12 +96,23 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       }
     }
 
+    for (room <- roomList) {
+      roomGraph.addVertex(room)
+    }
+
+    for (door <- doorList) {
+      if (!roomGraph.containsEdge(door.room, door.leadingToDoor.room)) {
+        roomGraph.addEdge(door.room, door.leadingToDoor.room)
+      }
+    }
+
     val roomsFiltered = roomList.filter(room => room.name == "roomA")
     val room1 = if (roomsFiltered.nonEmpty) roomsFiltered.head else null
 
     for (name <- listOfNames) {
       nameIndices.put(name, 0)
     }
+
 
     for (_ <- 0 until numberOfAgents) {
 
@@ -106,7 +122,9 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       val randomName = listOfNames(randomNameIndex) + nameIndices(listOfNames(randomNameIndex))
       nameIndices.put(listOfNames(randomNameIndex), nameIndices(listOfNames(randomNameIndex)) + 1)
 
-      val agent = new Agent(randomName, room, ControlScheme.Agent, agentImage)
+      val agentRoomGraph = removeRandomRooms(roomGraph)
+
+      val agent = new Agent(randomName, room, ControlScheme.Agent, agentImage, agentRoomGraph)
       room.agentList += agent
       val actor = system.actorOf(Props(new AgentActor(randomName, agent)))
       mutableActorList += actor
@@ -117,7 +135,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     if (addManualAgent) {
       val playerName = "Player"
-      val agent = new Agent(playerName, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S), agentImage)
+      val agent = new Agent(playerName, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S), agentImage, roomGraph)
 
       val actor = system.actorOf(Props(new AgentActor("Player", agent)))
 
@@ -172,4 +190,38 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       room.render(g, doorImage, CameraView.x, CameraView.y)
     })
   }
+
+  def removeRandomRooms(roomGraph: Graph[Room, DefaultEdge]): SimpleGraph[Room, DefaultEdge] = {
+
+    val agentRoomGraph = new SimpleGraph[Room, DefaultEdge](classOf[DefaultEdge])
+
+    val toRemove: ListBuffer[Room] = new ListBuffer[Room]()
+    val chanceToRemove = 0.05
+
+    // copy graph
+    val vertexIter: java.util.Iterator[Room] = roomGraph.vertexSet().iterator()
+    while(vertexIter.hasNext) {
+      val room = vertexIter.next()
+      agentRoomGraph.addVertex(room)
+
+      // fill list with random rooms to remove
+      if (Random.nextFloat() < chanceToRemove) {
+        toRemove += room
+      }
+    }
+
+    val edgeIter: java.util.Iterator[DefaultEdge] = roomGraph.edgeSet().iterator()
+    while(edgeIter.hasNext) {
+      val edge = edgeIter.next()
+      agentRoomGraph.addEdge(roomGraph.getEdgeSource(edge), roomGraph.getEdgeTarget(edge))
+    }
+
+    // remove random rooms
+    for (room <- toRemove) {
+      agentRoomGraph.removeVertex(room)
+    }
+
+    agentRoomGraph
+  }
+
 }

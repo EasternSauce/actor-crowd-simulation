@@ -1,6 +1,8 @@
 package com.kamilkurp.building
 
 import com.kamilkurp.agent.Agent
+import org.jgrapht.Graph
+import org.jgrapht.graph.DefaultEdge
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
 import scala.collection.mutable.ListBuffer
@@ -55,8 +57,8 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
     agentList.foreach(agent => {
       agent.update(gc, delta, renderScale)
     })
-
-
   }
+
+  override def toString: String = name
 
 }

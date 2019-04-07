@@ -1,8 +1,10 @@
 package com.kamilkurp.behaviors
 
 import com.kamilkurp.agent.{Agent, AgentLeading}
-import com.kamilkurp.building.Door
+import com.kamilkurp.building.{Door, Room}
 import com.kamilkurp.utils.{ControlScheme, Timer}
+import org.jgrapht.Graph
+import org.jgrapht.graph.DefaultEdge
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
@@ -37,7 +39,10 @@ class LeaderBehavior(agent: Agent) extends Behavior(agent) {
     }
 
 
-    val door: Door = agent.room.evacuationDoor
+    var door: Door = null
+
+    door = Agent.findDoorToEnterNext(agent, agent.roomGraph)
+
     if (door != null) {
       agent.doorToEnter = door
       if (deviationTimer.timedOut()) {
@@ -88,4 +93,6 @@ class LeaderBehavior(agent: Agent) extends Behavior(agent) {
   override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
 
   }
+
+
 }
