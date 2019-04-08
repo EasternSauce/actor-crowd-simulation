@@ -31,4 +31,8 @@ class HoldMeetPointBehavior(agent: Agent) extends Behavior(agent) {
   override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
 
   }
+
+  override def afterChangeRoom(): Unit = {
+
+  }
 }

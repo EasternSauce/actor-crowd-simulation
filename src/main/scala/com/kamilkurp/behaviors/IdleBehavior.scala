@@ -59,4 +59,8 @@ class IdleBehavior(agent: Agent) extends Behavior(agent) {
     agent.followedAgent = that
     agent.followTimer.reset()
   }
+
+  override def afterChangeRoom(): Unit = {
+
+  }
 }

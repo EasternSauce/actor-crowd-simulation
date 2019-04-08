@@ -36,7 +36,7 @@ class FollowBehavior(agent: Agent) extends Behavior(agent) {
     }
 
     if (agent.followTimer.timedOut()) {
-      agent.setBehavior("idle")
+      agent.setBehavior("searchExit")
       agent.followedAgent = null
       return
     }
@@ -76,7 +76,7 @@ class FollowBehavior(agent: Agent) extends Behavior(agent) {
       agent.followX = agent.room.meetPointList.head.shape.getCenterX
       agent.followY = agent.room.meetPointList.head.shape.getCenterY
 
-      agent.setBehavior("holdMeetPoint")
+      agent.setBehavior("idle")
     }
 
 
@@ -86,7 +86,7 @@ class FollowBehavior(agent: Agent) extends Behavior(agent) {
     if (that == agent.followedAgent) {
       agent.followX = posX
       agent.followY = posY
-      agent.followTimer.start()
+      agent.followTimer.reset()
       agent.followDistance = atDistance
     }
     else {
@@ -94,8 +94,12 @@ class FollowBehavior(agent: Agent) extends Behavior(agent) {
       agent.followY = posY
       agent.followDistance = atDistance
       agent.followedAgent = that
-      agent.followTimer.start()
+      agent.followTimer.reset()
     }
+  }
+
+  override def afterChangeRoom(): Unit = {
+
   }
 }
 

@@ -1,5 +1,6 @@
 package com.kamilkurp.agent
 
+import com.kamilkurp.utils.Timer
 import org.newdawn.slick.geom.{Polygon, Rectangle, Shape, Transform}
 import org.newdawn.slick.{Color, Graphics}
 
@@ -8,6 +9,8 @@ import scala.collection.mutable.ListBuffer
 class ViewCone(agent: Agent) {
   var firstRay: (Rectangle, Float) = (new Rectangle(0, 0, 0, 0), 0)
   var lastRay: (Rectangle, Float) = (new Rectangle(0, 0, 0, 0), 0)
+
+  var timer: Timer = new Timer(500)
 
   var viewRayList: ListBuffer[Shape] = ListBuffer[Shape]()
 
@@ -18,7 +21,8 @@ class ViewCone(agent: Agent) {
   }
 
 
-  def update(delta: Float) {
+  def update(delta: Int) {
+    timer.update(delta)
 
     val x: Float = agent.shape.getX + agent.shape.getWidth / 2
     val y: Float = agent.shape.getY + agent.shape.getHeight / 2
@@ -47,6 +51,13 @@ class ViewCone(agent: Agent) {
 
     firstRay._1.setWidth(100)
     lastRay._1.setWidth(100)
+
+    if (!timer.timedOut()) {
+      return
+    }
+    timer.reset()
+
+//    println("updating")
 
     agent.room.agentList.filter(c => c != agent).foreach(that =>
       viewRayList.foreach(rayShape =>

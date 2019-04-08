@@ -20,8 +20,8 @@ object CameraView {
 
 class Simulation(gameName: String) extends BasicGame(gameName) {
   val system: ActorSystem = ActorSystem("crowd_sim_system")
-  val numberOfAgents: Int = 100
-  val addManualAgent: Boolean = true
+  val numberOfAgents: Int = 250
+  val addManualAgent: Boolean = false
   val nameIndices: mutable.Map[String, Int] = mutable.Map[String, Int]()
   val listOfNames = Array("Virgil", "Dominique", "Hermina",
     "Carolynn", "Adina", "Elida", "Classie", "Raymonde",
@@ -116,15 +116,14 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     for (_ <- 0 until numberOfAgents) {
 
-      val room: Room = officeList(Random.nextInt(officeList.length))
+      val randomOffice = Random.nextInt(officeList.length)
+      val room: Room = officeList(randomOffice)
 
       val randomNameIndex = Random.nextInt(listOfNames.length)
       val randomName = listOfNames(randomNameIndex) + nameIndices(listOfNames(randomNameIndex))
       nameIndices.put(listOfNames(randomNameIndex), nameIndices(listOfNames(randomNameIndex)) + 1)
 
-      val agentRoomGraph = removeRandomRooms(roomGraph)
-
-      val agent = new Agent(randomName, room, ControlScheme.Agent, agentImage, agentRoomGraph)
+      val agent = new Agent(randomName, room, ControlScheme.Agent, agentImage, roomGraph)
       room.agentList += agent
       val actor = system.actorOf(Props(new AgentActor(randomName, agent)))
       mutableActorList += actor
@@ -191,37 +190,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     })
   }
 
-  def removeRandomRooms(roomGraph: Graph[Room, DefaultEdge]): SimpleGraph[Room, DefaultEdge] = {
 
-    val agentRoomGraph = new SimpleGraph[Room, DefaultEdge](classOf[DefaultEdge])
-
-    val toRemove: ListBuffer[Room] = new ListBuffer[Room]()
-    val chanceToRemove = 0.05
-
-    // copy graph
-    val vertexIter: java.util.Iterator[Room] = roomGraph.vertexSet().iterator()
-    while(vertexIter.hasNext) {
-      val room = vertexIter.next()
-      agentRoomGraph.addVertex(room)
-
-      // fill list with random rooms to remove
-      if (Random.nextFloat() < chanceToRemove) {
-        toRemove += room
-      }
-    }
-
-    val edgeIter: java.util.Iterator[DefaultEdge] = roomGraph.edgeSet().iterator()
-    while(edgeIter.hasNext) {
-      val edge = edgeIter.next()
-      agentRoomGraph.addEdge(roomGraph.getEdgeSource(edge), roomGraph.getEdgeTarget(edge))
-    }
-
-    // remove random rooms
-    for (room <- toRemove) {
-      agentRoomGraph.removeVertex(room)
-    }
-
-    agentRoomGraph
-  }
 
 }

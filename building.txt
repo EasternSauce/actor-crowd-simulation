@@ -197,4 +197,4 @@ door doorRoomAN 1 200 5 roomAN doorCorrH4
 door doorRoomAO 1 250 502 roomAO doorCorrL2
 door doorRoomAP 1 200 502 roomAP doorCorrL3
 
-meet meet1 800 400 roomS
+meet meet1 800 320 roomS

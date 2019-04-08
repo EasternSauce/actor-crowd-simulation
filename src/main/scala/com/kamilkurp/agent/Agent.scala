@@ -2,24 +2,25 @@ package com.kamilkurp.agent
 
 import akka.actor.ActorRef
 import com.kamilkurp.behaviors.LeaderBehavior
-import com.kamilkurp.building.{Door, Room}
+import com.kamilkurp.building.{Door, MeetPoint, Room}
 import com.kamilkurp.entity.Entity
 import com.kamilkurp.utils.ControlScheme.ControlScheme
 import com.kamilkurp.utils.{ControlScheme, Globals, Timer}
 import org.jgrapht.Graph
-import org.jgrapht.graph.DefaultEdge
+import org.jgrapht.graph.{DefaultEdge, SimpleGraph}
 import org.newdawn.slick.geom._
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 import org.newdawn.slick.geom.Shape
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
-class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, var image: Image, val roomGraph: Graph[Room, DefaultEdge]) extends Entity with BehaviorManager with Follower {
+class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, var image: Image, var roomGraph: Graph[Room, DefaultEdge]) extends Entity with BehaviorManager with Follower {
 
   val rememberedRoute: mutable.Map[String, (Float, Float)] = mutable.Map[String, (Float, Float)]()
   val speed: Float = 0.5f
-  val chanceToBeLeader: Float = 20
+  val chanceToBeLeader: Float = 0.25f
   override var currentVelocityX: Float = 0.0f
   override var currentVelocityY: Float = 0.0f
   override var shape: Shape = new Rectangle(0, 0, Globals.AGENT_SIZE, Globals.AGENT_SIZE)
@@ -36,12 +37,6 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
   var deviationX: Float = 0
   var deviationY: Float = 0
   var atDoor: Boolean = false
-
-
-
-  if (Random.nextInt(100) < chanceToBeLeader) {
-    setBehavior("leader")
-  }
 
 
   val outOfWayTimer: Timer = new Timer(1000)
@@ -62,10 +57,11 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
     if (!collisionDetails.colX && !collisionDetails.colY) {
       isFree = true
     }
-
-    addRoomToGraph(room)
-
   }
+
+  behaviorManagerInit()
+
+  addRoomToGraph(room)
 
   def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int), image: Image, roomGraph: Graph[Room, DefaultEdge]) {
     this(name, room, controlScheme, image, roomGraph)
@@ -146,6 +142,10 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
       slowTimer.reset()
       slow = 0.2f
     }
+    if (entity.getClass == classOf[MeetPoint]) {
+      shape.setX(1000)
+      shape.setY(1000)
+    }
   }
 
   override def changeRoom(entryDoor: Door, newX: Float, newY: Float): Unit = {
@@ -153,7 +153,9 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
 
     if (!roomGraph.containsVertex(entryDoor.leadingToDoor.room)) {
       addRoomToGraph(entryDoor.leadingToDoor.room)
+//      println("added room " + entryDoor.leadingToDoor.room + " for " + name)
     }
+
 
     atDoor = false
 
@@ -184,6 +186,8 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
     room = newRoom
     shape.setX(newX)
     shape.setY(newY)
+
+    getBehavior(currentBehavior).afterChangeRoom()
   }
 
   def setActor(actor: ActorRef): Unit = {
@@ -204,7 +208,7 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
     if (currentBehavior == "follow" && !lostSightOfFollowedEntity) g.setColor(Color.yellow)
     if (currentBehavior == "follow" && lostSightOfFollowedEntity) g.setColor(Color.green)
     if (currentBehavior == "leader") g.setColor(Color.red)
-    if (currentBehavior == "holdMeetPoint") g.setColor(Color.green)
+    if (currentBehavior == "holdMeetPoint") g.setColor(Color.orange)
 
     var tag: String = ""
     if (currentBehavior == "follow" && followedAgent != null) {
@@ -228,6 +232,40 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
     }
   }
 
+  def removeRandomRooms(): Unit = {
+//    println("removing random rooms for " + name)
+
+    val agentRoomGraph = new SimpleGraph[Room, DefaultEdge](classOf[DefaultEdge])
+
+    val toRemove: ListBuffer[Room] = new ListBuffer[Room]()
+    val chanceToRemove = 0.25
+
+    // copy graph
+    val vertexIter: java.util.Iterator[Room] = roomGraph.vertexSet().iterator()
+    while(vertexIter.hasNext) {
+      val room = vertexIter.next()
+      agentRoomGraph.addVertex(room)
+
+      // fill list with random rooms to remove
+      if (Random.nextFloat() < chanceToRemove) {
+        toRemove += room
+      }
+    }
+
+    val edgeIter: java.util.Iterator[DefaultEdge] = roomGraph.edgeSet().iterator()
+    while(edgeIter.hasNext) {
+      val edge = edgeIter.next()
+      agentRoomGraph.addEdge(roomGraph.getEdgeSource(edge), roomGraph.getEdgeTarget(edge))
+    }
+
+    // remove random rooms
+    for (room <- toRemove) {
+      agentRoomGraph.removeVertex(room)
+    }
+
+    roomGraph = agentRoomGraph
+  }
+
 }
 
 object Agent {
@@ -245,6 +283,11 @@ object Agent {
       return null
     }
 
+//    if (!roomGraph.containsVertex(agent.room)) {
+//      println("i am " + agent.name + " in " + agent.room + " and my graph is " + agent.roomGraph)
+//      return null
+//    }
+
 
     import org.jgrapht.alg.shortestpath.DijkstraShortestPath
     val dijkstraShortestPath = new DijkstraShortestPath(roomGraph)
@@ -255,14 +298,13 @@ object Agent {
 
     }
     catch {
-      case e: NullPointerException => {
+      case _: NullPointerException =>
         return null
-      }
     }
 
-    if (agent.name == "Player") {
-      println(shortestPath)
-    }
+//    if (agent.name == "Player") {
+//      println(shortestPath)
+//    }
 
     for (door: Door <- agent.room.doorList) {
       if (shortestPath.size() > 1 && door.leadingToDoor.room == shortestPath.get(1)) {
@@ -272,6 +314,9 @@ object Agent {
 
     null
   }
+
+
+
 
 
 }
