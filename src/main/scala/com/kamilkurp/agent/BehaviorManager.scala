@@ -1,6 +1,7 @@
 package com.kamilkurp.agent
 
 import com.kamilkurp.behaviors._
+import com.kamilkurp.utils.Configuration
 
 import scala.collection.mutable
 import scala.util.Random
@@ -23,11 +24,11 @@ trait BehaviorManager {
 
     var startBehavior = IdleBehavior.name
 
-    if (Random.nextFloat() < chanceToBeLeader) {
+    if (Random.nextFloat() < Configuration.LEADER_PERCENTAGE) {
       startBehavior = LeaderBehavior.name
     }
 
-    if (name == "Player") {
+    if (name == Configuration.MANUAL_AGENT_NAME) {
       startBehavior = LeaderBehavior.name
     }
 

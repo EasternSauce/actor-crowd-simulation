@@ -4,6 +4,7 @@ import akka.actor.{Actor, ActorLogging}
 import com.kamilkurp.behaviors.{FollowBehavior, IdleBehavior, LeaderBehavior}
 import com.kamilkurp.building.Door
 import com.kamilkurp.entity.Entity
+import com.kamilkurp.utils.Configuration
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
@@ -124,8 +125,8 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
           normalVector.setTheta(normalVector.getTheta - 90)
         }
 
-        agent.currentVelocityX = agent.speed * normalVector.x * delta
-        agent.currentVelocityY = agent.speed * normalVector.y * delta
+        agent.currentVelocityX = Configuration.AGENT_SPEED * normalVector.x * delta
+        agent.currentVelocityY = Configuration.AGENT_SPEED * normalVector.y * delta
       }
 
 

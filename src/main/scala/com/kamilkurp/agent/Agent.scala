@@ -5,12 +5,11 @@ import com.kamilkurp.behaviors.{FollowBehavior, HoldMeetPointBehavior, IdleBehav
 import com.kamilkurp.building.{Door, MeetPoint, Room}
 import com.kamilkurp.entity.Entity
 import com.kamilkurp.utils.ControlScheme.ControlScheme
-import com.kamilkurp.utils.{ControlScheme, Globals, Timer}
+import com.kamilkurp.utils.{Configuration, ControlScheme, Globals, Timer}
 import org.jgrapht.Graph
 import org.jgrapht.graph.{DefaultEdge, SimpleGraph}
-import org.newdawn.slick.geom._
+import org.newdawn.slick.geom.{Shape, _}
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
-import org.newdawn.slick.geom.Shape
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -19,8 +18,6 @@ import scala.util.Random
 class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, var image: Image, var roomGraph: Graph[Room, DefaultEdge]) extends Entity with BehaviorManager with Follower {
 
   val rememberedRoute: mutable.Map[String, (Float, Float)] = mutable.Map[String, (Float, Float)]()
-  val speed: Float = 0.5f
-  val chanceToBeLeader: Float = 0.25f
   override var currentVelocityX: Float = 0.0f
   override var currentVelocityY: Float = 0.0f
   override var shape: Shape = new Rectangle(0, 0, Globals.AGENT_SIZE, Globals.AGENT_SIZE)
@@ -31,15 +28,17 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
   val viewCone: ViewCone = new ViewCone(this)
   var controls: (Int, Int, Int, Int) = _
   var slow: Float = 0.0f
-  val slowTimer: Timer = new Timer(3000)
-  val lookTimer: Timer = new Timer(50)
+
+
+  val slowTimer: Timer = new Timer(Configuration.AGENT_SLOW_TIMER)
+
+  val lookTimer: Timer = new Timer(Configuration.AGENT_LOOK_TIMER)
   var actor: ActorRef = _
-  var deviationX: Float = 0
-  var deviationY: Float = 0
+
   var atDoor: Boolean = false
 
 
-  val outOfWayTimer: Timer = new Timer(1000)
+  val outOfWayTimer: Timer = new Timer(Configuration.AGENT_MOVE_OUT_OF_WAY_TIMER)
   outOfWayTimer.set(outOfWayTimer.timeout)
   var movingOutOfTheWay: Boolean = false
 
@@ -92,7 +91,7 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
 
 
       def adjustViewAngle(clockwise: Boolean): Unit = {
-        val turnSpeed = 12
+        val turnSpeed = Configuration.AGENT_TURN_SPEED
         if (Math.abs(viewAngle - walkAngle) > turnSpeed && Math.abs((viewAngle + 180) % 360 - (walkAngle + 180) % 360) > turnSpeed) {
           if (clockwise) { // clockwise
             if (viewAngle + turnSpeed < 360) viewAngle += turnSpeed
@@ -142,6 +141,8 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
       slowTimer.reset()
       slow = 0.2f
     }
+
+    //temporary solution, move evacuated outside map
     if (entity.getClass == classOf[MeetPoint]) {
       shape.setX(1000)
       shape.setY(1000)

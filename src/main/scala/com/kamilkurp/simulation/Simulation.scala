@@ -3,7 +3,7 @@ package com.kamilkurp.simulation
 import akka.actor.{ActorRef, ActorSystem, Props}
 import com.kamilkurp.agent.{Agent, AgentActor}
 import com.kamilkurp.building.{Door, MeetPoint, Room}
-import com.kamilkurp.utils.{ControlScheme, Globals}
+import com.kamilkurp.utils.{Configuration, ControlScheme, Globals}
 import org.jgrapht.Graph
 import org.jgrapht.graph.{DefaultEdge, SimpleGraph}
 import org.newdawn.slick._
@@ -133,10 +133,9 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
 
     if (addManualAgent) {
-      val playerName = "Player"
-      val agent = new Agent(playerName, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S), agentImage, roomGraph)
+      val agent = new Agent(Configuration.MANUAL_AGENT_NAME, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S), agentImage, roomGraph)
 
-      val actor = system.actorOf(Props(new AgentActor("Player", agent)))
+      val actor = system.actorOf(Props(new AgentActor(Configuration.MANUAL_AGENT_NAME, agent)))
 
       agent.setActor(actor)
 

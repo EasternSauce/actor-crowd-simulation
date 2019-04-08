@@ -1,10 +1,8 @@
 package com.kamilkurp.behaviors
 
 import com.kamilkurp.agent.{Agent, AgentLeading}
-import com.kamilkurp.building.{Door, Room}
-import com.kamilkurp.utils.{ControlScheme, Timer}
-import org.jgrapht.Graph
-import org.jgrapht.graph.{DefaultEdge, SimpleGraph}
+import com.kamilkurp.building.Door
+import com.kamilkurp.utils.{Configuration, ControlScheme, Timer}
 import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
 
@@ -12,16 +10,7 @@ import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
-  val deviationTimer: Timer = new Timer(500)
   val broadcastTimer: Timer = new Timer(300)
-
-
-  var deviationX: Float = 0
-  var deviationY: Float = 0
-
-
-
-
 
   var doorToEnterNext: Door = _
 
@@ -30,7 +19,6 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
   }
 
   def perform(delta: Int): Unit = {
-    deviationTimer.update(delta)
     broadcastTimer.update(delta)
 
     if (broadcastTimer.timedOut()) {
@@ -44,12 +32,6 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
 
     if (doorToEnterNext != null && agent.room.meetPointList.isEmpty) {
       agent.doorToEnter = doorToEnterNext
-      if (deviationTimer.timedOut()) {
-        deviationX = 0.3f * Random.nextFloat() - 0.15f
-        deviationY = 0.3f * Random.nextFloat() - 0.15f
-        deviationTimer.reset()
-      }
-
 
       if (agent.controlScheme != ControlScheme.Manual) {
         val normalVector = new Vector2f(doorToEnterNext.shape.getCenterX - agent.shape.getCenterX, doorToEnterNext.shape.getCenterY - agent.shape.getCenterY)
@@ -58,8 +40,8 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
         agent.walkAngle = normalVector.getTheta.floatValue()
 
         if (!agent.atDoor) {
-          agent.currentVelocityX = (normalVector.x + deviationX) * agent.speed * (1f - agent.slow) * delta
-          agent.currentVelocityY = (normalVector.y + deviationY) * agent.speed * (1f - agent.slow) * delta
+          agent.currentVelocityX = normalVector.x * Configuration.AGENT_SPEED * (1f - agent.slow) * delta
+          agent.currentVelocityY = normalVector.y * Configuration.AGENT_SPEED * (1f - agent.slow) * delta
 
         }
         else {

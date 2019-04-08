@@ -1,34 +1,23 @@
 package com.kamilkurp.behaviors
 
 import com.kamilkurp.agent.{Agent, AgentLeading}
-import com.kamilkurp.building.{Door, Room}
-import com.kamilkurp.utils.{ControlScheme, Timer}
-import org.jgrapht.Graph
-import org.jgrapht.graph.DefaultEdge
+import com.kamilkurp.building.Door
+import com.kamilkurp.utils.{Configuration, ControlScheme, Timer}
 import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
 
-import scala.util.Random
-
 class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
 
-
-
-  val deviationTimer: Timer = new Timer(500)
   val broadcastTimer: Timer = new Timer(300)
 
   val waitAtDoorTimer: Timer = new Timer(300)
   waitAtDoorTimer.time = waitAtDoorTimer.timeout
-
-  var deviationX: Float = 0
-  var deviationY: Float = 0
 
   override def init(): Unit = {
 
   }
 
   def perform(delta: Int): Unit = {
-    deviationTimer.update(delta)
     broadcastTimer.update(delta)
     waitAtDoorTimer.update(delta)
 
@@ -48,12 +37,6 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
 
     if (door != null) {
       agent.doorToEnter = door
-      if (deviationTimer.timedOut()) {
-        deviationX = 0.3f * Random.nextFloat() - 0.15f
-        deviationY = 0.3f * Random.nextFloat() - 0.15f
-        deviationTimer.reset()
-      }
-
 
       if (agent.controlScheme != ControlScheme.Manual) {
         val normalVector = new Vector2f(door.shape.getCenterX - agent.shape.getCenterX, door.shape.getCenterY - agent.shape.getCenterY)
@@ -62,8 +45,8 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
         agent.walkAngle = normalVector.getTheta.floatValue()
 
         if (!agent.atDoor) {
-          agent.currentVelocityX = (normalVector.x + deviationX) * agent.speed * (1f - agent.slow) * delta
-          agent.currentVelocityY = (normalVector.y + deviationY) * agent.speed * (1f - agent.slow) * delta
+          agent.currentVelocityX = normalVector.x * Configuration.AGENT_SPEED * (1f - agent.slow) * delta
+          agent.currentVelocityY = normalVector.y * Configuration.AGENT_SPEED * (1f - agent.slow) * delta
 
           if (agent.getDistanceTo(agent.doorToEnter.shape.getCenterX, agent.doorToEnter.shape.getCenterY) < 100) {
             waitAtDoorTimer.reset()
@@ -76,8 +59,8 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
             agent.currentVelocityY = 0
           }
           else {
-            agent.currentVelocityX = (normalVector.x + deviationX) * agent.speed * (1f - agent.slow) * delta
-            agent.currentVelocityY = (normalVector.y + deviationY) * agent.speed * (1f - agent.slow) * delta
+            agent.currentVelocityX = normalVector.x * Configuration.AGENT_SPEED * (1f - agent.slow) * delta
+            agent.currentVelocityY = normalVector.y * Configuration.AGENT_SPEED * (1f - agent.slow) * delta
           }
         }
 

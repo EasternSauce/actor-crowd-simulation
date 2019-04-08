@@ -1,7 +1,7 @@
 package com.kamilkurp.behaviors
 
 import com.kamilkurp.agent.Agent
-import com.kamilkurp.utils.{ControlScheme, Timer}
+import com.kamilkurp.utils.{Configuration, ControlScheme, Timer}
 import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
 
@@ -30,8 +30,8 @@ class IdleBehavior(agent: Agent, name: String, color: Color) extends Behavior(ag
           agent.currentVelocityY = 0
         }
         else {
-          agent.currentVelocityX = (Random.nextInt(3) - 1) * agent.speed * (1f - agent.slow) * 0.8f * delta
-          agent.currentVelocityY = (Random.nextInt(3) - 1) * agent.speed * (1f - agent.slow) * 0.8f * delta
+          agent.currentVelocityX = (Random.nextInt(3) - 1) * Configuration.AGENT_SPEED * (1f - agent.slow) * 0.8f * delta
+          agent.currentVelocityY = (Random.nextInt(3) - 1) * Configuration.AGENT_SPEED * (1f - agent.slow) * 0.8f * delta
         }
       }
 

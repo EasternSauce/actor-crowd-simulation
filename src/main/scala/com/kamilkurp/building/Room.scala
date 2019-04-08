@@ -1,8 +1,6 @@
 package com.kamilkurp.building
 
 import com.kamilkurp.agent.Agent
-import org.jgrapht.Graph
-import org.jgrapht.graph.DefaultEdge
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
 import scala.collection.mutable.ListBuffer

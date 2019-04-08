@@ -1,17 +1,12 @@
 package com.kamilkurp.behaviors
 
 import com.kamilkurp.agent.{Agent, AgentLeading}
-import com.kamilkurp.utils.{ControlScheme, Timer}
+import com.kamilkurp.utils.{Configuration, ControlScheme, Timer}
 import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
 
-import scala.util.Random
-
 class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
-  val deviationTimer: Timer = new Timer(500)
   val broadcastTimer: Timer = new Timer(300)
-  var deviationX: Float = 0
-  var deviationY: Float = 0
 
   override def init(): Unit = {
 
@@ -20,7 +15,6 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
 
   def perform(delta: Int): Unit = {
     agent.followTimer.update(delta)
-    deviationTimer.update(delta)
     broadcastTimer.update(delta)
     agent.outOfWayTimer.update(delta)
 
@@ -46,12 +40,6 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
       agent.lastSeenFollowedEntityTimer.reset()
     }
 
-    if (deviationTimer.timedOut()) {
-      deviationX = 0.3f * Random.nextFloat() - 0.15f
-      deviationY = 0.3f * Random.nextFloat() - 0.15f
-      deviationTimer.reset()
-    }
-
     val normalVector = new Vector2f(agent.followX - agent.shape.getCenterX, agent.followY - agent.shape.getCenterY)
     normalVector.normalise()
 
@@ -62,8 +50,8 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
       if (agent.controlScheme != ControlScheme.Manual) {
 
         if (agent.getDistanceTo(agent.followX, agent.followY) > agent.followDistance) {
-          agent.currentVelocityX = (normalVector.x + deviationX) * agent.speed * (1f - agent.slow) * delta
-          agent.currentVelocityY = (normalVector.y + deviationY) * agent.speed * (1f - agent.slow) * delta
+          agent.currentVelocityX = normalVector.x * Configuration.AGENT_SPEED * (1f - agent.slow) * delta
+          agent.currentVelocityY = normalVector.y * Configuration.AGENT_SPEED * (1f - agent.slow) * delta
         }
         else {
           agent.currentVelocityX = 0
@@ -106,7 +94,7 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
 }
 
 object FollowBehavior {
-  val name: String = FollowBehavior.name
+  val name: String = "follow"
   val color: Color = Color.yellow
 }
 
