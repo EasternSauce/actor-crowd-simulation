@@ -13,25 +13,27 @@ trait BehaviorManager {
 
 
   def behaviorManagerInit(): Unit = {
-    behaviorMap += ("follow" -> new FollowBehavior(this))
-    behaviorMap += ("idle" -> new IdleBehavior(this))
-    behaviorMap += ("leader" -> new LeaderBehavior(this))
-    behaviorMap += ("holdMeetPoint" -> new HoldMeetPointBehavior(this))
-    behaviorMap += ("searchExit" -> new SearchExitBehavior(this))
+    behaviorMap += (FollowBehavior.name -> new FollowBehavior(this, FollowBehavior.name, FollowBehavior.color))
+    behaviorMap += (IdleBehavior.name -> new IdleBehavior(this, IdleBehavior.name, IdleBehavior.color))
+    behaviorMap += (LeaderBehavior.name -> new LeaderBehavior(this, LeaderBehavior.name, LeaderBehavior.color))
+    behaviorMap += (HoldMeetPointBehavior.name -> new HoldMeetPointBehavior(this, HoldMeetPointBehavior.name, HoldMeetPointBehavior.color))
+    behaviorMap += (SearchExitBehavior.name -> new SearchExitBehavior(this, SearchExitBehavior.name, SearchExitBehavior.color))
 
-    var startBehavior = "idle"
+
+
+    var startBehavior = IdleBehavior.name
 
     if (Random.nextFloat() < chanceToBeLeader) {
-      startBehavior = "leader"
+      startBehavior = LeaderBehavior.name
     }
 
     if (name == "Player") {
-      startBehavior = "leader"
+      startBehavior = LeaderBehavior.name
     }
 
     setBehavior(startBehavior)
 
-    if (currentBehavior != "leader") {
+    if (currentBehavior != LeaderBehavior.name) {
       removeRandomRooms()
     }
 

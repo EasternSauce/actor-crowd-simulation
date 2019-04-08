@@ -1,7 +1,7 @@
 package com.kamilkurp.agent
 
 import akka.actor.ActorRef
-import com.kamilkurp.behaviors.LeaderBehavior
+import com.kamilkurp.behaviors.{FollowBehavior, HoldMeetPointBehavior, IdleBehavior, LeaderBehavior}
 import com.kamilkurp.building.{Door, MeetPoint, Room}
 import com.kamilkurp.entity.Entity
 import com.kamilkurp.utils.ControlScheme.ControlScheme
@@ -203,14 +203,14 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
   def drawName(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
     g.setColor(Color.pink)
     g.drawString(name, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 40 - offsetY)
-    if (currentBehavior == "idle") g.setColor(Color.cyan)
-    if (currentBehavior == "follow" && !lostSightOfFollowedEntity) g.setColor(Color.yellow)
-    if (currentBehavior == "follow" && lostSightOfFollowedEntity) g.setColor(Color.green)
-    if (currentBehavior == "leader") g.setColor(Color.red)
-    if (currentBehavior == "holdMeetPoint") g.setColor(Color.orange)
+    if (currentBehavior == IdleBehavior.name) g.setColor(Color.cyan)
+    if (currentBehavior == FollowBehavior.name && !lostSightOfFollowedEntity) g.setColor(Color.yellow)
+    if (currentBehavior == FollowBehavior.name && lostSightOfFollowedEntity) g.setColor(Color.green)
+    if (currentBehavior == LeaderBehavior.name) g.setColor(Color.red)
+    if (currentBehavior == HoldMeetPointBehavior.name) g.setColor(Color.orange)
 
     var tag: String = ""
-    if (currentBehavior == "follow" && followedAgent != null) {
+    if (currentBehavior == FollowBehavior.name && followedAgent != null) {
       tag = "[" + currentBehavior + " " + followedAgent.name + "]"
     }
     else {
@@ -263,10 +263,7 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
     roomGraph = agentRoomGraph
   }
 
-}
-
-object Agent {
-  def findDoorToEnterNext(agent: Agent, roomGraph: Graph[Room, DefaultEdge]): Door = {
+  def findDoorToEnterNext(): Door = {
 
     var meetPointRoom: Room = null
 
@@ -285,7 +282,7 @@ object Agent {
 
     var shortestPath: java.util.List[Room] = null
     try {
-      shortestPath = dijkstraShortestPath.getPath(agent.room, meetPointRoom).getVertexList
+      shortestPath = dijkstraShortestPath.getPath(room, meetPointRoom).getVertexList
 
     }
     catch {
@@ -293,7 +290,7 @@ object Agent {
         return null
     }
 
-    for (door: Door <- agent.room.doorList) {
+    for (door: Door <- room.doorList) {
       if (shortestPath.size() > 1 && door.leadingToDoor.room == shortestPath.get(1)) {
         return door
       }
@@ -302,4 +299,3 @@ object Agent {
     null
   }
 }
-

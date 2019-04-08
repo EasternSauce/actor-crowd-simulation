@@ -5,18 +5,23 @@ import com.kamilkurp.building.{Door, Room}
 import com.kamilkurp.utils.{ControlScheme, Timer}
 import org.jgrapht.Graph
 import org.jgrapht.graph.{DefaultEdge, SimpleGraph}
+import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
 
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
-class SearchExitBehavior(agent: Agent) extends Behavior(agent) {
+class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
   val deviationTimer: Timer = new Timer(500)
   val broadcastTimer: Timer = new Timer(300)
 
 
   var deviationX: Float = 0
   var deviationY: Float = 0
+
+
+
+
 
   var doorToEnterNext: Door = _
 
@@ -36,9 +41,6 @@ class SearchExitBehavior(agent: Agent) extends Behavior(agent) {
       })
       broadcastTimer.reset()
     }
-
-
-
 
     if (doorToEnterNext != null && agent.room.meetPointList.isEmpty) {
       agent.doorToEnter = doorToEnterNext
@@ -71,7 +73,7 @@ class SearchExitBehavior(agent: Agent) extends Behavior(agent) {
       agent.followX = agent.room.meetPointList.head.shape.getCenterX
       agent.followY = agent.room.meetPointList.head.shape.getCenterY
 
-      agent.setBehavior("idle")
+      agent.setBehavior(IdleBehavior.name)
     }
   }
 
@@ -86,7 +88,7 @@ class SearchExitBehavior(agent: Agent) extends Behavior(agent) {
   def decideOnDoor(): Unit = {
     var door: Door = null
 
-    door = Agent.findDoorToEnterNext(agent, agent.roomGraph)
+    door = agent.findDoorToEnterNext()
 
     if (door == null) {
 
@@ -110,4 +112,10 @@ class SearchExitBehavior(agent: Agent) extends Behavior(agent) {
     doorToEnterNext = door
   }
 
+}
+
+
+object SearchExitBehavior {
+  val name: String = "searchExit"
+  val color: Color = Color.orange
 }

@@ -1,10 +1,9 @@
 package com.kamilkurp.behaviors
 
 import com.kamilkurp.agent.Agent
+import org.newdawn.slick.Color
 
-abstract class Behavior(agent: Agent) {
-
-
+abstract class Behavior(agent: Agent, name: String, color: Color) {
   def init(): Unit
 
   def perform(delta: Int): Unit

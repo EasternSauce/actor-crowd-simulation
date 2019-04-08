@@ -2,14 +2,17 @@ package com.kamilkurp.behaviors
 
 import com.kamilkurp.agent.Agent
 import com.kamilkurp.utils.Timer
+import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
-class HoldMeetPointBehavior(agent: Agent) extends Behavior(agent) {
+class HoldMeetPointBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
   val deviationTimer: Timer = new Timer(500)
   var deviationX: Float = 0
   var deviationY: Float = 0
+
+
 
   override def init(): Unit = {
 
@@ -35,4 +38,10 @@ class HoldMeetPointBehavior(agent: Agent) extends Behavior(agent) {
   override def afterChangeRoom(): Unit = {
 
   }
+}
+
+
+object HoldMeetPointBehavior {
+  val name: String = "holdMeetPoint"
+  val color: Color = Color.cyan
 }

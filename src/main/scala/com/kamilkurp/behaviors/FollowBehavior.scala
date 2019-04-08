@@ -2,16 +2,16 @@ package com.kamilkurp.behaviors
 
 import com.kamilkurp.agent.{Agent, AgentLeading}
 import com.kamilkurp.utils.{ControlScheme, Timer}
+import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
-class FollowBehavior(agent: Agent) extends Behavior(agent) {
+class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
   val deviationTimer: Timer = new Timer(500)
   val broadcastTimer: Timer = new Timer(300)
   var deviationX: Float = 0
   var deviationY: Float = 0
-
 
   override def init(): Unit = {
 
@@ -36,7 +36,7 @@ class FollowBehavior(agent: Agent) extends Behavior(agent) {
     }
 
     if (agent.followTimer.timedOut()) {
-      agent.setBehavior("searchExit")
+      agent.setBehavior(SearchExitBehavior.name)
       agent.followedAgent = null
       return
     }
@@ -76,7 +76,7 @@ class FollowBehavior(agent: Agent) extends Behavior(agent) {
       agent.followX = agent.room.meetPointList.head.shape.getCenterX
       agent.followY = agent.room.meetPointList.head.shape.getCenterY
 
-      agent.setBehavior("idle")
+      agent.setBehavior(IdleBehavior.name)
     }
 
 
@@ -101,5 +101,12 @@ class FollowBehavior(agent: Agent) extends Behavior(agent) {
   override def afterChangeRoom(): Unit = {
 
   }
+
+
+}
+
+object FollowBehavior {
+  val name: String = FollowBehavior.name
+  val color: Color = Color.yellow
 }
 

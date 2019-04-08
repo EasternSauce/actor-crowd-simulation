@@ -2,12 +2,15 @@ package com.kamilkurp.behaviors
 
 import com.kamilkurp.agent.Agent
 import com.kamilkurp.utils.{ControlScheme, Timer}
+import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
-class IdleBehavior(agent: Agent) extends Behavior(agent) {
+class IdleBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
   var idleTimer: Timer = new Timer(500)
+
+
 
   override def init(): Unit = {
 
@@ -44,7 +47,7 @@ class IdleBehavior(agent: Agent) extends Behavior(agent) {
         agent.followX = agent.room.meetPointList.head.shape.getCenterX
         agent.followY = agent.room.meetPointList.head.shape.getCenterY
 
-        agent.setBehavior("holdMeetPoint")
+        agent.setBehavior(HoldMeetPointBehavior.name)
       }
 
 
@@ -63,4 +66,10 @@ class IdleBehavior(agent: Agent) extends Behavior(agent) {
   override def afterChangeRoom(): Unit = {
 
   }
+}
+
+
+object IdleBehavior {
+  val name: String = "idle"
+  val color: Color = Color.blue
 }

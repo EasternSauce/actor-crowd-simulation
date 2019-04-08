@@ -1,6 +1,7 @@
 package com.kamilkurp.agent
 
 import akka.actor.{Actor, ActorLogging}
+import com.kamilkurp.behaviors.{FollowBehavior, IdleBehavior, LeaderBehavior}
 import com.kamilkurp.building.Door
 import com.kamilkurp.entity.Entity
 import org.newdawn.slick.geom.Vector2f
@@ -23,12 +24,12 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
   override def receive: Receive = {
     case AgentWithinVision(that: Agent, distance: Float, delta: Float) =>
 
-      if (agent.currentBehavior == "idle" || agent.currentBehavior == "follow") {
-        if (that.currentBehavior == "leader" && that.followedAgent == null) {
+      if (agent.currentBehavior == IdleBehavior.name || agent.currentBehavior == FollowBehavior.name) {
+        if (that.currentBehavior == LeaderBehavior.name && that.followedAgent == null) {
           agent.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
           agent.lostSightOfFollowedEntity = false
           agent.lastSeenFollowedEntityTimer.reset()
-        } else if (that.currentBehavior == "follow") {
+        } else if (that.currentBehavior == FollowBehavior.name) {
           if (agent.followedAgent == null || agent.lostSightOfFollowedEntity) {
 
 
@@ -50,7 +51,7 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
             }
 
 
-            if (!loopDetected && lastAgent.currentBehavior == "leader") {
+            if (!loopDetected && lastAgent.currentBehavior == LeaderBehavior.name) {
               agent.lostSightOfFollowedEntity = false
               agent.lastSeenFollowedEntityTimer.reset()
               agent.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
@@ -61,8 +62,8 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
 
       }
 
-      if (that.currentBehavior == "follow" && distance < 400) {
-        if (agent.currentBehavior == "leader" || (agent.currentBehavior == "follow" && that.followedAgent == agent)) {
+      if (that.currentBehavior == FollowBehavior.name && distance < 400) {
+        if (agent.currentBehavior == LeaderBehavior.name || (agent.currentBehavior == FollowBehavior.name && that.followedAgent == agent)) {
           that.actor ! MoveOutOfTheWay(agent, delta)
         }
       }
@@ -75,9 +76,9 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
       }
 
     case AgentLeading(entity, locationX, locationY) =>
-      if (agent.currentBehavior == "idle" ||
-        (agent.currentBehavior == "follow" && (agent.followedAgent == null || agent.followedAgent == entity)) ||
-        (agent.currentBehavior == "follow" && agent.lostSightOfFollowedEntity && !entity.lostSightOfFollowedEntity)) {
+      if (agent.currentBehavior == IdleBehavior.name ||
+        (agent.currentBehavior == FollowBehavior.name && (agent.followedAgent == null || agent.followedAgent == entity)) ||
+        (agent.currentBehavior == FollowBehavior.name && agent.lostSightOfFollowedEntity && !entity.lostSightOfFollowedEntity)) {
 
         var loopDetected: Boolean = false
         var followChain: Agent = entity

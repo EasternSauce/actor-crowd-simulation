@@ -5,11 +5,14 @@ import com.kamilkurp.building.{Door, Room}
 import com.kamilkurp.utils.{ControlScheme, Timer}
 import org.jgrapht.Graph
 import org.jgrapht.graph.DefaultEdge
+import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
-class LeaderBehavior(agent: Agent) extends Behavior(agent) {
+class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
+
+
 
   val deviationTimer: Timer = new Timer(500)
   val broadcastTimer: Timer = new Timer(300)
@@ -41,7 +44,7 @@ class LeaderBehavior(agent: Agent) extends Behavior(agent) {
 
     var door: Door = null
 
-    door = Agent.findDoorToEnterNext(agent, agent.roomGraph)
+    door = agent.findDoorToEnterNext()
 
     if (door != null) {
       agent.doorToEnter = door
@@ -86,7 +89,7 @@ class LeaderBehavior(agent: Agent) extends Behavior(agent) {
       agent.followX = agent.room.meetPointList.head.shape.getCenterX
       agent.followY = agent.room.meetPointList.head.shape.getCenterY
 
-      agent.setBehavior("idle")
+      agent.setBehavior(IdleBehavior.name)
     }
   }
 
@@ -99,4 +102,10 @@ class LeaderBehavior(agent: Agent) extends Behavior(agent) {
   }
 
 
+}
+
+
+object LeaderBehavior {
+  val name: String = "leader"
+  val color: Color = Color.red
 }
