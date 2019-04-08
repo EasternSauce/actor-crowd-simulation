@@ -3,7 +3,7 @@ package com.kamilkurp.simulation
 import akka.actor.{ActorRef, ActorSystem, Props}
 import com.kamilkurp.agent.{Agent, AgentActor}
 import com.kamilkurp.building.{Door, MeetPoint, Room}
-import com.kamilkurp.utils.{Configuration, ControlScheme, Globals, Timer}
+import com.kamilkurp.util.{Configuration, ControlScheme, Globals, Timer}
 import org.jgrapht.Graph
 import org.jgrapht.graph.{DefaultEdge, SimpleGraph}
 import org.newdawn.slick._

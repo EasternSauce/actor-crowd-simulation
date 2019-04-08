@@ -1,7 +1,7 @@
-package com.kamilkurp.behaviors
+package com.kamilkurp.behavior
 
 import com.kamilkurp.agent.Agent
-import com.kamilkurp.utils.Configuration
+import com.kamilkurp.util.Configuration
 import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
 

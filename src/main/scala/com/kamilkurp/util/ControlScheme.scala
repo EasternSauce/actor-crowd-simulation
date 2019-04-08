@@ -1,4 +1,4 @@
-package com.kamilkurp.utils
+package com.kamilkurp.util
 
 import com.kamilkurp.agent.Agent
 import com.kamilkurp.simulation.CameraView

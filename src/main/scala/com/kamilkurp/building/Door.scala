@@ -1,7 +1,7 @@
 package com.kamilkurp.building
 
 import com.kamilkurp.entity.Entity
-import com.kamilkurp.utils.Globals
+import com.kamilkurp.util.Globals
 import org.newdawn.slick.geom.{Rectangle, Shape, Vector2f}
 import org.newdawn.slick.{Color, Graphics, Image}
 

@@ -1,11 +1,12 @@
 package com.kamilkurp.agent
 
 import akka.actor.ActorRef
-import com.kamilkurp.behaviors.{FollowBehavior, HoldMeetPointBehavior, IdleBehavior, LeaderBehavior}
+import com.kamilkurp.agent_utils.{HasBehavior, Follower}
+import com.kamilkurp.behavior.{FollowBehavior, HoldMeetPointBehavior, IdleBehavior, LeaderBehavior}
 import com.kamilkurp.building.{Door, MeetPoint, Room}
 import com.kamilkurp.entity.Entity
-import com.kamilkurp.utils.ControlScheme.ControlScheme
-import com.kamilkurp.utils.{Configuration, ControlScheme, Globals, Timer}
+import com.kamilkurp.util.ControlScheme.ControlScheme
+import com.kamilkurp.util.{Configuration, ControlScheme, Globals, Timer}
 import org.jgrapht.Graph
 import org.jgrapht.graph.{DefaultEdge, SimpleGraph}
 import org.newdawn.slick.geom.{Shape, _}
@@ -15,7 +16,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
-class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, var image: Image, var roomGraph: Graph[Room, DefaultEdge]) extends Entity with BehaviorManager with Follower {
+class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, var image: Image, var roomGraph: Graph[Room, DefaultEdge]) extends Entity with HasBehavior with Follower {
 
   val rememberedRoute: mutable.Map[String, (Float, Float)] = mutable.Map[String, (Float, Float)]()
   override var currentVelocityX: Float = 0.0f

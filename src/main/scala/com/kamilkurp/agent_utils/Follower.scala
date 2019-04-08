@@ -1,6 +1,7 @@
-package com.kamilkurp.agent
+package com.kamilkurp.agent_utils
 
-import com.kamilkurp.utils.Timer
+import com.kamilkurp.agent.Agent
+import com.kamilkurp.util.Timer
 
 import scala.util.Random
 

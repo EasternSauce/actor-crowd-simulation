@@ -1,12 +1,13 @@
-package com.kamilkurp.agent
+package com.kamilkurp.agent_utils
 
-import com.kamilkurp.behaviors._
-import com.kamilkurp.utils.Configuration
+import com.kamilkurp.agent.Agent
+import com.kamilkurp.behavior._
+import com.kamilkurp.util.Configuration
 
 import scala.collection.mutable
 import scala.util.Random
 
-trait BehaviorManager {
+trait HasBehavior {
   this: Agent =>
 
   val behaviorMap: mutable.HashMap[String, Behavior] = mutable.HashMap.empty[String, Behavior]

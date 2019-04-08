@@ -1,6 +1,6 @@
 package com.kamilkurp.simulation
 
-import com.kamilkurp.utils.Globals
+import com.kamilkurp.util.Globals
 
 object Main extends App {
 

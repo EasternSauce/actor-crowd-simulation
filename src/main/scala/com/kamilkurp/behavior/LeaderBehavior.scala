@@ -1,32 +1,22 @@
-package com.kamilkurp.behaviors
+package com.kamilkurp.behavior
 
 import com.kamilkurp.agent.{Agent, AgentLeading}
+import com.kamilkurp.behavior_utils.Broadcasting
 import com.kamilkurp.building.Door
-import com.kamilkurp.utils.{Configuration, ControlScheme, Timer}
+import com.kamilkurp.util.{Configuration, ControlScheme, Timer}
 import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
 
-class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
+class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) with Broadcasting {
 
-  val broadcastTimer: Timer = new Timer(Configuration.AGENT_BROADCAST_TIMER)
   val waitAtDoorTimer: Timer = new Timer(Configuration.WAIT_AT_DOOR_TIMER)
-  broadcastTimer.start()
 
   override def init(): Unit = {
-
+    broadcastingInit()
   }
 
   def perform(delta: Int): Unit = {
-
-    if (broadcastTimer.timedOut()) {
-      agent.room.agentList.foreach(that => {
-        if (that != agent) {
-          that.actor ! AgentLeading(agent, agent.shape.getCenterX, agent.shape.getCenterY)
-        }
-      })
-      broadcastTimer.reset()
-    }
-
+    broadcastLeading()
 
     var door: Door = null
 

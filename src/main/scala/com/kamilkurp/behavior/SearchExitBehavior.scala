@@ -1,8 +1,8 @@
-package com.kamilkurp.behaviors
+package com.kamilkurp.behavior
 
 import com.kamilkurp.agent.{Agent, AgentLeading}
 import com.kamilkurp.building.Door
-import com.kamilkurp.utils.{Configuration, ControlScheme, Timer}
+import com.kamilkurp.util.{Configuration, ControlScheme, Timer}
 import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
 

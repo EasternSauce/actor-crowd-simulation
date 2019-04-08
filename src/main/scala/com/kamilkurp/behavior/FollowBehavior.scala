@@ -1,27 +1,20 @@
-package com.kamilkurp.behaviors
+package com.kamilkurp.behavior
 
 import com.kamilkurp.agent.{Agent, AgentLeading}
-import com.kamilkurp.utils.{Configuration, ControlScheme, Timer}
+import com.kamilkurp.behavior_utils.Broadcasting
+import com.kamilkurp.util.{Configuration, ControlScheme, Timer}
 import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
 
-class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
-  val broadcastTimer: Timer = new Timer(Configuration.AGENT_BROADCAST_TIMER)
+class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) with Broadcasting {
 
   override def init(): Unit = {
-    broadcastTimer.start()
+    broadcastingInit()
   }
 
 
   def perform(delta: Int): Unit = {
-    if (broadcastTimer.timedOut()) {
-      agent.room.agentList.foreach(that => {
-        if (that != agent) {
-          that.actor ! AgentLeading(agent, agent.shape.getCenterX, agent.shape.getCenterY)
-        }
-      })
-      broadcastTimer.reset()
-    }
+    broadcastLeading()
 
     if (agent.followTimer.timedOut()) {
       agent.setBehavior(SearchExitBehavior.name)

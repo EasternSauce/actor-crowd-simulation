@@ -1,6 +1,6 @@
 package com.kamilkurp.agent
 
-import com.kamilkurp.utils.{Configuration, Timer}
+import com.kamilkurp.util.{Configuration, Timer}
 import org.newdawn.slick.geom.{Polygon, Rectangle, Shape, Transform}
 import org.newdawn.slick.{Color, Graphics}
 

@@ -1,10 +1,10 @@
 package com.kamilkurp.agent
 
 import akka.actor.{Actor, ActorLogging}
-import com.kamilkurp.behaviors.{FollowBehavior, IdleBehavior, LeaderBehavior}
+import com.kamilkurp.behavior.{FollowBehavior, IdleBehavior, LeaderBehavior}
 import com.kamilkurp.building.Door
 import com.kamilkurp.entity.Entity
-import com.kamilkurp.utils.Configuration
+import com.kamilkurp.util.Configuration
 import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random

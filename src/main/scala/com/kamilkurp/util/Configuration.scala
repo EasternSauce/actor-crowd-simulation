@@ -1,4 +1,4 @@
-package com.kamilkurp.utils
+package com.kamilkurp.util
 
 object Configuration {
 
