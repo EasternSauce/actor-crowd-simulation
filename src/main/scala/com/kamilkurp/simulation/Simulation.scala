@@ -20,7 +20,7 @@ object CameraView {
 
 class Simulation(gameName: String) extends BasicGame(gameName) {
   val system: ActorSystem = ActorSystem("crowd_sim_system")
-  val numberOfAgents: Int = 250
+  val numberOfAgents: Int = Configuration.NUMBER_OF_AGENTS
   val addManualAgent: Boolean = false
   val nameIndices: mutable.Map[String, Int] = mutable.Map[String, Int]()
   val listOfNames = Array("Virgil", "Dominique", "Hermina",

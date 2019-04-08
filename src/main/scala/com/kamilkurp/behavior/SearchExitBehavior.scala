@@ -42,7 +42,12 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
   }
 
   override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
+    agent.setBehavior(FollowBehavior.name)
 
+    agent.setFollow(posX, posY)
+    agent.followDistance = atDistance
+    agent.followedAgent = that
+    agent.followTimer.reset()
   }
 
   override def afterChangeRoom(): Unit = {

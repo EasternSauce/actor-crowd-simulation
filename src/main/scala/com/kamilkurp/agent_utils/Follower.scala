@@ -1,7 +1,7 @@
 package com.kamilkurp.agent_utils
 
 import com.kamilkurp.agent.Agent
-import com.kamilkurp.util.Timer
+import com.kamilkurp.util.{Configuration, Timer}
 
 import scala.util.Random
 
@@ -13,7 +13,7 @@ trait Follower {
 
   var followedAgent: Agent = _
 
-  val followTimer: Timer = new Timer(5000)
+  val followTimer: Timer = new Timer(Configuration.AGENT_FOLLOW_TIMER)
 
   val lastSeenFollowedEntityTimer = new Timer(1000 + new Random().nextInt(600))
 

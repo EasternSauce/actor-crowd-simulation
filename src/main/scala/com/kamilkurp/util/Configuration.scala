@@ -1,6 +1,7 @@
 package com.kamilkurp.util
 
 object Configuration {
+  var NUMBER_OF_AGENTS: Int = 250
 
 
   val AGENT_SPEED: Float = 0.5f
@@ -16,6 +17,7 @@ object Configuration {
   val WAIT_AT_DOOR_TIMER: Int = 300
   var AGENT_VISION_TIMER: Int = 500
   var AGENT_IDLE_TIMER: Int = 500
+  var AGENT_FOLLOW_TIMER: Int = 5000
 
 
 }

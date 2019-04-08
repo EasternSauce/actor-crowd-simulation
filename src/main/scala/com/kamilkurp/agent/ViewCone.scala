@@ -5,12 +5,13 @@ import org.newdawn.slick.geom.{Polygon, Rectangle, Shape, Transform}
 import org.newdawn.slick.{Color, Graphics}
 
 import scala.collection.mutable.ListBuffer
+import scala.util.Random
 
 class ViewCone(agent: Agent) {
   var firstRay: (Rectangle, Float) = (new Rectangle(0, 0, 0, 0), 0)
   var lastRay: (Rectangle, Float) = (new Rectangle(0, 0, 0, 0), 0)
 
-  var visionTimer: Timer = new Timer(Configuration.AGENT_VISION_TIMER)
+  var visionTimer: Timer = new Timer(Configuration.AGENT_VISION_TIMER + Random.nextInt(300) - 150)
   visionTimer.start()
 
   var viewRayList: ListBuffer[Shape] = ListBuffer[Shape]()

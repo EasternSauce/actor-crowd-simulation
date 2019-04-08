@@ -39,9 +39,11 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
   val slowTimer: Timer = new Timer(Configuration.AGENT_SLOW_TIMER)
   val lookTimer: Timer = new Timer(Configuration.AGENT_LOOK_TIMER)
   val outOfWayTimer: Timer = new Timer(Configuration.AGENT_MOVE_OUT_OF_WAY_TIMER)
+  val checkProgressTimer: Timer = new Timer(2000)
   slowTimer.start()
   lookTimer.start()
   outOfWayTimer.start()
+  checkProgressTimer.start()
 
   var movingOutOfTheWay: Boolean = false
 
@@ -49,6 +51,12 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
   var isFree = false
 
   var doorToEnter: Door = _
+
+  var pastPositionX: Float = 0
+  var pastPositionY: Float = 0
+
+  var goAroundObstacle: Boolean = false
+  var goAroundAngle: Float = 0
 
   while (!isFree) {
     shape.setX(Random.nextInt(room.w - Globals.AGENT_SIZE))
@@ -72,6 +80,23 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
 
   def update(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
     viewCone.update(delta)
+
+    if (checkProgressTimer.timedOut()) {
+      checkProgressTimer.reset()
+
+      val progress = getDistanceTo(pastPositionX, pastPositionY)
+
+
+      if (progress < 60) {
+        goAroundObstacle = true
+        goAroundAngle = Random.nextInt(60) - 30
+//        println(name + " going around obstacle")
+      }
+      else goAroundObstacle = false
+
+      pastPositionX = shape.getX
+      pastPositionY = shape.getY
+    }
 
     if (lookTimer.timedOut() && walkAngle != viewAngle) {
 
@@ -162,7 +187,7 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
 
     atDoor = false
 
-    followTimer.start()
+    followTimer.reset()
 
     val newRoom: Room = entryDoor.leadingToDoor.room
 
@@ -308,6 +333,10 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
   private def goTo(x: Float, y: Float, delta: Int): Unit = {
     val vector = new Vector2f(x - shape.getCenterX, y - shape.getCenterY)
     vector.normalise()
+
+    if (goAroundObstacle) {
+      vector.setTheta(vector.getTheta + goAroundAngle)
+    }
 
     walkAngle = vector.getTheta.floatValue()
 

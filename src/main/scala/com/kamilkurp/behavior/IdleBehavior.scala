@@ -35,7 +35,7 @@ class IdleBehavior(agent: Agent, name: String, color: Color) extends Behavior(ag
   }
 
   override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
-    agent.setBehavior("follow")
+    agent.setBehavior(FollowBehavior.name)
 
     agent.setFollow(posX, posY)
     agent.followDistance = atDistance

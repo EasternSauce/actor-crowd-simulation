@@ -6,17 +6,15 @@ import com.kamilkurp.util.{Configuration, ControlScheme, Timer}
 import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
 
-class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) with Broadcasting {
+class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
 
   override def init(): Unit = {
-    broadcastingInit()
   }
 
 
   def perform(delta: Int): Unit = {
-    broadcastLeading()
-
     if (agent.followTimer.timedOut()) {
+      agent.followTimer.stop()
       agent.setBehavior(SearchExitBehavior.name)
       agent.followedAgent = null
       return
