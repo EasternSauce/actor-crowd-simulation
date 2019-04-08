@@ -6,7 +6,7 @@ import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
 
 class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
-  val broadcastTimer: Timer = new Timer(300)
+  val broadcastTimer: Timer = new Timer(Configuration.AGENT_BROADCAST_TIMER)
 
   override def init(): Unit = {
 

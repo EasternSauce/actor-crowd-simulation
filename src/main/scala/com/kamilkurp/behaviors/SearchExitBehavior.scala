@@ -10,7 +10,7 @@ import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
-  val broadcastTimer: Timer = new Timer(300)
+  val broadcastTimer: Timer = new Timer(Configuration.AGENT_BROADCAST_TIMER)
 
   var doorToEnterNext: Door = _
 

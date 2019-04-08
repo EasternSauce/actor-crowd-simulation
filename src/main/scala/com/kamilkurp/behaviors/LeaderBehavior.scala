@@ -8,9 +8,9 @@ import org.newdawn.slick.geom.Vector2f
 
 class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
 
-  val broadcastTimer: Timer = new Timer(300)
+  val broadcastTimer: Timer = new Timer(Configuration.AGENT_BROADCAST_TIMER)
 
-  val waitAtDoorTimer: Timer = new Timer(300)
+  val waitAtDoorTimer: Timer = new Timer(Configuration.WAIT_AT_DOOR_TIMER)
   waitAtDoorTimer.time = waitAtDoorTimer.timeout
 
   override def init(): Unit = {
