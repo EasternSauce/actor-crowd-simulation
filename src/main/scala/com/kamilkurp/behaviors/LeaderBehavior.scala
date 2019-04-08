@@ -41,10 +41,7 @@ class LeaderBehavior(agent: Agent) extends Behavior(agent) {
 
     var door: Door = null
 
-//    println("graph for " + agent.name + " is "+ agent.roomGraph)
     door = Agent.findDoorToEnterNext(agent, agent.roomGraph)
-
-//    println("setting door to " + (if(door == null) "null" else door.name) + " for " + agent.name)
 
     if (door != null) {
       agent.doorToEnter = door

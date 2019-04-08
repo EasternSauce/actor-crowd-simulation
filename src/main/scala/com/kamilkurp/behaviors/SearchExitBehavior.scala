@@ -84,13 +84,11 @@ class SearchExitBehavior(agent: Agent) extends Behavior(agent) {
   }
 
   def decideOnDoor(): Unit = {
-    //println("on change room")
     var door: Door = null
 
     door = Agent.findDoorToEnterNext(agent, agent.roomGraph)
 
     if (door == null) {
-      // pick unknown door at random
 
       val doorToCorrList: ListBuffer[Door] = new ListBuffer[Door]
 
@@ -101,18 +99,15 @@ class SearchExitBehavior(agent: Agent) extends Behavior(agent) {
 
         if (leadingToRoom.meetPointList.nonEmpty || (leadingToRoom.name.startsWith("corr") && !agent.roomGraph.containsVertex(leadingToRoom))) {
           door = doorInRoom
-//          println("picked unknown door")
         }
       }
 
       if (door == null) {
         door = doorToCorrList(Random.nextInt(doorToCorrList.length))
-//        println("picked random door")
       }
     }
 
     doorToEnterNext = door
-    //println("next door is " + door.name)
   }
 
 }

@@ -21,10 +21,8 @@ trait BehaviorManager {
 
     var startBehavior = "idle"
 
-//    println("chance is " + chanceToBeLeader)
     if (Random.nextFloat() < chanceToBeLeader) {
       startBehavior = "leader"
-      //println("setting leader")
     }
 
     if (name == "Player") {
@@ -40,7 +38,6 @@ trait BehaviorManager {
   }
 
   def setBehavior(behaviorName: String): Unit = {
-//    println("setting behavior " + behaviorName + " for " + name)
     currentBehavior = behaviorName
     behaviorMap(behaviorName).init()
   }

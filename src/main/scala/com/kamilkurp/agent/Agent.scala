@@ -153,7 +153,6 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
 
     if (!roomGraph.containsVertex(entryDoor.leadingToDoor.room)) {
       addRoomToGraph(entryDoor.leadingToDoor.room)
-//      println("added room " + entryDoor.leadingToDoor.room + " for " + name)
     }
 
 
@@ -233,8 +232,6 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
   }
 
   def removeRandomRooms(): Unit = {
-//    println("removing random rooms for " + name)
-
     val agentRoomGraph = new SimpleGraph[Room, DefaultEdge](classOf[DefaultEdge])
 
     val toRemove: ListBuffer[Room] = new ListBuffer[Room]()
@@ -283,12 +280,6 @@ object Agent {
       return null
     }
 
-//    if (!roomGraph.containsVertex(agent.room)) {
-//      println("i am " + agent.name + " in " + agent.room + " and my graph is " + agent.roomGraph)
-//      return null
-//    }
-
-
     import org.jgrapht.alg.shortestpath.DijkstraShortestPath
     val dijkstraShortestPath = new DijkstraShortestPath(roomGraph)
 
@@ -302,10 +293,6 @@ object Agent {
         return null
     }
 
-//    if (agent.name == "Player") {
-//      println(shortestPath)
-//    }
-
     for (door: Door <- agent.room.doorList) {
       if (shortestPath.size() > 1 && door.leadingToDoor.room == shortestPath.get(1)) {
         return door
@@ -314,10 +301,5 @@ object Agent {
 
     null
   }
-
-
-
-
-
 }
 

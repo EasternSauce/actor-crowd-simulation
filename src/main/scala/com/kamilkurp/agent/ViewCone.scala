@@ -57,8 +57,6 @@ class ViewCone(agent: Agent) {
     }
     timer.reset()
 
-//    println("updating")
-
     agent.room.agentList.filter(c => c != agent).foreach(that =>
       viewRayList.foreach(rayShape =>
         if (that.shape.intersects(rayShape)) {
