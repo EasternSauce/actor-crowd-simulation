@@ -19,14 +19,6 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
   }
 
   def perform(delta: Int): Unit = {
-//    if (broadcastTimer.timedOut()) {
-//      agent.room.agentList.foreach(that => {
-//        if (that != agent) {
-//          that.actor ! AgentLeading(agent, agent.shape.getCenterX, agent.shape.getCenterY)
-//        }
-//      })
-//      broadcastTimer.reset()
-//    }
 
     if (doorToEnterNext != null && agent.room.meetPointList.isEmpty) {
       agent.doorToEnter = doorToEnterNext
@@ -37,15 +29,8 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
 
         agent.walkAngle = normalVector.getTheta.floatValue()
 
-        if (!agent.atDoor) {
-          agent.currentVelocityX = normalVector.x * Configuration.AGENT_SPEED * (1f - agent.slow) * delta
-          agent.currentVelocityY = normalVector.y * Configuration.AGENT_SPEED * (1f - agent.slow) * delta
-
-        }
-        else {
-          agent.currentVelocityX = 0
-          agent.currentVelocityY = 0
-        }
+        if (!agent.atDoor) agent.moveTowards(doorToEnterNext, delta)
+        else agent.stopMoving()
       }
 
     }

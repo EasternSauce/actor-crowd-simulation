@@ -207,11 +207,7 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
   def drawName(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
     g.setColor(Color.pink)
     g.drawString(name, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 40 - offsetY)
-    if (currentBehavior == IdleBehavior.name) g.setColor(Color.cyan)
-    if (currentBehavior == FollowBehavior.name && !lostSightOfFollowedEntity) g.setColor(Color.yellow)
-    if (currentBehavior == FollowBehavior.name && lostSightOfFollowedEntity) g.setColor(Color.green)
-    if (currentBehavior == LeaderBehavior.name) g.setColor(Color.red)
-    if (currentBehavior == HoldMeetPointBehavior.name) g.setColor(Color.orange)
+    g.setColor(getBehavior(currentBehavior).color)
 
     var tag: String = ""
     if (currentBehavior == FollowBehavior.name && followedAgent != null) {
@@ -301,5 +297,28 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
     }
 
     null
+  }
+
+  def moveTowards(x: Float, y: Float, delta: Int): Unit = {
+    goTo(x, y, delta)
+  }
+
+  def moveTowards(entity: Entity, delta: Int): Unit = {
+    goTo(entity.shape.getCenterX, entity.shape.getCenterY, delta)
+  }
+
+  private def goTo(x: Float, y: Float, delta: Int): Unit = {
+    val vector = new Vector2f(x - shape.getCenterX, y - shape.getCenterY)
+    vector.normalise()
+
+    walkAngle = vector.getTheta.floatValue()
+
+    currentVelocityX = vector.x * Configuration.AGENT_SPEED * (1f - slow) * delta
+    currentVelocityY = vector.y * Configuration.AGENT_SPEED * (1f - slow) * delta
+  }
+
+  def stopMoving(): Unit = {
+    currentVelocityX = 0
+    currentVelocityY = 0
   }
 }

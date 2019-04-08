@@ -27,23 +27,16 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
       agent.lastSeenFollowedEntityTimer.stop()
     }
 
-    val normalVector = new Vector2f(agent.followX - agent.shape.getCenterX, agent.followY - agent.shape.getCenterY)
-    normalVector.normalise()
-
-    agent.walkAngle = normalVector.getTheta.floatValue()
-
     if (agent.outOfWayTimer.timedOut()) {
       agent.outOfWayTimer.stop()
       agent.movingOutOfTheWay = false
       if (agent.controlScheme != ControlScheme.Manual) {
 
         if (agent.getDistanceTo(agent.followX, agent.followY) > agent.followDistance) {
-          agent.currentVelocityX = normalVector.x * Configuration.AGENT_SPEED * (1f - agent.slow) * delta
-          agent.currentVelocityY = normalVector.y * Configuration.AGENT_SPEED * (1f - agent.slow) * delta
+          agent.moveTowards(agent.followX, agent.followY, delta)
         }
         else {
-          agent.currentVelocityX = 0
-          agent.currentVelocityY = 0
+          agent.stopMoving()
         }
       }
     }
@@ -59,19 +52,11 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
   }
 
   override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
-    if (that == agent.followedAgent) {
-      agent.followX = posX
-      agent.followY = posY
-      agent.followTimer.reset()
-      agent.followDistance = atDistance
-    }
-    else {
-      agent.followX = posX
-      agent.followY = posY
-      agent.followDistance = atDistance
-      agent.followedAgent = that
-      agent.followTimer.reset()
-    }
+    agent.followX = posX
+    agent.followY = posY
+    agent.followTimer.reset()
+    agent.followDistance = atDistance
+    if (that == agent.followedAgent) agent.followedAgent = that
   }
 
   override def afterChangeRoom(): Unit = {

@@ -10,8 +10,6 @@ import scala.util.Random
 class IdleBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
   var idleTimer: Timer = new Timer(Configuration.AGENT_IDLE_TIMER)
 
-
-
   override def init(): Unit = {
     idleTimer.start()
   }
@@ -19,29 +17,12 @@ class IdleBehavior(agent: Agent, name: String, color: Color) extends Behavior(ag
   def perform(delta: Int): Unit = {
     if (idleTimer.timedOut()) {
 
-
       val inPlace = Random.nextInt(100) < 60
 
       idleTimer.reset()
 
-      if (agent.controlScheme != ControlScheme.Manual) {
-        if (inPlace) {
-          agent.currentVelocityX = 0
-          agent.currentVelocityY = 0
-        }
-        else {
-          agent.currentVelocityX = (Random.nextInt(3) - 1) * Configuration.AGENT_SPEED * (1f - agent.slow) * 0.8f * delta
-          agent.currentVelocityY = (Random.nextInt(3) - 1) * Configuration.AGENT_SPEED * (1f - agent.slow) * 0.8f * delta
-        }
-      }
-
-
-      if (agent.currentVelocityX != 0 || agent.currentVelocityY != 0) {
-        val normalVector = new Vector2f(agent.currentVelocityX, agent.currentVelocityY)
-        normalVector.normalise()
-
-        agent.walkAngle = normalVector.getTheta.floatValue()
-      }
+      if (inPlace) agent.stopMoving()
+      else agent.moveTowards(agent.shape.getX + (Random.nextInt(3) - 1) * 50f, agent.shape.getY + (Random.nextInt(3) - 1) * 50f, delta)
 
       if (agent.room.meetPointList.nonEmpty) {
         agent.followX = agent.room.meetPointList.head.shape.getCenterX

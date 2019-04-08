@@ -13,11 +13,7 @@ class HoldMeetPointBehavior(agent: Agent, name: String, color: Color) extends Be
   }
 
   override def perform(delta: Int): Unit = {
-    val normalVector = new Vector2f(agent.followX - agent.shape.getCenterX, agent.followY - agent.shape.getCenterY)
-    normalVector.normalise()
-
-    agent.currentVelocityX = normalVector.x * Configuration.AGENT_SPEED * (1f - agent.slow) * delta
-    agent.currentVelocityY = normalVector.y * Configuration.AGENT_SPEED * (1f - agent.slow) * delta
+    agent.moveTowards(agent.followX, agent.followY, delta)
   }
 
   override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {

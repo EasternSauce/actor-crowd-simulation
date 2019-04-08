@@ -1,6 +1,6 @@
 package com.kamilkurp.behavior
 
-import com.kamilkurp.agent.{Agent, AgentLeading}
+import com.kamilkurp.agent.Agent
 import com.kamilkurp.behavior_utils.Broadcasting
 import com.kamilkurp.building.Door
 import com.kamilkurp.util.{Configuration, ControlScheme, Timer}
@@ -26,14 +26,8 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
       agent.doorToEnter = door
 
       if (agent.controlScheme != ControlScheme.Manual) {
-        val normalVector = new Vector2f(door.shape.getCenterX - agent.shape.getCenterX, door.shape.getCenterY - agent.shape.getCenterY)
-        normalVector.normalise()
-
-        agent.walkAngle = normalVector.getTheta.floatValue()
-
         if (!agent.atDoor) {
-          agent.currentVelocityX = normalVector.x * Configuration.AGENT_SPEED * (1f - agent.slow) * delta
-          agent.currentVelocityY = normalVector.y * Configuration.AGENT_SPEED * (1f - agent.slow) * delta
+          agent.moveTowards(door, delta)
 
           if (agent.getDistanceTo(agent.doorToEnter.shape.getCenterX, agent.doorToEnter.shape.getCenterY) < 100) {
             waitAtDoorTimer.reset()
@@ -42,17 +36,9 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
           }
         }
         else {
-          if (!waitAtDoorTimer.timedOut()) {
-            agent.currentVelocityX = 0
-            agent.currentVelocityY = 0
-          }
-          else {
-            agent.currentVelocityX = normalVector.x * Configuration.AGENT_SPEED * (1f - agent.slow) * delta
-            agent.currentVelocityY = normalVector.y * Configuration.AGENT_SPEED * (1f - agent.slow) * delta
-          }
+          if (!waitAtDoorTimer.timedOut()) agent.stopMoving()
+          else agent.moveTowards(door, delta)
         }
-
-
       }
 
     }
@@ -71,8 +57,6 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
   override def afterChangeRoom(): Unit = {
 
   }
-
-
 }
 
 
