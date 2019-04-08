@@ -167,13 +167,11 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
     val newRoom: Room = entryDoor.leadingToDoor.room
 
     if (rememberedRoute.contains(newRoom.name)) {
-      followX = rememberedRoute(newRoom.name)._1
-      followY = rememberedRoute(newRoom.name)._2
+      setFollow(rememberedRoute(newRoom.name)._1, rememberedRoute(newRoom.name)._2)
       followDistance = 0
     }
     else {
-      followX = newRoom.w / 2
-      followY = newRoom.h / 2
+      setFollow(newRoom.w / 2, newRoom.h / 2)
       followDistance = 0
     }
 

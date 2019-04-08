@@ -42,8 +42,7 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
     }
 
     if (agent.room.meetPointList.nonEmpty) {
-      agent.followX = agent.room.meetPointList.head.shape.getCenterX
-      agent.followY = agent.room.meetPointList.head.shape.getCenterY
+      agent.setFollow(agent.room.meetPointList.head.shape.getCenterX, agent.room.meetPointList.head.shape.getCenterY)
 
       agent.setBehavior(IdleBehavior.name)
     }
@@ -52,8 +51,7 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
   }
 
   override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
-    agent.followX = posX
-    agent.followY = posY
+    agent.setFollow(posX, posY)
     agent.followTimer.reset()
     agent.followDistance = atDistance
     if (that == agent.followedAgent) agent.followedAgent = that

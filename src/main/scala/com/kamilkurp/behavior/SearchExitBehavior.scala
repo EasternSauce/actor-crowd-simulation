@@ -35,8 +35,7 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
 
     }
     else if (agent.room.meetPointList.nonEmpty) {
-      agent.followX = agent.room.meetPointList.head.shape.getCenterX
-      agent.followY = agent.room.meetPointList.head.shape.getCenterY
+      agent.setFollow(agent.room.meetPointList.head.shape.getCenterX, agent.room.meetPointList.head.shape.getCenterY)
 
       agent.setBehavior(IdleBehavior.name)
     }

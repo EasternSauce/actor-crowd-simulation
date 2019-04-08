@@ -121,10 +121,10 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
         val randomValue = Random.nextInt(2)
 
         if (randomValue == 1) {
-          normalVector.setTheta(normalVector.getTheta + 90)
+          normalVector.setTheta(normalVector.getTheta + 90 - 30)
         }
         else {
-          normalVector.setTheta(normalVector.getTheta - 90)
+          normalVector.setTheta(normalVector.getTheta - 90 + 30)
         }
 
         agent.currentVelocityX = Configuration.AGENT_SPEED * normalVector.x * delta
