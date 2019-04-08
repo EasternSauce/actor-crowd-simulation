@@ -19,16 +19,14 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
   }
 
   def perform(delta: Int): Unit = {
-    broadcastTimer.update(delta)
-
-    if (broadcastTimer.timedOut()) {
-      agent.room.agentList.foreach(that => {
-        if (that != agent) {
-          that.actor ! AgentLeading(agent, agent.shape.getCenterX, agent.shape.getCenterY)
-        }
-      })
-      broadcastTimer.reset()
-    }
+//    if (broadcastTimer.timedOut()) {
+//      agent.room.agentList.foreach(that => {
+//        if (that != agent) {
+//          that.actor ! AgentLeading(agent, agent.shape.getCenterX, agent.shape.getCenterY)
+//        }
+//      })
+//      broadcastTimer.reset()
+//    }
 
     if (doorToEnterNext != null && agent.room.meetPointList.isEmpty) {
       agent.doorToEnter = doorToEnterNext

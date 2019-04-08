@@ -30,16 +30,18 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
   var slow: Float = 0.0f
 
 
-  val slowTimer: Timer = new Timer(Configuration.AGENT_SLOW_TIMER)
 
-  val lookTimer: Timer = new Timer(Configuration.AGENT_LOOK_TIMER)
   var actor: ActorRef = _
 
   var atDoor: Boolean = false
 
-
+  val slowTimer: Timer = new Timer(Configuration.AGENT_SLOW_TIMER)
+  val lookTimer: Timer = new Timer(Configuration.AGENT_LOOK_TIMER)
   val outOfWayTimer: Timer = new Timer(Configuration.AGENT_MOVE_OUT_OF_WAY_TIMER)
-  outOfWayTimer.set(outOfWayTimer.timeout)
+  slowTimer.start()
+  lookTimer.start()
+  outOfWayTimer.start()
+
   var movingOutOfTheWay: Boolean = false
 
 
@@ -68,12 +70,11 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
   }
 
   def update(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
-    slowTimer.update(delta)
-    lookTimer.update(delta)
-
     viewCone.update(delta)
 
     if (lookTimer.timedOut() && walkAngle != viewAngle) {
+
+      lookTimer.reset()
 
       def findSideToTurn(currentAngle: Float, desiredAngle: Float): Boolean = {
         var clockwise = false
@@ -109,11 +110,11 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
 
       adjustViewAngle(findSideToTurn(viewAngle, walkAngle))
 
-      lookTimer.reset()
     }
 
     if (slowTimer.timedOut()) {
       slow = 0f
+      slowTimer.stop()
     }
 
     if (controlScheme == ControlScheme.Agent) {
@@ -139,6 +140,7 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
   override def onCollision(entity: Entity): Unit = {
     if (entity.getClass == classOf[Agent]) {
       slowTimer.reset()
+      slowTimer.start()
       slow = 0.2f
     }
 

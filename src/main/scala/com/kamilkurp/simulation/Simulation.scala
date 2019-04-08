@@ -3,7 +3,7 @@ package com.kamilkurp.simulation
 import akka.actor.{ActorRef, ActorSystem, Props}
 import com.kamilkurp.agent.{Agent, AgentActor}
 import com.kamilkurp.building.{Door, MeetPoint, Room}
-import com.kamilkurp.utils.{Configuration, ControlScheme, Globals}
+import com.kamilkurp.utils.{Configuration, ControlScheme, Globals, Timer}
 import org.jgrapht.Graph
 import org.jgrapht.graph.{DefaultEdge, SimpleGraph}
 import org.newdawn.slick._
@@ -144,6 +144,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   }
 
   override def update(gc: GameContainer, i: Int): Unit = {
+    Timer.updateTimers(i)
 
     if (gc.getInput.isKeyDown(Input.KEY_DOWN)) {
       CameraView.y = CameraView.y + (1.0f * i.toFloat)

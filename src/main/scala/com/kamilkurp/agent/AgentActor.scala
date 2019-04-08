@@ -30,6 +30,7 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
           agent.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
           agent.lostSightOfFollowedEntity = false
           agent.lastSeenFollowedEntityTimer.reset()
+          agent.lastSeenFollowedEntityTimer.start()
         } else if (that.currentBehavior == FollowBehavior.name) {
           if (agent.followedAgent == null || agent.lostSightOfFollowedEntity) {
 
@@ -112,6 +113,7 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
       if (!agent.movingOutOfTheWay) {
         agent.movingOutOfTheWay = true
         agent.outOfWayTimer.reset()
+        agent.outOfWayTimer.start()
 
         val normalVector = new Vector2f(entity.currentVelocityX, entity.currentVelocityY)
         normalVector.normalise()

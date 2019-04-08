@@ -9,17 +9,14 @@ import org.newdawn.slick.geom.Vector2f
 class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
 
   val broadcastTimer: Timer = new Timer(Configuration.AGENT_BROADCAST_TIMER)
-
   val waitAtDoorTimer: Timer = new Timer(Configuration.WAIT_AT_DOOR_TIMER)
-  waitAtDoorTimer.time = waitAtDoorTimer.timeout
+  broadcastTimer.start()
 
   override def init(): Unit = {
 
   }
 
   def perform(delta: Int): Unit = {
-    broadcastTimer.update(delta)
-    waitAtDoorTimer.update(delta)
 
     if (broadcastTimer.timedOut()) {
       agent.room.agentList.foreach(that => {
@@ -50,6 +47,7 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
 
           if (agent.getDistanceTo(agent.doorToEnter.shape.getCenterX, agent.doorToEnter.shape.getCenterY) < 100) {
             waitAtDoorTimer.reset()
+            waitAtDoorTimer.start()
             agent.atDoor = true
           }
         }

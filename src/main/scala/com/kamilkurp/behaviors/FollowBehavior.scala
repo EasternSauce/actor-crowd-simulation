@@ -9,17 +9,11 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
   val broadcastTimer: Timer = new Timer(Configuration.AGENT_BROADCAST_TIMER)
 
   override def init(): Unit = {
-
+    broadcastTimer.start()
   }
 
 
   def perform(delta: Int): Unit = {
-    agent.followTimer.update(delta)
-    broadcastTimer.update(delta)
-    agent.outOfWayTimer.update(delta)
-
-    if (!agent.lostSightOfFollowedEntity) agent.lastSeenFollowedEntityTimer.update(delta)
-
     if (broadcastTimer.timedOut()) {
       agent.room.agentList.foreach(that => {
         if (that != agent) {
@@ -37,7 +31,7 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
 
     if (agent.lastSeenFollowedEntityTimer.timedOut()) {
       agent.lostSightOfFollowedEntity = true
-      agent.lastSeenFollowedEntityTimer.reset()
+      agent.lastSeenFollowedEntityTimer.stop()
     }
 
     val normalVector = new Vector2f(agent.followX - agent.shape.getCenterX, agent.followY - agent.shape.getCenterY)
@@ -46,6 +40,7 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
     agent.walkAngle = normalVector.getTheta.floatValue()
 
     if (agent.outOfWayTimer.timedOut()) {
+      agent.outOfWayTimer.stop()
       agent.movingOutOfTheWay = false
       if (agent.controlScheme != ControlScheme.Manual) {
 

@@ -8,18 +8,18 @@ import org.newdawn.slick.geom.Vector2f
 import scala.util.Random
 
 class IdleBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
-  var idleTimer: Timer = new Timer(500)
+  var idleTimer: Timer = new Timer(Configuration.AGENT_IDLE_TIMER)
 
 
 
   override def init(): Unit = {
-
+    idleTimer.start()
   }
 
   def perform(delta: Int): Unit = {
-    idleTimer.update(delta)
-
     if (idleTimer.timedOut()) {
+
+
       val inPlace = Random.nextInt(100) < 60
 
       idleTimer.reset()
