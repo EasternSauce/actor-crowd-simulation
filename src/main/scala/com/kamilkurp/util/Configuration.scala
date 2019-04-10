@@ -4,7 +4,7 @@ object Configuration {
   var NUMBER_OF_AGENTS: Int = 200
 
 
-  val AGENT_SPEED: Float = 0.5f
+  val AGENT_SPEED: Float = 0.05f
   val LEADER_PERCENTAGE: Float = 0.25f
   val AGENT_TURN_SPEED: Int = 12
 

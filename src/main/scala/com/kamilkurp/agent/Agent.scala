@@ -73,7 +73,7 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
     shape.setX(Random.nextInt(room.w - Globals.AGENT_SIZE))
     shape.setY(Random.nextInt(room.h - Globals.AGENT_SIZE))
 
-    val collisionDetails = Globals.manageCollisions(room, this)
+    val collisionDetails = Globals.manageCollisions(room, this, 0, 0)
 
     if (!collisionDetails.colX && !collisionDetails.colY) {
       isFree = true
@@ -172,12 +172,14 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
       ControlScheme.handleManualControls(this, gc, delta, renderScale)
     }
 
-    val collisionDetails = Globals.manageCollisions(room, this)
+    val collisionVelocityX = currentVelocityX * delta
+    val collisionVelocityY = currentVelocityY * delta
+    val collisionDetails = Globals.manageCollisions(room, this, collisionVelocityX, collisionVelocityY)
     if (!collisionDetails.colX) {
-      shape.setX(shape.getX + currentVelocityX)
+      shape.setX(shape.getX + collisionVelocityX)
     }
     if (!collisionDetails.colY) {
-      shape.setY(shape.getY + currentVelocityY)
+      shape.setY(shape.getY + collisionVelocityY)
     }
 
 
