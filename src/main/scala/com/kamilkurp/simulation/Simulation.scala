@@ -2,16 +2,20 @@ package com.kamilkurp.simulation
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import com.kamilkurp.agent.{Agent, AgentActor}
+import com.kamilkurp.behavior.{IdleBehavior, SearchExitBehavior}
 import com.kamilkurp.building.{Door, MeetPoint, Room}
 import com.kamilkurp.util.{Configuration, ControlScheme, Globals, Timer}
 import org.jgrapht.Graph
 import org.jgrapht.graph.{DefaultEdge, SimpleGraph}
 import org.newdawn.slick._
+import org.newdawn.slick.gui.TextField
+import org.newdawn.slick.UnicodeFont
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import scala.util.Random
+
 
 object CameraView {
   var x: Float = 0.0f
@@ -35,6 +39,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   var officeList: ListBuffer[Room] = new ListBuffer[Room]
 
+  var agentList: ListBuffer[Agent] = new ListBuffer[Agent]
+
   var mutableActorList = new ListBuffer[ActorRef]()
 
 
@@ -44,10 +50,26 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   val roomGraph: Graph[Room, DefaultEdge] = new SimpleGraph[Room, DefaultEdge](classOf[DefaultEdge])
 
+  var textField: TextField = null
+
+  var font: Font = null
+
+  var currentMonitored: String = null
+  var textFieldFocused: Boolean = false
+
+  var untilAlarmTimer: Timer = new Timer(5000)
+  untilAlarmTimer.start()
+
+
+  var zoomTimer: Timer = new Timer(1000)
+  zoomTimer.start()
 
   override def init(gc: GameContainer): Unit = {
     doorImage = new Image("door.png")
     agentImage = new Image("character.png")
+
+    gc.setAlwaysRender(true)
+    gc.setUpdateOnlyWhenVisible(false)
 
     val filename = "building.txt"
     for (line <- Source.fromFile(filename).getLines) {
@@ -128,6 +150,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       val actor = system.actorOf(Props(new AgentActor(randomName, agent)))
       mutableActorList += actor
 
+      agentList += agent
+
       agent.setActor(actor)
     }
 
@@ -141,6 +165,10 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
       room1.agentList += agent
     }
+
+    font = new TrueTypeFont(new java.awt.Font("Verdana", java.awt.Font.BOLD, (32*1/renderScale).toInt), false)
+    textField = new TextField(gc, font, (20*1/renderScale).toInt, (20*1/renderScale).toInt, (360*1/renderScale).toInt, (70*1/renderScale).toInt)
+
   }
 
   override def update(gc: GameContainer, i: Int): Unit = {
@@ -160,25 +188,90 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     }
 
     if (gc.getInput.isKeyDown(Input.KEY_SUBTRACT)) {
+
+
       val centerX = CameraView.x + Globals.WINDOW_X * 1 / renderScale / 2
       val centerY = CameraView.y + Globals.WINDOW_Y * 1 / renderScale / 2
+
       renderScale /= 1 + 0.005f
+
+
       CameraView.x = centerX - (Globals.WINDOW_X * 1 / renderScale / 2)
       CameraView.y = centerY - (Globals.WINDOW_Y * 1 / renderScale / 2)
 
+
+
     }
     if (gc.getInput.isKeyDown(Input.KEY_ADD)) {
+
+
+
       val centerX = CameraView.x + Globals.WINDOW_X * 1 / renderScale / 2
       val centerY = CameraView.y + Globals.WINDOW_Y * 1 / renderScale / 2
+
       renderScale *= 1 + 0.005f
+
+
       CameraView.x = centerX - (Globals.WINDOW_X * 1 / renderScale / 2)
       CameraView.y = centerY - (Globals.WINDOW_Y * 1 / renderScale / 2)
+
     }
 
 
     roomList.foreach(room => {
       room.update(gc, i, renderScale)
     })
+
+
+    if (gc.getInput.isKeyPressed(Input.KEY_ENTER)) {
+      if (textFieldFocused) {
+
+        roomList.foreach(room => {
+          room.agentList.filter(agent => agent.name == currentMonitored).foreach(agent => {
+            agent.debug = false
+          })
+        })
+
+        currentMonitored = textField.getText
+
+        roomList.foreach(room => {
+          room.agentList.filter(agent => agent.name == currentMonitored).foreach(agent => {
+            agent.debug = true
+          })
+        })
+
+        textField.setFocus(false)
+        textFieldFocused = false
+      }
+      else {
+        textField.setText("")
+        textField.setFocus(true)
+        textFieldFocused = true
+      }
+
+
+    }
+
+    roomList.foreach(room => {
+      room.agentList.filter(agent => agent.name == currentMonitored).foreach(agent => {
+        println("current_velocity_x=" + agent.currentVelocityX)
+        println("current_velocity_y=" + agent.currentVelocityY)
+        println("being_pushed=" + agent.beingPushed)
+        println("pushed_timer=" + agent.pushedTimer.time)
+      })
+    })
+
+    if (untilAlarmTimer.timedOut()) {
+      untilAlarmTimer.stop()
+      untilAlarmTimer.reset()
+
+      agentList.foreach(agent => {
+        if (agent.currentBehavior == IdleBehavior.name) {
+          agent.setBehavior(SearchExitBehavior.name)
+        }
+      })
+    }
+
   }
 
 
@@ -188,8 +281,9 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
       room.render(g, doorImage, CameraView.x, CameraView.y)
     })
+    g.setColor(Color.green)
+
+    textField.render(gc, g)
   }
-
-
 
 }

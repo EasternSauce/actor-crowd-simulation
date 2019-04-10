@@ -30,11 +30,13 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
       agent.movingOutOfTheWay = false
       if (agent.controlScheme != ControlScheme.Manual) {
 
-        if (agent.getDistanceTo(agent.followX, agent.followY) > agent.followDistance) {
-          agent.moveTowards(agent.followX, agent.followY, delta)
-        }
-        else {
-          agent.stopMoving()
+        if (!agent.beingPushed) {
+          if (agent.getDistanceTo(agent.followX, agent.followY) > agent.followDistance) {
+            agent.moveTowards(agent.followX, agent.followY, delta)
+          }
+          else {
+            agent.stopMoving()
+          }
         }
       }
     }
@@ -52,7 +54,7 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
     agent.setFollow(posX, posY)
     agent.followTimer.reset()
     agent.followDistance = atDistance
-    if (that == agent.followedAgent) agent.followedAgent = that
+    if (that != agent.followedAgent) agent.followedAgent = that
   }
 
   override def afterChangeRoom(): Unit = {

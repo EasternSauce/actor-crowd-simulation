@@ -25,32 +25,41 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
   override def receive: Receive = {
     case AgentWithinVision(that: Agent, distance: Float, delta: Float) =>
 
-      if (agent.currentBehavior != LeaderBehavior.name) {
-        if (that.currentBehavior == LeaderBehavior.name) {
-          agent.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
-          agent.lostSightOfFollowedEntity = false
-          agent.lastSeenFollowedEntityTimer.reset()
-          agent.lastSeenFollowedEntityTimer.start()
+      if (!agent.goTowardsDoor) {
+        if (agent.currentBehavior != LeaderBehavior.name) {
+          if (that.currentBehavior == LeaderBehavior.name) {
+            agent.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
+            agent.lostSightOfFollowedEntity = false
+            agent.lastSeenFollowedEntityTimer.reset()
+            agent.lastSeenFollowedEntityTimer.start()
+          }
+
         }
 
+//        if (that.currentBehavior == FollowBehavior.name && distance < 400) {
+//          if (agent.currentBehavior == LeaderBehavior.name || (agent.currentBehavior == FollowBehavior.name && that.followedAgent == agent)) {
+//            //that.actor ! MoveOutOfTheWay(agent, delta)
+//          }
+//        }
       }
 
-      if (that.currentBehavior == FollowBehavior.name && distance < 400) {
-        if (agent.currentBehavior == LeaderBehavior.name || (agent.currentBehavior == FollowBehavior.name && that.followedAgent == agent)) {
-          //that.actor ! MoveOutOfTheWay(agent, delta)
-        }
-      }
+
 
     case AgentEnteredDoor(that, door, locationX, locationY) =>
 //      if (agent.followedAgent == that) {
+
+      if (that.currentBehavior == LeaderBehavior.name) {
         agent.doorToEnter = door
         agent.follow(that, locationX, locationY, 0)
         agent.followTimer.start()
         agent.followTimer.reset()
+        agent.goTowardsDoor = true
+      }
+
 //      }
 
     case AgentLeading(entity, locationX, locationY) =>
-      if (agent.currentBehavior == IdleBehavior.name || agent.currentBehavior == SearchExitBehavior.name) {
+      if (agent.currentBehavior == IdleBehavior.name || agent.currentBehavior == SearchExitBehavior.name || agent.currentBehavior == FollowBehavior.name) {
 
         val normalVector = new Vector2f(locationX - agent.shape.getCenterX, locationY - agent.shape.getCenterY)
         normalVector.normalise()

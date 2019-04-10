@@ -1,8 +1,8 @@
 package com.kamilkurp.agent
 
 import akka.actor.ActorRef
-import com.kamilkurp.agent_utils.{HasBehavior, Follower}
-import com.kamilkurp.behavior.{FollowBehavior, HoldMeetPointBehavior, IdleBehavior, LeaderBehavior}
+import com.kamilkurp.agent_utils.{Follower, HasBehavior}
+import com.kamilkurp.behavior._
 import com.kamilkurp.building.{Door, MeetPoint, Room}
 import com.kamilkurp.entity.Entity
 import com.kamilkurp.util.ControlScheme.ControlScheme
@@ -30,6 +30,9 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
   var controls: (Int, Int, Int, Int) = _
   var slow: Float = 0.0f
 
+  var beingPushed = false
+
+  val pushedTimer = new Timer(500)
 
 
   var actor: ActorRef = _
@@ -58,6 +61,14 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
   var goAroundObstacle: Boolean = false
   var goAroundAngle: Float = 0
 
+  var debug: Boolean = false
+
+  var goTowardsDoor: Boolean = false
+
+  var changedVelocityX: Float = 0.0f
+  var changedVelocityY: Float = 0.0f
+  var changedVelocity: Boolean = false
+
   while (!isFree) {
     shape.setX(Random.nextInt(room.w - Globals.AGENT_SIZE))
     shape.setY(Random.nextInt(room.h - Globals.AGENT_SIZE))
@@ -80,6 +91,12 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
 
   def update(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
     viewCone.update(delta)
+
+    if (changedVelocity) {
+      changedVelocity = false
+      currentVelocityX = changedVelocityX
+      currentVelocityY = changedVelocityY
+    }
 
     if (checkProgressTimer.timedOut()) {
       checkProgressTimer.reset()
@@ -143,6 +160,11 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
       slowTimer.stop()
     }
 
+    if (pushedTimer.timedOut()) {
+      beingPushed = false
+      pushedTimer.stop()
+    }
+
     if (controlScheme == ControlScheme.Agent) {
       getBehavior(currentBehavior).perform(delta)
     }
@@ -165,15 +187,78 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
 
   override def onCollision(entity: Entity): Unit = {
     if (entity.getClass == classOf[Agent]) {
-      slowTimer.reset()
-      slowTimer.start()
-      slow = 0.2f
+//      slowTimer.reset()
+//      slowTimer.start()
+//      slow = 0.2f
+
+
+      val agent: Agent = entity.asInstanceOf[Agent]
+
+      if (debug) {
+        println("collision with " + agent.name)
+      }
+
+      pushBack(this, agent)
+
+
     }
 
     //temporary solution, move evacuated outside map
     if (entity.getClass == classOf[MeetPoint]) {
       shape.setX(1000)
       shape.setY(1000)
+      room.agentList -= this
+    }
+  }
+
+  def pushBack(pusher: Agent, pushed: Agent): Unit = {
+    if (pushed.currentBehavior == FollowBehavior.name || pushed.currentBehavior == SearchExitBehavior.name) {
+      if (pusher.currentBehavior == LeaderBehavior.name) {
+        if (!pushed.beingPushed) {
+          val vector = new Vector2f(pusher.currentVelocityX, pusher.currentVelocityY)
+
+          vector.setTheta(vector.getTheta + Random.nextInt(30) - 15)
+
+          pushed.changedVelocityX = vector.x
+          pushed.changedVelocityY = vector.y
+          pushed.changedVelocity = true
+
+          pushed.walkAngle = vector.getTheta.toFloat
+          pushed.viewAngle = vector.getTheta.toFloat
+
+          if (debug) {
+            println("pushed by pushed")
+          }
+
+          pushed.beingPushed = true
+          pushed.pushedTimer.reset()
+          pushed.pushedTimer.start()
+        }
+
+      }
+      else if ((pusher.currentBehavior == FollowBehavior.name || pushed.currentBehavior == SearchExitBehavior.name) && pusher.beingPushed) {
+        if (!pushed.beingPushed) {
+          val vector = new Vector2f(currentVelocityX, currentVelocityY)
+
+          vector.setTheta(vector.getTheta + Random.nextInt(30) - 15)
+
+          pushed.changedVelocityX = vector.x
+          pushed.changedVelocityY = vector.y
+          pushed.changedVelocity = true
+
+          pushed.walkAngle = vector.getTheta.toFloat
+          pushed.viewAngle = vector.getTheta.toFloat
+
+          if (debug) {
+            println("pushed by pushed")
+          }
+
+          pushed.beingPushed = true
+          pushed.pushedTimer.time = pusher.pushedTimer.time
+          pushed.pushedTimer.start()
+        }
+
+      }
     }
   }
 
@@ -191,14 +276,14 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
 
     val newRoom: Room = entryDoor.leadingToDoor.room
 
-    if (rememberedRoute.contains(newRoom.name)) {
-      setFollow(rememberedRoute(newRoom.name)._1, rememberedRoute(newRoom.name)._2)
-      followDistance = 0
-    }
-    else {
-      setFollow(newRoom.w / 2, newRoom.h / 2)
-      followDistance = 0
-    }
+//    if (rememberedRoute.contains(newRoom.name)) {
+//      setFollow(rememberedRoute(newRoom.name)._1, rememberedRoute(newRoom.name)._2)
+//      followDistance = 0
+//    }
+//    else {
+//      setFollow(newRoom.w / 2, newRoom.h / 2)
+//      followDistance = 0
+//    }
 
     for (agent <- room.agentList) {
       if (agent != this) {
@@ -212,6 +297,8 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
     room = newRoom
     shape.setX(newX)
     shape.setY(newY)
+
+    goTowardsDoor = false
 
     getBehavior(currentBehavior).afterChangeRoom()
   }
@@ -229,6 +316,9 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
 
   def drawName(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
     g.setColor(Color.pink)
+    if(beingPushed) {
+      g.setColor(Color.blue)
+    }
     g.drawString(name, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 40 - offsetY)
     g.setColor(getBehavior(currentBehavior).color)
 
@@ -254,37 +344,6 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
     }
   }
 
-  def removeRandomRooms(): Unit = {
-    val agentRoomGraph = new SimpleGraph[Room, DefaultEdge](classOf[DefaultEdge])
-
-    val toRemove: ListBuffer[Room] = new ListBuffer[Room]()
-    val chanceToRemove = 0.25
-
-    // copy graph
-    val vertexIter: java.util.Iterator[Room] = roomGraph.vertexSet().iterator()
-    while(vertexIter.hasNext) {
-      val room = vertexIter.next()
-      agentRoomGraph.addVertex(room)
-
-      // fill list with random rooms to remove
-      if (Random.nextFloat() < chanceToRemove) {
-        toRemove += room
-      }
-    }
-
-    val edgeIter: java.util.Iterator[DefaultEdge] = roomGraph.edgeSet().iterator()
-    while(edgeIter.hasNext) {
-      val edge = edgeIter.next()
-      agentRoomGraph.addEdge(roomGraph.getEdgeSource(edge), roomGraph.getEdgeTarget(edge))
-    }
-
-    // remove random rooms
-    for (room <- toRemove) {
-      agentRoomGraph.removeVertex(room)
-    }
-
-    roomGraph = agentRoomGraph
-  }
 
   def findDoorToEnterNext(): Door = {
 
@@ -340,8 +399,11 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
 
     walkAngle = vector.getTheta.floatValue()
 
-    currentVelocityX = vector.x * Configuration.AGENT_SPEED * (1f - slow) * delta
-    currentVelocityY = vector.y * Configuration.AGENT_SPEED * (1f - slow) * delta
+    if (!beingPushed) {
+      currentVelocityX = vector.x * Configuration.AGENT_SPEED * (1f - slow) * delta
+      currentVelocityY = vector.y * Configuration.AGENT_SPEED * (1f - slow) * delta
+    }
+
   }
 
   def stopMoving(): Unit = {

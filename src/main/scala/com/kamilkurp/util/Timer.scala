@@ -4,7 +4,7 @@ import scala.collection.mutable.ListBuffer
 
 class Timer(val timeout: Int) {
 
-  private var time: Int = 0
+  var time: Int = 0
   var running: Boolean = false
 
   Timer.timerList += this

@@ -35,7 +35,7 @@ class Door(val name: String, var room: Room, var posX: Float, var posY: Float, v
       val spotX = leadingToDoor.posX + normalVector.x * 50
       val spotY = leadingToDoor.posY + normalVector.y * 50
 
-      if (!Globals.isRectOccupied(leadingToDoor.room, spotX, spotY, entity.shape.getWidth, entity.shape.getHeight)) {
+      if (!Globals.isRectOccupied(leadingToDoor.room, spotX- 10, spotY - 10, entity.shape.getWidth + 20, entity.shape.getHeight + 20)) {
         entity.changeRoom(this, spotX, spotY)
         return
       }
