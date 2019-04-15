@@ -311,7 +311,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     val length = flamesList.length
 
     for (x <- 0 until length) {
-      println("run " + x)
+//      println("run " + x)
 
 
       val flames = flamesList(x)
@@ -319,7 +319,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       if (!flames.dontUpdate) {
 
 
-        var isFree = true
 
         var newFlames: Flames = null
 
@@ -343,8 +342,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
           if (!foundSpot) {
 
-            println("i: " + pair._1)
-            println("j: " + pair._2)
+            //println("i: " + shuffledPairs.indexOf(pair))
 
 
             newFlames = new Flames(flames.room, flames.shape.getX, flames.shape.getY, flames.image)
@@ -352,11 +350,12 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
             newFlames.shape.setX(flames.shape.getX.toInt + (40 + 5) * pair._1)
             newFlames.shape.setY(flames.shape.getY.toInt + (55 + 5) * pair._2)
 
-                      println("old x " + flames.shape.getX)
-                      println("old y " + flames.shape.getY)
-                      println("new x " + newFlames.shape.getX)
-                      println("new y " + newFlames.shape.getY)
+//                      println("old x " + flames.shape.getX)
+//                      println("old y " + flames.shape.getY)
+//                      println("new x " + newFlames.shape.getX)
+//                      println("new y " + newFlames.shape.getY)
 
+            var isFree = true
 
             newFlames.room.flamesList.foreach(that => {
               //          println("checking collision")
@@ -365,7 +364,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
               if (newFlames.shape.getY < 0 || newFlames.shape.getY > newFlames.room.h - newFlames.shape.getHeight) isFree = false
 
               if (Globals.intersects(newFlames, that.shape.getX, that.shape.getY, that.shape.getWidth, that.shape.getHeight, 0, 0)) {
-                println("collision detected")
+                //println("COLISSION_____________")
                 isFree = false
               }
             })
@@ -390,7 +389,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
         }
 
         if(!foundSpot) {
-          //flames.dontUpdate = true
+          //println("no longer finding spots")
+          flames.dontUpdate = true
         }
 
         handleFlamesDoorCollision(newFlames)
@@ -411,8 +411,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
           for (j <- -1 to 1) {
             if (!foundSpot) {
               val leadingToDoor = that.leadingToDoor
-              val spotX = leadingToDoor.posX + i * 50
-              val spotY = leadingToDoor.posY + j * 50
+              val spotX = leadingToDoor.posX + i * 100
+              val spotY = leadingToDoor.posY + j * 100
 
               if (!Globals.isRectOccupied(leadingToDoor.room, spotX - 10, spotY - 10, newFlames.shape.getWidth + 20, newFlames.shape.getHeight + 20)) {
 
@@ -427,7 +427,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
                 newFlames.shape.setY(spotY)
                 //flamesList += newFlames
 
-                println("flames change room")
+                println("flames change room ")
 
 
                 foundSpot = true
