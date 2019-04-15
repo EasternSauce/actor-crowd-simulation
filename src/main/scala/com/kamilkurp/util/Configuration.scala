@@ -1,7 +1,7 @@
 package com.kamilkurp.util
 
 object Configuration {
-  var NUMBER_OF_AGENTS: Int = 200
+  var NUMBER_OF_AGENTS: Int = 0
 
 
   val AGENT_SPEED: Float = 0.05f

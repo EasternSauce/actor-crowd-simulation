@@ -1,6 +1,7 @@
 package com.kamilkurp.building
 
 import com.kamilkurp.agent.Agent
+import com.kamilkurp.entity.Flames
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
 import scala.collection.mutable.ListBuffer
@@ -9,6 +10,7 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
   val agentList: ListBuffer[Agent] = ListBuffer[Agent]()
   val doorList: ListBuffer[Door] = ListBuffer[Door]()
   val meetPointList: ListBuffer[MeetPoint] = ListBuffer[MeetPoint]()
+  val flamesList: ListBuffer[Flames] = ListBuffer[Flames]()
 
   var evacuationDoor: Door = _
 
@@ -46,6 +48,10 @@ class Room(val name: String, val x: Int, val y: Int, val w: Int, val h: Int) {
 
     agentList.foreach(agent => {
       agent.drawName(g, offsetX, offsetY)
+    })
+
+    flamesList.foreach(flames => {
+      flames.draw(g, offsetX, offsetY)
     })
 
 

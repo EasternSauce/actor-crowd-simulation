@@ -4,6 +4,8 @@ import akka.actor.{ActorRef, ActorSystem, Props}
 import com.kamilkurp.agent.{Agent, AgentActor}
 import com.kamilkurp.behavior.{IdleBehavior, SearchExitBehavior}
 import com.kamilkurp.building.{Door, MeetPoint, Room}
+import com.kamilkurp.entity.Flames
+import com.kamilkurp.util.Globals.intersects
 import com.kamilkurp.util.{Configuration, ControlScheme, Globals, Timer}
 import org.jgrapht.Graph
 import org.jgrapht.graph.{DefaultEdge, SimpleGraph}
@@ -33,6 +35,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     "Arica", "Alfonso", "Madalene", "Alvina", "Eliana", "Jarrod", "Thora")
   var doorImage: Image = _
   var agentImage: Image = _
+  var flamesImage: Image = _
 
   var roomList: ListBuffer[Room] = new ListBuffer[Room]
   var doorList: ListBuffer[Door] = new ListBuffer[Door]
@@ -41,8 +44,10 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   var agentList: ListBuffer[Agent] = new ListBuffer[Agent]
 
-  var mutableActorList = new ListBuffer[ActorRef]()
+  var flamesList: ListBuffer[Flames] = new ListBuffer[Flames]
 
+
+  var mutableActorList = new ListBuffer[ActorRef]()
 
   var actorList: List[ActorRef] = mutableActorList.toList
 
@@ -64,9 +69,14 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   var zoomTimer: Timer = new Timer(1000)
   zoomTimer.start()
 
+
+  var flamesPropagationTimer: Timer = new Timer(500)
+  flamesPropagationTimer.start()
+
   override def init(gc: GameContainer): Unit = {
     doorImage = new Image("door.png")
     agentImage = new Image("character.png")
+    flamesImage = new Image("fire.png")
 
     gc.setAlwaysRender(true)
     gc.setUpdateOnlyWhenVisible(false)
@@ -165,6 +175,15 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
       room1.agentList += agent
     }
+
+    val randomRoom = Random.nextInt(roomList.length)
+    val room: Room = officeList(0)//roomList(randomRoom)
+
+    val flames = new Flames(room, Random.nextInt(room.w-40), Random.nextInt(room.h-55), flamesImage)
+    //val flames = new Flames(room, 50, 50, flamesImage)
+
+    room.flamesList += flames
+    flamesList += flames
 
     font = new TrueTypeFont(new java.awt.Font("Verdana", java.awt.Font.BOLD, (32*1/renderScale).toInt), false)
     textField = new TextField(gc, font, (20*1/renderScale).toInt, (20*1/renderScale).toInt, (360*1/renderScale).toInt, (70*1/renderScale).toInt)
@@ -272,8 +291,156 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       })
     }
 
+    if (flamesPropagationTimer.timedOut()) {
+      flamesPropagationTimer.reset()
+
+      handleFlamePropagation
+
+
+    }
+
+
+
+
   }
 
+
+  private def handleFlamePropagation = {
+    println("trying to add fire")
+
+    val length = flamesList.length
+
+    for (x <- 0 until length) {
+      println("run " + x)
+
+
+      val flames = flamesList(x)
+
+      if (!flames.dontUpdate) {
+
+
+        var isFree = true
+
+        var newFlames: Flames = null
+
+
+        var pairs: ListBuffer[(Int, Int)] = new ListBuffer[(Int, Int)]()
+
+        for (i <- -1 to 1) {
+          for (j <- -1 to 1) {
+            if (!(i == 0 && j == 0)) {
+              pairs.append((i, j))
+            }
+          }
+        }
+
+        var shuffledPairs = Random.shuffle(pairs)
+
+
+        var foundSpot = false
+        for (pair <- shuffledPairs) {
+
+
+          if (!foundSpot) {
+
+            println("i: " + pair._1)
+            println("j: " + pair._2)
+
+
+            newFlames = new Flames(flames.room, flames.shape.getX, flames.shape.getY, flames.image)
+
+            newFlames.shape.setX(flames.shape.getX.toInt + (40 + 5) * pair._1)
+            newFlames.shape.setY(flames.shape.getY.toInt + (55 + 5) * pair._2)
+
+                      println("old x " + flames.shape.getX)
+                      println("old y " + flames.shape.getY)
+                      println("new x " + newFlames.shape.getX)
+                      println("new y " + newFlames.shape.getY)
+
+
+            newFlames.room.flamesList.foreach(that => {
+              //          println("checking collision")
+
+              if (newFlames.shape.getX < 0 || newFlames.shape.getX > newFlames.room.w - newFlames.shape.getWidth) isFree = false
+              if (newFlames.shape.getY < 0 || newFlames.shape.getY > newFlames.room.h - newFlames.shape.getHeight) isFree = false
+
+              if (Globals.intersects(newFlames, that.shape.getX, that.shape.getY, that.shape.getWidth, that.shape.getHeight, 0, 0)) {
+                println("collision detected")
+                isFree = false
+              }
+            })
+
+
+            if (isFree) {
+              flames.room.flamesList += newFlames
+              flamesList += newFlames
+              //          println("adding new flames")
+
+              foundSpot = true
+              println("found spot")
+
+            }
+
+            //        println(flamesList.length)
+
+          }
+
+
+
+        }
+
+        if(!foundSpot) {
+          //flames.dontUpdate = true
+        }
+
+        handleFlamesDoorCollision(newFlames)
+
+      }
+    }
+  }
+
+  private def handleFlamesDoorCollision(newFlames: Flames) = {
+    newFlames.room.doorList.foreach(that => {
+      //          println("checking collision")
+
+      if (Globals.intersects(newFlames, that.shape.getX, that.shape.getY, that.shape.getWidth, that.shape.getHeight, 0, 0)) {
+        //            println("collison with door")
+
+        var foundSpot = false
+        for (i <- -1 to 1) {
+          for (j <- -1 to 1) {
+            if (!foundSpot) {
+              val leadingToDoor = that.leadingToDoor
+              val spotX = leadingToDoor.posX + i * 50
+              val spotY = leadingToDoor.posY + j * 50
+
+              if (!Globals.isRectOccupied(leadingToDoor.room, spotX - 10, spotY - 10, newFlames.shape.getWidth + 20, newFlames.shape.getHeight + 20)) {
+
+                println("flame change room")
+                val newRoom: Room = that.leadingToDoor.room
+
+                newFlames.room.flamesList -= newFlames
+                newRoom.flamesList += newFlames
+
+                newFlames.room = newRoom
+                newFlames.shape.setX(spotX)
+                newFlames.shape.setY(spotY)
+                //flamesList += newFlames
+
+                println("flames change room")
+
+
+                foundSpot = true
+              }
+            }
+
+          }
+        }
+
+
+      }
+    })
+  }
 
   override def render(gc: GameContainer, g: Graphics): Unit = {
     g.scale(renderScale, renderScale)
