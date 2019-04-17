@@ -5,6 +5,7 @@ import com.kamilkurp.agent.{Agent, AgentActor}
 import com.kamilkurp.behavior.{IdleBehavior, SearchExitBehavior}
 import com.kamilkurp.building.{Door, MeetPoint, Room}
 import com.kamilkurp.entity.Flames
+import com.kamilkurp.flame.FlamesManager
 import com.kamilkurp.util.Globals.intersects
 import com.kamilkurp.util.{Configuration, ControlScheme, Globals, Timer}
 import org.jgrapht.Graph
@@ -51,6 +52,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   var actorList: List[ActorRef] = mutableActorList.toList
 
+  var flamesManager: FlamesManager = _
   var renderScale: Float = 1.5f
 
   val roomGraph: Graph[Room, DefaultEdge] = new SimpleGraph[Room, DefaultEdge](classOf[DefaultEdge])
@@ -77,6 +79,9 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     doorImage = new Image("door.png")
     agentImage = new Image("character.png")
     flamesImage = new Image("fire.png")
+
+    flamesManager = new FlamesManager(flamesList, flamesImage)
+
 
     gc.setAlwaysRender(true)
     gc.setUpdateOnlyWhenVisible(false)
@@ -294,7 +299,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     if (flamesPropagationTimer.timedOut()) {
       flamesPropagationTimer.reset()
 
-      handleFlamePropagation
+      flamesManager.handleFlamePropagation()
 
 
     }
@@ -302,105 +307,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   }
 
 
-  private def handleFlamePropagation = {
-
-    val length = flamesList.length
-
-    for (x <- 0 until length) {
-
-      val flames = flamesList(x)
-
-      if (!flames.dontUpdate) {
-
-
-
-        var newFlames: Flames = null
-
-
-        var pairs: ListBuffer[(Int, Int)] = new ListBuffer[(Int, Int)]()
-
-        for (i <- -1 to 1) {
-          for (j <- -1 to 1) {
-            if (!(i == 0 && j == 0)) {
-              pairs.append((i, j))
-            }
-          }
-        }
-
-        var shuffledPairs = Random.shuffle(pairs)
-
-
-        var foundSpot = false
-        for (pair <- shuffledPairs) {
-
-
-          if (!foundSpot) {
-
-
-            newFlames = new Flames(flames.room, flames.shape.getX, flames.shape.getY, flames.image)
-
-            newFlames.shape.setX(flames.shape.getX.toInt + (flamesImage.getWidth + 5) * pair._1)
-            newFlames.shape.setY(flames.shape.getY.toInt + (flamesImage.getHeight + 5) * pair._2)
-
-            var isFree = true
-
-            newFlames.room.flamesList.foreach(that => {
-              if (newFlames.shape.getX < 0 || newFlames.shape.getX > newFlames.room.w - newFlames.shape.getWidth) isFree = false
-              if (newFlames.shape.getY < 0 || newFlames.shape.getY > newFlames.room.h - newFlames.shape.getHeight) isFree = false
-
-              if (Globals.intersects(newFlames, that.shape.getX, that.shape.getY, that.shape.getWidth, that.shape.getHeight, 0, 0)) {
-                isFree = false
-              }
-            })
-
-            if (isFree) {
-              flames.room.flamesList += newFlames
-              flamesList += newFlames
-
-              foundSpot = true
-
-              newFlames.room.doorList.foreach(that => {
-                if (Globals.intersects(newFlames, that.shape.getX, that.shape.getY, that.shape.getWidth, that.shape.getHeight, 0, 0)) {
-                  var foundNewRoomSpot = false
-                  for (i <- -1 to 1) {
-                    for (j <- -1 to 1) {
-                      if (!foundNewRoomSpot) {
-                        val leadingToDoor = that.leadingToDoor
-                        val spotX = leadingToDoor.posX + i * 60
-                        val spotY = leadingToDoor.posY + j * 60
-
-                        if (!Globals.isRectOccupied(leadingToDoor.room, spotX - 10, spotY - 10, newFlames.shape.getWidth + 20, newFlames.shape.getHeight + 20)) {
-
-                          val newRoom: Room = that.leadingToDoor.room
-
-                          val newRoomFlames =  new Flames(newRoom, spotX, spotY, flamesImage)
-                          newRoom.flamesList += newRoomFlames
-                          flamesList += newRoomFlames
-
-                          foundNewRoomSpot = true
-                        }
-                      }
-
-                    }
-                  }
-                }
-              })
-
-            }
-          }
-
-
-
-        }
-
-        if(!foundSpot) {
-          flames.dontUpdate = true
-        }
-
-
-      }
-    }
-  }
 
 
 
