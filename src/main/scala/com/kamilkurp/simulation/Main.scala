@@ -1,6 +1,7 @@
 package com.kamilkurp.simulation
 
 import com.kamilkurp.util.Globals
+import org.newdawn.slick.ScalableGame
 
 object Main extends App {
 

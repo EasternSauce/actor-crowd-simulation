@@ -5,16 +5,20 @@ import com.kamilkurp.agent.{Agent, AgentActor}
 import com.kamilkurp.behavior.{IdleBehavior, SearchExitBehavior}
 import com.kamilkurp.building.{Door, MeetPoint, Room}
 import com.kamilkurp.flame.FlamesManager
+import com.kamilkurp.stats.Statistics
 import com.kamilkurp.util._
 import org.jgrapht.Graph
 import org.jgrapht.graph.{DefaultEdge, SimpleGraph}
 import org.newdawn.slick._
 import org.newdawn.slick.gui.TextField
+import org.newdawn.slick.opengl.renderer.Renderer
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import scala.util.Random
+import org.newdawn.slick.opengl.SlickCallable
+
 
 
 object CameraView {
@@ -54,6 +58,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   var cameraControls: CameraControls = _
 
+  var stats: Statistics = _
+
 
 
   override def init(gc: GameContainer): Unit = {
@@ -69,6 +75,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     actorList = new ListBuffer[ActorRef]()
 
     textFieldFocused = false
+
+    stats = new Statistics()
 
     roomGraph = new SimpleGraph[Room, DefaultEdge](classOf[DefaultEdge])
 
@@ -132,7 +140,9 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     cameraControls = new CameraControls()
     font = new TrueTypeFont(new java.awt.Font("Verdana", java.awt.Font.BOLD, (32*1/cameraControls.renderScale).toInt), false)
-    textField = new TextField(gc, font, (20*1/cameraControls.renderScale).toInt, (20*1/cameraControls.renderScale).toInt, (360*1/cameraControls.renderScale).toInt, (70*1/cameraControls.renderScale).toInt)
+    textField = new TextField(gc, font, 0, (Globals.WINDOW_Y * 0.955f).toInt, Globals.WINDOW_X, (Globals.WINDOW_Y * 0.04f).toInt)
+    textField.setBorderColor(Color.transparent)
+    textField.setTextColor(Color.green)
 
   }
 
@@ -204,6 +214,10 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
 
   override def render(gc: GameContainer, g: Graphics): Unit = {
+
+    SlickCallable.enterSafeBlock()
+    Renderer.get().glPushMatrix()
+
     g.scale(cameraControls.renderScale, cameraControls.renderScale)
     roomList.foreach(room => {
 
@@ -211,7 +225,30 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     })
     g.setColor(Color.green)
 
+
+    Renderer.get().glPopMatrix()
+    SlickCallable.leaveSafeBlock()
+
+    val textWindowX: Int = 0
+    val textWindowY: Int = (Globals.WINDOW_Y * 0.7f).toInt
+
+    g.setColor(new Color(0,0,0,0.7f))
+    g.fillRect(0, Globals.WINDOW_Y * 0.7f, Globals.WINDOW_X, Globals.WINDOW_Y * 0.25f)
+
+
+    var i = 0
+    for (param <- stats.params) {
+      font.drawString(textWindowX + 20, textWindowY + 20 + 40 * i, param._1 + ": " + param._2, Color.green)
+      i = i + 1
+    }
+
+    g.setColor(Color.green)
+
     textField.render(gc, g)
+
+
+
+
   }
 
   private def loadBuildingPlan(): Unit = {
