@@ -60,7 +60,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   var stats: Statistics = _
 
-
+  var generalTimer: Timer = _
 
   override def init(gc: GameContainer): Unit = {
     doorImage = new Image(Configuration.DOOR_IMAGE_LOCATION)
@@ -144,6 +144,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     textField.setBorderColor(Color.transparent)
     textField.setTextColor(Color.green)
 
+    generalTimer = new Timer(0)
+    generalTimer.start()
   }
 
 
@@ -210,8 +212,11 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     flamesManager.handleFlamePropagation()
 
-  }
 
+    stats.params.put("Total agents", agentList.length.toString)
+    stats.params.put("Total evacuated", agentList.filter(agent => agent.behaviorManager.currentBehavior == "holdMeetPoint").toList.length.toString)
+    stats.params.put("Time", (generalTimer.time/1000f).toString)
+  }
 
   override def render(gc: GameContainer, g: Graphics): Unit = {
 
