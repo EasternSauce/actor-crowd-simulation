@@ -4,15 +4,12 @@ import akka.actor.{ActorRef, ActorSystem, Props}
 import com.kamilkurp.agent.{Agent, AgentActor}
 import com.kamilkurp.behavior.{IdleBehavior, SearchExitBehavior}
 import com.kamilkurp.building.{Door, MeetPoint, Room}
-import com.kamilkurp.entity.Flames
 import com.kamilkurp.flame.FlamesManager
-import com.kamilkurp.util.Globals.intersects
-import com.kamilkurp.util.{Configuration, ControlScheme, Globals, Timer}
+import com.kamilkurp.util._
 import org.jgrapht.Graph
 import org.jgrapht.graph.{DefaultEdge, SimpleGraph}
 import org.newdawn.slick._
 import org.newdawn.slick.gui.TextField
-import org.newdawn.slick.UnicodeFont
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -26,112 +23,75 @@ object CameraView {
 }
 
 class Simulation(gameName: String) extends BasicGame(gameName) {
-  val system: ActorSystem = ActorSystem("crowd_sim_system")
-  val numberOfAgents: Int = Configuration.NUMBER_OF_AGENTS
-  val addManualAgent: Boolean = false
-  val nameIndices: mutable.Map[String, Int] = mutable.Map[String, Int]()
-  val listOfNames = Array("Virgil", "Dominique", "Hermina",
-    "Carolynn", "Adina", "Elida", "Classie", "Raymonde",
-    "Lovie", "Theola", "Damion", "Petronila", "Corrinne",
-    "Arica", "Alfonso", "Madalene", "Alvina", "Eliana", "Jarrod", "Thora")
+  var actorSystem: ActorSystem = _
+  var nameIndices: mutable.Map[String, Int] = _
+  var listOfNames: Array[String] = _
   var doorImage: Image = _
   var agentImage: Image = _
-  var flamesImage: Image = _
 
-  var roomList: ListBuffer[Room] = new ListBuffer[Room]
-  var doorList: ListBuffer[Door] = new ListBuffer[Door]
-
-  var officeList: ListBuffer[Room] = new ListBuffer[Room]
-
-  var agentList: ListBuffer[Agent] = new ListBuffer[Agent]
-
-  var flamesList: ListBuffer[Flames] = new ListBuffer[Flames]
-
-
-  var mutableActorList = new ListBuffer[ActorRef]()
-
-  var actorList: List[ActorRef] = mutableActorList.toList
+  var roomList: ListBuffer[Room] = _
+  var doorList: ListBuffer[Door] = _
+  var officeList: ListBuffer[Room] = _
+  var agentList: ListBuffer[Agent] = _
+  var actorList: ListBuffer[ActorRef] = _
 
   var flamesManager: FlamesManager = _
-  var renderScale: Float = 1.5f
 
-  val roomGraph: Graph[Room, DefaultEdge] = new SimpleGraph[Room, DefaultEdge](classOf[DefaultEdge])
+  var roomGraph: Graph[Room, DefaultEdge] = _
 
-  var textField: TextField = null
+  var textField: TextField = _
 
-  var font: Font = null
+  var font: Font = _
 
-  var currentMonitored: String = null
-  var textFieldFocused: Boolean = false
+  var currentMonitored: String = _
+  var textFieldFocused: Boolean = _
 
-  var untilAlarmTimer: Timer = new Timer(5000)
-  untilAlarmTimer.start()
+  var untilAlarmTimer: Timer = _
+
+  var zoomTimer: Timer = _
+
+  var manualControlsManager: CameraControls = _
+
+  var cameraControls: CameraControls = _
 
 
-  var zoomTimer: Timer = new Timer(1000)
-  zoomTimer.start()
-
-
-  var flamesPropagationTimer: Timer = new Timer(500)
-  flamesPropagationTimer.start()
 
   override def init(gc: GameContainer): Unit = {
-    doorImage = new Image("door.png")
-    agentImage = new Image("character.png")
-    flamesImage = new Image("fire.png")
+    doorImage = new Image(Configuration.DOOR_IMAGE_LOCATION)
+    agentImage = new Image(Configuration.AGENT_IMAGE_LOCATION)
 
-    flamesManager = new FlamesManager(flamesList, flamesImage)
+    actorSystem = ActorSystem("crowd_sim_system")
+    nameIndices = mutable.Map[String, Int]()
+    roomList = new ListBuffer[Room]()
+    doorList = new ListBuffer[Door]()
+    officeList = new ListBuffer[Room]()
+    agentList = new ListBuffer[Agent]()
+    actorList = new ListBuffer[ActorRef]()
 
+    textFieldFocused = false
+
+    roomGraph = new SimpleGraph[Room, DefaultEdge](classOf[DefaultEdge])
+
+    listOfNames = Array("Virgil", "Dominique", "Hermina",
+      "Carolynn", "Adina", "Elida", "Classie", "Raymonde",
+      "Lovie", "Theola", "Damion", "Petronila", "Corrinne",
+      "Arica", "Alfonso", "Madalene", "Alvina", "Eliana", "Jarrod", "Thora")
 
     gc.setAlwaysRender(true)
     gc.setUpdateOnlyWhenVisible(false)
 
-    val filename = "building.txt"
-    for (line <- Source.fromFile(filename).getLines) {
-      if (!line.isEmpty) {
-        val split: Array[String] = line.split(" ")
+    loadBuildingPlan()
 
-        if (split(0) == "room") {
-          val room = new Room(split(1), split(2).toInt, split(3).toInt, split(4).toInt, split(5).toInt)
-          roomList += room
-          if (room.name.startsWith("room")) officeList += room
+    flamesManager = new FlamesManager()
+    flamesManager.init(roomList)
 
-        }
-        else if (split(0) == "door") {
-          var room: Room = null
-          var linkToDoor: Door = null
+    manualControlsManager = new CameraControls()
 
-          if (split.length >= 6) {
-            roomList.foreach(that => {
-              if (that.name == split(5)) room = that
-            })
-          }
-          if (split.length >= 7) {
-            doorList.foreach(that => {
-              if (that.name == split(6)) linkToDoor = that
-            })
-          }
-          val door = new Door(split(1), room, split(3).toInt, split(4).toInt, doorImage)
-          if (linkToDoor != null) door.connectWith(linkToDoor)
-          if (split(2) == "1") {
-            room.evacuationDoor = door
-          }
-          doorList += door
-        }
-        else if (split(0) == "meet") {
-          var room: Room = null
+    untilAlarmTimer = new Timer(Configuration.UNTIL_ALARM_TIME)
+    untilAlarmTimer.start()
 
-          if (split.length >= 5) {
-            roomList.foreach(that => {
-              if (that.name == split(4)) room = that
-            })
-          }
-
-          val meetPoint = new MeetPoint(split(1), room, split(2).toInt, split(3).toInt)
-          room.meetPointList += meetPoint
-        }
-      }
-    }
+    zoomTimer = new Timer(1000)
+    zoomTimer.start()
 
     for (room <- roomList) {
       roomGraph.addVertex(room)
@@ -143,15 +103,12 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       }
     }
 
-    val roomsFiltered = roomList.filter(room => room.name == "roomA")
-    val room1 = if (roomsFiltered.nonEmpty) roomsFiltered.head else null
-
     for (name <- listOfNames) {
       nameIndices.put(name, 0)
     }
 
 
-    for (_ <- 0 until numberOfAgents) {
+    for (_ <- 0 until Configuration.NUMBER_OF_AGENTS) {
 
       val randomOffice = Random.nextInt(officeList.length)
       val room: Room = officeList(randomOffice)
@@ -161,89 +118,34 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       nameIndices.put(listOfNames(randomNameIndex), nameIndices(listOfNames(randomNameIndex)) + 1)
 
       val agent = new Agent(randomName, room, ControlScheme.Agent, agentImage, roomGraph)
+      agent.init()
       room.agentList += agent
-      val actor = system.actorOf(Props(new AgentActor(randomName, agent)))
-      mutableActorList += actor
+      val actor = actorSystem.actorOf(Props(new AgentActor(randomName, agent)))
+      actorList += actor
 
       agentList += agent
 
       agent.setActor(actor)
     }
 
+    ControlScheme.tryAddManualAgent(roomList, actorSystem, agentImage, roomGraph)
 
-    if (addManualAgent) {
-      val agent = new Agent(Configuration.MANUAL_AGENT_NAME, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S), agentImage, roomGraph)
-
-      val actor = system.actorOf(Props(new AgentActor(Configuration.MANUAL_AGENT_NAME, agent)))
-
-      agent.setActor(actor)
-
-      room1.agentList += agent
-    }
-
-    val randomRoom = Random.nextInt(roomList.length)
-    val room: Room = officeList(0)//roomList(randomRoom)
-
-    val flames = new Flames(room, Random.nextInt(room.w-flamesImage.getWidth), Random.nextInt(room.h-flamesImage.getHeight), flamesImage)
-    //val flames = new Flames(room, 50, 50, flamesImage)
-
-    room.flamesList += flames
-    flamesList += flames
-
-    font = new TrueTypeFont(new java.awt.Font("Verdana", java.awt.Font.BOLD, (32*1/renderScale).toInt), false)
-    textField = new TextField(gc, font, (20*1/renderScale).toInt, (20*1/renderScale).toInt, (360*1/renderScale).toInt, (70*1/renderScale).toInt)
+    cameraControls = new CameraControls()
+    font = new TrueTypeFont(new java.awt.Font("Verdana", java.awt.Font.BOLD, (32*1/cameraControls.renderScale).toInt), false)
+    textField = new TextField(gc, font, (20*1/cameraControls.renderScale).toInt, (20*1/cameraControls.renderScale).toInt, (360*1/cameraControls.renderScale).toInt, (70*1/cameraControls.renderScale).toInt)
 
   }
+
+
 
   override def update(gc: GameContainer, i: Int): Unit = {
     Timer.updateTimers(i)
 
-    if (gc.getInput.isKeyDown(Input.KEY_DOWN)) {
-      CameraView.y = CameraView.y + (1.0f * i.toFloat)
-    }
-    if (gc.getInput.isKeyDown(Input.KEY_UP)) {
-      CameraView.y = CameraView.y - (1.0f * i.toFloat)
-    }
-    if (gc.getInput.isKeyDown(Input.KEY_RIGHT)) {
-      CameraView.x = CameraView.x + (1.0f * i.toFloat)
-    }
-    if (gc.getInput.isKeyDown(Input.KEY_LEFT)) {
-      CameraView.x = CameraView.x - (1.0f * i.toFloat)
-    }
-
-    if (gc.getInput.isKeyDown(Input.KEY_SUBTRACT)) {
-
-
-      val centerX = CameraView.x + Globals.WINDOW_X * 1 / renderScale / 2
-      val centerY = CameraView.y + Globals.WINDOW_Y * 1 / renderScale / 2
-
-      renderScale /= 1 + 0.005f
-
-
-      CameraView.x = centerX - (Globals.WINDOW_X * 1 / renderScale / 2)
-      CameraView.y = centerY - (Globals.WINDOW_Y * 1 / renderScale / 2)
-
-
-
-    }
-    if (gc.getInput.isKeyDown(Input.KEY_ADD)) {
-
-
-
-      val centerX = CameraView.x + Globals.WINDOW_X * 1 / renderScale / 2
-      val centerY = CameraView.y + Globals.WINDOW_Y * 1 / renderScale / 2
-
-      renderScale *= 1 + 0.005f
-
-
-      CameraView.x = centerX - (Globals.WINDOW_X * 1 / renderScale / 2)
-      CameraView.y = centerY - (Globals.WINDOW_Y * 1 / renderScale / 2)
-
-    }
+    cameraControls.handleControls(gc, i)
 
 
     roomList.foreach(room => {
-      room.update(gc, i, renderScale)
+      room.update(gc, i, cameraControls.renderScale)
     })
 
 
@@ -296,22 +198,13 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       })
     }
 
-    if (flamesPropagationTimer.timedOut()) {
-      flamesPropagationTimer.reset()
-
-      flamesManager.handleFlamePropagation()
-
-
-    }
+    flamesManager.handleFlamePropagation()
 
   }
 
 
-
-
-
   override def render(gc: GameContainer, g: Graphics): Unit = {
-    g.scale(renderScale, renderScale)
+    g.scale(cameraControls.renderScale, cameraControls.renderScale)
     roomList.foreach(room => {
 
       room.render(g, doorImage, CameraView.x, CameraView.y)
@@ -321,4 +214,52 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     textField.render(gc, g)
   }
 
+  private def loadBuildingPlan(): Unit = {
+    val filename = Configuration.BUILDING_PLAN_LOCATION
+    for (line <- Source.fromFile(filename).getLines) {
+      if (!line.isEmpty) {
+        val split: Array[String] = line.split(" ")
+
+        if (split(0) == "room") {
+          val room = new Room(split(1), split(2).toInt, split(3).toInt, split(4).toInt, split(5).toInt)
+          roomList += room
+          if (room.name.startsWith("room")) officeList += room
+
+        }
+        else if (split(0) == "door") {
+          var room: Room = null
+          var linkToDoor: Door = null
+
+          if (split.length >= 6) {
+            roomList.foreach(that => {
+              if (that.name == split(5)) room = that
+            })
+          }
+          if (split.length >= 7) {
+            doorList.foreach(that => {
+              if (that.name == split(6)) linkToDoor = that
+            })
+          }
+          val door = new Door(split(1), room, split(3).toInt, split(4).toInt, doorImage)
+          if (linkToDoor != null) door.connectWith(linkToDoor)
+          if (split(2) == "1") {
+            room.evacuationDoor = door
+          }
+          doorList += door
+        }
+        else if (split(0) == "meet") {
+          var room: Room = null
+
+          if (split.length >= 5) {
+            roomList.foreach(that => {
+              if (that.name == split(4)) room = that
+            })
+          }
+
+          val meetPoint = new MeetPoint(split(1), room, split(2).toInt, split(3).toInt)
+          room.meetPointList += meetPoint
+        }
+      }
+    }
+  }
 }

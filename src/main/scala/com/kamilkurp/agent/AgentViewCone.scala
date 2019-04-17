@@ -7,7 +7,7 @@ import org.newdawn.slick.{Color, Graphics}
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
-class ViewCone(agent: Agent) {
+class AgentViewCone(agent: Agent) {
   var firstRay: (Rectangle, Float) = (new Rectangle(0, 0, 0, 0), 0)
   var lastRay: (Rectangle, Float) = (new Rectangle(0, 0, 0, 0), 0)
 

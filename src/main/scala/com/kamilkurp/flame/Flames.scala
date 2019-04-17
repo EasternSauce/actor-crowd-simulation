@@ -1,20 +1,22 @@
-package com.kamilkurp.entity
+package com.kamilkurp.flame
 
 import com.kamilkurp.building.{Door, Room}
-import org.newdawn.slick.{Graphics, Image}
+import com.kamilkurp.entity.Entity
 import org.newdawn.slick.geom.{Rectangle, Shape}
+import org.newdawn.slick.{Graphics, Image}
 
 class Flames(var room: Room, var posX: Float, var posY: Float, var image: Image) extends Entity {
 
-  override val name: String = "fire"
-  override var currentVelocityX: Float = 0
-  override var currentVelocityY: Float = 0
+  override var name: String = _
+  override var currentVelocityX: Float = _
+  override var currentVelocityY: Float = _
   override var shape: Shape = _
+  var dontUpdate: Boolean = _
 
-  var dontUpdate: Boolean = false
-
-
-
+  name = "fire"
+  currentVelocityX = 0
+  currentVelocityY = 0
+  dontUpdate = false
   shape = new Rectangle(posX, posY, image.getWidth, image.getHeight)
 
   override def onCollision(entity: Entity): Unit = {

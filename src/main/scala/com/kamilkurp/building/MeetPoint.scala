@@ -4,7 +4,7 @@ import com.kamilkurp.entity.Entity
 import org.newdawn.slick.geom.{Rectangle, Shape, Transform}
 import org.newdawn.slick.{Color, Graphics, Image}
 
-class MeetPoint(val name: String, var room: Room, var posX: Float, var posY: Float) extends Entity {
+class MeetPoint(var name: String, var room: Room, var posX: Float, var posY: Float) extends Entity {
 
   override var currentVelocityX: Float = 0
   override var currentVelocityY: Float = 0

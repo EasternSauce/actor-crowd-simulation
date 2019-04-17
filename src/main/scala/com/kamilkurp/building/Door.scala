@@ -5,7 +5,7 @@ import com.kamilkurp.util.Globals
 import org.newdawn.slick.geom.{Rectangle, Shape, Vector2f}
 import org.newdawn.slick.{Color, Graphics, Image}
 
-class Door(val name: String, var room: Room, var posX: Float, var posY: Float, var image: Image) extends Entity {
+class Door(var name: String, var room: Room, var posX: Float, var posY: Float, var image: Image) extends Entity {
   override var currentVelocityX = 0.0f
   override var currentVelocityY = 0.0f
   override var shape: Shape = _

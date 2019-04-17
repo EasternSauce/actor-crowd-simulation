@@ -8,85 +8,103 @@ import com.kamilkurp.entity.Entity
 import com.kamilkurp.util.ControlScheme.ControlScheme
 import com.kamilkurp.util.{Configuration, ControlScheme, Globals, Timer}
 import org.jgrapht.Graph
-import org.jgrapht.graph.{DefaultEdge, SimpleGraph}
+import org.jgrapht.graph.DefaultEdge
 import org.newdawn.slick.geom.{Shape, _}
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
-class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, var image: Image, var roomGraph: Graph[Room, DefaultEdge]) extends Entity with HasBehavior with Follower {
+class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, var image: Image, var roomGraph: Graph[Room, DefaultEdge]) extends Entity with HasBehavior with Follower {
 
-  val rememberedRoute: mutable.Map[String, (Float, Float)] = mutable.Map[String, (Float, Float)]()
-  override var currentVelocityX: Float = 0.0f
-  override var currentVelocityY: Float = 0.0f
-  override var shape: Shape = new Rectangle(0, 0, Globals.AGENT_SIZE, Globals.AGENT_SIZE)
-
-  var walkAngle: Float = 0
-  var viewAngle: Float = 0
-
-  val viewCone: ViewCone = new ViewCone(this)
+  override var currentVelocityX: Float = _
+  override var currentVelocityY: Float = _
+  override var shape: Shape = _
+  var walkAngle: Float = _
+  var viewAngle: Float = _
+  var viewCone: AgentViewCone = _
   var controls: (Int, Int, Int, Int) = _
-  var slow: Float = 0.0f
-
-  var beingPushed = false
-
-  val pushedTimer = new Timer(500)
-
-
+  var slow: Float = _
+  var beingPushed: Boolean = _
+  var pushedTimer: Timer = _
   var actor: ActorRef = _
-
-  var atDoor: Boolean = false
-
-  val slowTimer: Timer = new Timer(Configuration.AGENT_SLOW_TIMER)
-  val lookTimer: Timer = new Timer(Configuration.AGENT_LOOK_TIMER)
-  val outOfWayTimer: Timer = new Timer(Configuration.AGENT_MOVE_OUT_OF_WAY_TIMER)
-  val checkProgressTimer: Timer = new Timer(2000)
-  slowTimer.start()
-  lookTimer.start()
-  outOfWayTimer.start()
-  checkProgressTimer.start()
-
-  var movingOutOfTheWay: Boolean = false
-
-
-  var isFree = false
-
+  var atDoor: Boolean = _
+  var slowTimer: Timer = _
+  var lookTimer: Timer = _
+  var outOfWayTimer: Timer = _
+  var checkProgressTimer: Timer = _
+  var movingOutOfTheWay: Boolean = _
+  var isFree: Boolean = _
   var doorToEnter: Door = _
-
-  var pastPositionX: Float = 0
-  var pastPositionY: Float = 0
-
-  var goAroundObstacle: Boolean = false
-  var goAroundAngle: Float = 0
-
-  var debug: Boolean = false
-
-  var goTowardsDoor: Boolean = false
-
-  var changedVelocityX: Float = 0.0f
-  var changedVelocityY: Float = 0.0f
-  var changedVelocity: Boolean = false
-
-  while (!isFree) {
-    shape.setX(Random.nextInt(room.w - Globals.AGENT_SIZE))
-    shape.setY(Random.nextInt(room.h - Globals.AGENT_SIZE))
-
-    val collisionDetails = Globals.manageCollisions(room, this, 0, 0)
-
-    if (!collisionDetails.colX && !collisionDetails.colY) {
-      isFree = true
-    }
-  }
-
-  behaviorManagerInit()
-
-  addRoomToGraph(room)
+  var pastPositionX: Float = _
+  var pastPositionY: Float = _
+  var goAroundObstacle: Boolean = _
+  var goAroundAngle: Float = _
+  var debug: Boolean = _
+  var goTowardsDoor: Boolean = _
+  var changedVelocityX: Float = _
+  var changedVelocityY: Float = _
+  var changedVelocity: Boolean = _
 
   def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int), image: Image, roomGraph: Graph[Room, DefaultEdge]) {
     this(name, room, controlScheme, image, roomGraph)
     this.controls = controls
+  }
+
+  def init(): Unit = {
+    currentVelocityX = 0.0f
+    currentVelocityY = 0.0f
+    shape = new Rectangle(0, 0, Globals.AGENT_SIZE, Globals.AGENT_SIZE)
+
+    walkAngle = 0.0f
+    viewAngle = 0.0f
+
+    viewCone = new AgentViewCone(this)
+    slow = 0.0f
+    beingPushed = false
+
+    pushedTimer = new Timer(500)
+    atDoor = false
+
+    slowTimer = new Timer(Configuration.AGENT_SLOW_TIMER)
+    lookTimer = new Timer(Configuration.AGENT_LOOK_TIMER)
+    outOfWayTimer = new Timer(Configuration.AGENT_MOVE_OUT_OF_WAY_TIMER)
+    checkProgressTimer = new Timer(2000)
+    slowTimer.start()
+    lookTimer.start()
+    outOfWayTimer.start()
+    checkProgressTimer.start()
+
+    movingOutOfTheWay = false
+
+    isFree = false
+
+    pastPositionX = 0
+    pastPositionY = 0
+    goAroundObstacle = false
+    goAroundAngle = 0
+
+    debug = false
+
+    goTowardsDoor = false
+
+    changedVelocityX = 0.0f
+    changedVelocityY = 0.0f
+    changedVelocity = false
+
+    while (!isFree) {
+      shape.setX(Random.nextInt(room.w - Globals.AGENT_SIZE))
+      shape.setY(Random.nextInt(room.h - Globals.AGENT_SIZE))
+
+      val collisionDetails = Globals.manageCollisions(room, this, 0, 0)
+
+      if (!collisionDetails.colX && !collisionDetails.colY) {
+        isFree = true
+      }
+    }
+
+    behaviorManagerInit()
+
+    addRoomToGraph(room)
   }
 
   def update(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
@@ -264,15 +282,6 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
     followTimer.reset()
 
     val newRoom: Room = entryDoor.leadingToDoor.room
-
-//    if (rememberedRoute.contains(newRoom.name)) {
-//      setFollow(rememberedRoute(newRoom.name)._1, rememberedRoute(newRoom.name)._2)
-//      followDistance = 0
-//    }
-//    else {
-//      setFollow(newRoom.w / 2, newRoom.h / 2)
-//      followDistance = 0
-//    }
 
     for (agent <- room.agentList) {
       if (agent != this) {

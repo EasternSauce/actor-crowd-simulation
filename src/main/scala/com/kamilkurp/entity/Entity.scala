@@ -5,7 +5,7 @@ import org.newdawn.slick.Image
 import org.newdawn.slick.geom.Shape
 
 abstract class Entity() {
-  val name: String
+  var name: String
   var currentVelocityX: Float
   var currentVelocityY: Float
   var room: Room

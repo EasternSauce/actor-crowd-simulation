@@ -1,7 +1,7 @@
 package com.kamilkurp.building
 
 import com.kamilkurp.agent.Agent
-import com.kamilkurp.entity.Flames
+import com.kamilkurp.flame.Flames
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
 import scala.collection.mutable.ListBuffer
