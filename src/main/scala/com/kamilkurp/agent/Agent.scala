@@ -1,7 +1,6 @@
 package com.kamilkurp.agent
 
 import akka.actor.ActorRef
-import com.kamilkurp.agent_utils.{Follower, HasBehavior}
 import com.kamilkurp.behavior._
 import com.kamilkurp.building.{Door, MeetPoint, Room}
 import com.kamilkurp.entity.Entity
@@ -14,7 +13,7 @@ import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
 import scala.util.Random
 
-class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, var image: Image, var roomGraph: Graph[Room, DefaultEdge]) extends Entity with HasBehavior with Follower {
+class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, var image: Image, var roomGraph: Graph[Room, DefaultEdge]) extends Entity {
 
   override var currentVelocityX: Float = _
   override var currentVelocityY: Float = _
@@ -44,6 +43,8 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
   var changedVelocityX: Float = _
   var changedVelocityY: Float = _
   var changedVelocity: Boolean = _
+  var followManager: FollowManager = _
+  var behaviorManager: BehaviorManager = _
 
   def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int), image: Image, roomGraph: Graph[Room, DefaultEdge]) {
     this(name, room, controlScheme, image, roomGraph)
@@ -57,6 +58,9 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
     walkAngle = 0.0f
     viewAngle = 0.0f
+
+    behaviorManager = new BehaviorManager()
+    behaviorManager.init(this)
 
     viewCone = new AgentViewCone(this)
     slow = 0.0f
@@ -91,6 +95,8 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     changedVelocityY = 0.0f
     changedVelocity = false
 
+    followManager = new FollowManager()
+
     while (!isFree) {
       shape.setX(Random.nextInt(room.w - Globals.AGENT_SIZE))
       shape.setY(Random.nextInt(room.h - Globals.AGENT_SIZE))
@@ -102,7 +108,6 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
       }
     }
 
-    behaviorManagerInit()
 
     addRoomToGraph(room)
   }
@@ -183,7 +188,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     }
 
     if (controlScheme == ControlScheme.Agent) {
-      getBehavior(currentBehavior).perform(delta)
+      behaviorManager.getBehavior(behaviorManager.currentBehavior).perform(delta)
     }
     else if (controlScheme == ControlScheme.Manual) {
       ControlScheme.handleManualControls(this, gc, delta, renderScale)
@@ -227,8 +232,8 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
   }
 
   def pushBack(pusher: Agent, pushed: Agent): Unit = {
-    if (pushed.currentBehavior == FollowBehavior.name || pushed.currentBehavior == SearchExitBehavior.name) {
-      if (pusher.currentBehavior == LeaderBehavior.name) {
+    if (pushed.behaviorManager.currentBehavior == FollowBehavior.name || pushed.behaviorManager.currentBehavior == SearchExitBehavior.name) {
+      if (pusher.behaviorManager.currentBehavior == LeaderBehavior.name) {
         if (!pushed.beingPushed) {
           val vector = new Vector2f(pusher.currentVelocityX, pusher.currentVelocityY)
 
@@ -247,7 +252,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
         }
 
       }
-      else if ((pusher.currentBehavior == FollowBehavior.name || pushed.currentBehavior == SearchExitBehavior.name) && pusher.beingPushed) {
+      else if ((pusher.behaviorManager.currentBehavior == FollowBehavior.name || pushed.behaviorManager.currentBehavior == SearchExitBehavior.name) && pusher.beingPushed) {
         if (!pushed.beingPushed) {
           val vector = new Vector2f(currentVelocityX, currentVelocityY)
 
@@ -279,7 +284,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
     atDoor = false
 
-    followTimer.reset()
+    followManager.followTimer.reset()
 
     val newRoom: Room = entryDoor.leadingToDoor.room
 
@@ -298,7 +303,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
     goTowardsDoor = false
 
-    getBehavior(currentBehavior).afterChangeRoom()
+    behaviorManager.getBehavior(behaviorManager.currentBehavior).afterChangeRoom()
   }
 
   def setActor(actor: ActorRef): Unit = {
@@ -318,14 +323,14 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
       g.setColor(Color.blue)
     }
     g.drawString(name, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 40 - offsetY)
-    g.setColor(getBehavior(currentBehavior).color)
+    g.setColor(behaviorManager.getBehavior(behaviorManager.currentBehavior).color)
 
     var tag: String = ""
-    if (currentBehavior == FollowBehavior.name && followedAgent != null) {
-      tag = "[" + currentBehavior + " " + followedAgent.name + "]"
+    if (behaviorManager.currentBehavior == FollowBehavior.name && followManager.followedAgent != null) {
+      tag = "[" + behaviorManager.currentBehavior + " " + followManager.followedAgent.name + "]"
     }
     else {
-      tag = "[" + currentBehavior + "]"
+      tag = "[" + behaviorManager.currentBehavior + "]"
 
     }
     g.drawString(tag, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 25 - offsetY)

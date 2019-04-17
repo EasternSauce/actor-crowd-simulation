@@ -1,12 +1,10 @@
-package com.kamilkurp.agent_utils
+package com.kamilkurp.agent
 
-import com.kamilkurp.agent.Agent
 import com.kamilkurp.util.{Configuration, Timer}
 
 import scala.util.Random
 
-trait Follower {
-
+class FollowManager {
   private var _followX: Float = 0
   private var _followY: Float = 0
   var followDistance: Float = 0
@@ -26,5 +24,4 @@ trait Follower {
 
   def followX: Float = _followX
   def followY: Float = _followY
-
 }
