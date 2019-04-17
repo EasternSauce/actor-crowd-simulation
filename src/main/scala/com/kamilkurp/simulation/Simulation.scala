@@ -179,7 +179,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     val randomRoom = Random.nextInt(roomList.length)
     val room: Room = officeList(0)//roomList(randomRoom)
 
-    val flames = new Flames(room, Random.nextInt(room.w-40), Random.nextInt(room.h-55), flamesImage)
+    val flames = new Flames(room, Random.nextInt(room.w-flamesImage.getWidth), Random.nextInt(room.h-flamesImage.getHeight), flamesImage)
     //val flames = new Flames(room, 50, 50, flamesImage)
 
     room.flamesList += flames
@@ -299,20 +299,14 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     }
 
-
-
-
   }
 
 
   private def handleFlamePropagation = {
-    println("trying to add fire")
 
     val length = flamesList.length
 
     for (x <- 0 until length) {
-//      println("run " + x)
-
 
       val flames = flamesList(x)
 
@@ -342,46 +336,57 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
           if (!foundSpot) {
 
-            //println("i: " + shuffledPairs.indexOf(pair))
-
 
             newFlames = new Flames(flames.room, flames.shape.getX, flames.shape.getY, flames.image)
 
-            newFlames.shape.setX(flames.shape.getX.toInt + (40 + 5) * pair._1)
-            newFlames.shape.setY(flames.shape.getY.toInt + (55 + 5) * pair._2)
-
-//                      println("old x " + flames.shape.getX)
-//                      println("old y " + flames.shape.getY)
-//                      println("new x " + newFlames.shape.getX)
-//                      println("new y " + newFlames.shape.getY)
+            newFlames.shape.setX(flames.shape.getX.toInt + (flamesImage.getWidth + 5) * pair._1)
+            newFlames.shape.setY(flames.shape.getY.toInt + (flamesImage.getHeight + 5) * pair._2)
 
             var isFree = true
 
             newFlames.room.flamesList.foreach(that => {
-              //          println("checking collision")
-
               if (newFlames.shape.getX < 0 || newFlames.shape.getX > newFlames.room.w - newFlames.shape.getWidth) isFree = false
               if (newFlames.shape.getY < 0 || newFlames.shape.getY > newFlames.room.h - newFlames.shape.getHeight) isFree = false
 
               if (Globals.intersects(newFlames, that.shape.getX, that.shape.getY, that.shape.getWidth, that.shape.getHeight, 0, 0)) {
-                //println("COLISSION_____________")
                 isFree = false
               }
             })
 
-
             if (isFree) {
               flames.room.flamesList += newFlames
               flamesList += newFlames
-              //          println("adding new flames")
 
               foundSpot = true
-              println("found spot")
+
+              newFlames.room.doorList.foreach(that => {
+                if (Globals.intersects(newFlames, that.shape.getX, that.shape.getY, that.shape.getWidth, that.shape.getHeight, 0, 0)) {
+                  var foundNewRoomSpot = false
+                  for (i <- -1 to 1) {
+                    for (j <- -1 to 1) {
+                      if (!foundNewRoomSpot) {
+                        val leadingToDoor = that.leadingToDoor
+                        val spotX = leadingToDoor.posX + i * 60
+                        val spotY = leadingToDoor.posY + j * 60
+
+                        if (!Globals.isRectOccupied(leadingToDoor.room, spotX - 10, spotY - 10, newFlames.shape.getWidth + 20, newFlames.shape.getHeight + 20)) {
+
+                          val newRoom: Room = that.leadingToDoor.room
+
+                          val newRoomFlames =  new Flames(newRoom, spotX, spotY, flamesImage)
+                          newRoom.flamesList += newRoomFlames
+                          flamesList += newRoomFlames
+
+                          foundNewRoomSpot = true
+                        }
+                      }
+
+                    }
+                  }
+                }
+              })
 
             }
-
-            //        println(flamesList.length)
-
           }
 
 
@@ -389,58 +394,15 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
         }
 
         if(!foundSpot) {
-          //println("no longer finding spots")
           flames.dontUpdate = true
         }
 
-        handleFlamesDoorCollision(newFlames)
 
       }
     }
   }
 
-  private def handleFlamesDoorCollision(newFlames: Flames) = {
-    newFlames.room.doorList.foreach(that => {
-      //          println("checking collision")
 
-      if (Globals.intersects(newFlames, that.shape.getX, that.shape.getY, that.shape.getWidth, that.shape.getHeight, 0, 0)) {
-        //            println("collison with door")
-
-        var foundSpot = false
-        for (i <- -1 to 1) {
-          for (j <- -1 to 1) {
-            if (!foundSpot) {
-              val leadingToDoor = that.leadingToDoor
-              val spotX = leadingToDoor.posX + i * 100
-              val spotY = leadingToDoor.posY + j * 100
-
-              if (!Globals.isRectOccupied(leadingToDoor.room, spotX - 10, spotY - 10, newFlames.shape.getWidth + 20, newFlames.shape.getHeight + 20)) {
-
-                println("flame change room")
-                val newRoom: Room = that.leadingToDoor.room
-
-                newFlames.room.flamesList -= newFlames
-                newRoom.flamesList += newFlames
-
-                newFlames.room = newRoom
-                newFlames.shape.setX(spotX)
-                newFlames.shape.setY(spotY)
-                //flamesList += newFlames
-
-                println("flames change room ")
-
-
-                foundSpot = true
-              }
-            }
-
-          }
-        }
-
-
-      }
-    })
-  }
 
   override def render(gc: GameContainer, g: Graphics): Unit = {
     g.scale(renderScale, renderScale)

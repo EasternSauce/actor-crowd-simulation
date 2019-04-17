@@ -69,20 +69,17 @@ object Globals {
       if (intersectsX(entity, flames.shape.getX, flames.shape.getY, flames.shape.getWidth, flames.shape.getHeight,collisionVelocityX, collisionVelocityY)) {
         collisionDetails.colX = true
         collided = true
-//        println("collided on x")
 
       }
       if (intersectsY(entity, flames.shape.getX, flames.shape.getY, flames.shape.getWidth, flames.shape.getHeight, collisionVelocityX, collisionVelocityY)) {
         collisionDetails.colY = true
         collided = true
-//        println("collided on y")
 
       }
 
       if (collided) {
         entity.onCollision(flames)
         flames.onCollision(entity)
-//        println("collided with fire")
       }
     })
 

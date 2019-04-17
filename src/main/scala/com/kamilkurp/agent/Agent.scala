@@ -107,7 +107,6 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
       if (progress < 60) {
         goAroundObstacle = true
         goAroundAngle = Random.nextInt(60) - 30
-//        println(name + " going around obstacle")
       }
       else goAroundObstacle = false
 
@@ -189,10 +188,6 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
 
   override def onCollision(entity: Entity): Unit = {
     if (entity.getClass == classOf[Agent]) {
-//      slowTimer.reset()
-//      slowTimer.start()
-//      slow = 0.2f
-
 
       val agent: Agent = entity.asInstanceOf[Agent]
 
@@ -228,10 +223,6 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
           pushed.walkAngle = vector.getTheta.toFloat
           pushed.viewAngle = vector.getTheta.toFloat
 
-          if (debug) {
-            println("pushed by pushed")
-          }
-
           pushed.beingPushed = true
           pushed.pushedTimer.reset()
           pushed.pushedTimer.start()
@@ -250,10 +241,6 @@ class Agent(val name: String, var room: Room, val controlScheme: ControlScheme, 
 
           pushed.walkAngle = vector.getTheta.toFloat
           pushed.viewAngle = vector.getTheta.toFloat
-
-          if (debug) {
-            println("pushed by pushed")
-          }
 
           pushed.beingPushed = true
           pushed.pushedTimer.time = pusher.pushedTimer.time

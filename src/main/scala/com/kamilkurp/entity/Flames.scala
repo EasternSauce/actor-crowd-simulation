@@ -15,11 +15,10 @@ class Flames(var room: Room, var posX: Float, var posY: Float, var image: Image)
 
 
 
-  shape = new Rectangle(posX, posY, 40, 55)
+  shape = new Rectangle(posX, posY, image.getWidth, image.getHeight)
 
   override def onCollision(entity: Entity): Unit = {
-//    println("collided " + shape.getX + " " + shape.getY + " with " + entity.shape.getY + " " + entity.shape.getY)
-    //println("collided with " + entity.getClass)
+
   }
 
   override def changeRoom(entryDoor: Door, newX: Float, newY: Float): Unit = {
