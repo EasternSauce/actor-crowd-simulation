@@ -13,7 +13,7 @@ class HoldMeetPointBehavior(agent: Agent, name: String, color: Color) extends Be
   }
 
   override def perform(delta: Int): Unit = {
-    agent.moveTowards(agent.followManager.followX, agent.followManager.followY, delta)
+    agent.moveTowards(agent.followManager.followX, agent.followManager.followY)
   }
 
   override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {

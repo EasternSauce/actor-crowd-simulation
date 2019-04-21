@@ -30,7 +30,7 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
         agent.walkAngle = normalVector.getTheta.floatValue()
 
         if (!agent.beingPushed) {
-          if (!agent.atDoor) agent.moveTowards(doorToEnterNext, delta)
+          if (!agent.atDoor) agent.moveTowards(doorToEnterNext)
           else agent.stopMoving()
         }
 

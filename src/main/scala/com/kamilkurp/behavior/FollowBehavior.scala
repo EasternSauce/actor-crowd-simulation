@@ -32,7 +32,7 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
 
         if (!agent.beingPushed) {
           if (agent.getDistanceTo(agent.followManager.followX, agent.followManager.followY) > agent.followManager.followDistance) {
-            agent.moveTowards(agent.followManager.followX, agent.followManager.followY, delta)
+            agent.moveTowards(agent.followManager.followX, agent.followManager.followY)
           }
           else {
             agent.stopMoving()

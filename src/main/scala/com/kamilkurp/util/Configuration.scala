@@ -14,7 +14,7 @@ object Configuration {
   val MANUAL_AGENT_NAME: String = "Player"
   val FLAME_PROPAGATION_SPEED: Float = 5
 
-  val AGENT_SPEED: Float = 0.05f
+  val AGENT_SPEED: Float = 0.5f
   val LEADER_PERCENTAGE: Float = 0.25f
   val AGENT_TURN_SPEED: Int = 12
 

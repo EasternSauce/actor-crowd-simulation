@@ -22,7 +22,7 @@ class IdleBehavior(agent: Agent, name: String, color: Color) extends Behavior(ag
       idleTimer.reset()
 
       if (inPlace) agent.stopMoving()
-      else agent.moveTowards(agent.shape.getX + (Random.nextInt(3) - 1) * 50f, agent.shape.getY + (Random.nextInt(3) - 1) * 50f, delta)
+      else agent.moveTowards(agent.shape.getX + (Random.nextInt(3) - 1) * 50f, agent.shape.getY + (Random.nextInt(3) - 1) * 50f)
 
       if (agent.room.meetPointList.nonEmpty) {
         agent.followManager.setFollow(agent.room.meetPointList.head.shape.getCenterX, agent.room.meetPointList.head.shape.getCenterY)

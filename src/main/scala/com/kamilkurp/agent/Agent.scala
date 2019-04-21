@@ -384,15 +384,15 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     null
   }
 
-  def moveTowards(x: Float, y: Float, delta: Int): Unit = {
-    goTo(x, y, delta)
+  def moveTowards(x: Float, y: Float): Unit = {
+    goTo(x, y)
   }
 
-  def moveTowards(entity: Entity, delta: Int): Unit = {
-    goTo(entity.shape.getCenterX, entity.shape.getCenterY, delta)
+  def moveTowards(entity: Entity): Unit = {
+    goTo(entity.shape.getCenterX, entity.shape.getCenterY)
   }
 
-  private def goTo(x: Float, y: Float, delta: Int): Unit = {
+  private def goTo(x: Float, y: Float): Unit = {
     val vector = new Vector2f(x - shape.getCenterX, y - shape.getCenterY)
     vector.normalise()
 
@@ -403,8 +403,8 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     walkAngle = vector.getTheta.floatValue()
 
     if (!beingPushed) {
-      currentVelocityX = vector.x * Configuration.AGENT_SPEED * (1f - slow) * delta
-      currentVelocityY = vector.y * Configuration.AGENT_SPEED * (1f - slow) * delta
+      currentVelocityX = vector.x * Configuration.AGENT_SPEED * (1f - slow)
+      currentVelocityY = vector.y * Configuration.AGENT_SPEED * (1f - slow)
     }
 
   }

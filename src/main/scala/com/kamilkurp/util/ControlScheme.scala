@@ -19,22 +19,22 @@ object ControlScheme extends Enumeration {
     var moved = false
 
     if (gc.getInput.isKeyDown(agent.controls._1)) {
-      agent.currentVelocityX = -Configuration.AGENT_SPEED * delta
+      agent.currentVelocityX = -Configuration.AGENT_SPEED
       moved = true
     }
     else if (gc.getInput.isKeyDown(agent.controls._2)) {
-      agent.currentVelocityX = Configuration.AGENT_SPEED * delta
+      agent.currentVelocityX = Configuration.AGENT_SPEED
       moved = true
     }
     else {
       agent.currentVelocityX = 0
     }
     if (gc.getInput.isKeyDown(agent.controls._3)) {
-      agent.currentVelocityY = -Configuration.AGENT_SPEED * delta
+      agent.currentVelocityY = -Configuration.AGENT_SPEED
       moved = true
     }
     else if (gc.getInput.isKeyDown(agent.controls._4)) {
-      agent.currentVelocityY = Configuration.AGENT_SPEED * delta
+      agent.currentVelocityY = Configuration.AGENT_SPEED
       moved = true
     }
     else {
