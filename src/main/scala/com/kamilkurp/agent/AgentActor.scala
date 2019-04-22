@@ -51,8 +51,8 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
         val normalVector = new Vector2f(locationX - agent.shape.getCenterX, locationY - agent.shape.getCenterY)
         normalVector.normalise()
 
-        //agent.walkAngle = normalVector.getTheta.floatValue()
-        agent.viewAngle = normalVector.getTheta.floatValue()
+        agent.walkAngle = normalVector.getTheta.floatValue()
+        //agent.viewAngle = normalVector.getTheta.floatValue()
       }
 
     case FireWithinVision(flames, locationX, locationY) =>

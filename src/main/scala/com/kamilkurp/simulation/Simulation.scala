@@ -41,7 +41,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   var flamesManager: FlamesManager = _
 
-  var roomGraph: Graph[Room, DefaultEdge] = _
+  var roomGraph: SimpleGraph[Room, DefaultEdge] = _
 
   var textField: TextField = _
 

@@ -8,13 +8,13 @@ import com.kamilkurp.stats.Statistics
 import com.kamilkurp.util.ControlScheme.ControlScheme
 import com.kamilkurp.util.{Configuration, ControlScheme, Globals, Timer}
 import org.jgrapht.Graph
-import org.jgrapht.graph.DefaultEdge
+import org.jgrapht.graph.{DefaultEdge, DefaultWeightedEdge, SimpleGraph, SimpleWeightedGraph}
 import org.newdawn.slick.geom.{Shape, _}
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
 import scala.util.Random
 
-class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, var image: Image, var roomGraph: Graph[Room, DefaultEdge]) extends Entity {
+class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, var image: Image, var roomGraph: SimpleGraph[Room, DefaultEdge]) extends Entity {
 
   override var currentVelocityX: Float = _
   override var currentVelocityY: Float = _
@@ -47,8 +47,9 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
   var followManager: FollowManager = _
   var behavior: BehaviorManager = _
   var lastEntryDoor: Door = _
+  var weightedGraph: SimpleWeightedGraph[Room, DefaultWeightedEdge] = _
 
-  def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int), image: Image, roomGraph: Graph[Room, DefaultEdge]) {
+  def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int), image: Image, roomGraph: SimpleGraph[Room, DefaultEdge]) {
     this(name, room, controlScheme, image, roomGraph)
     this.controls = controls
   }
@@ -112,8 +113,25 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
       }
     }
 
+    val newGraph = new SimpleWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
 
-    addRoomToGraph(room)
+    val vertexIter: java.util.Iterator[Room] = roomGraph.vertexSet().iterator()
+    while(vertexIter.hasNext) {
+      val room = vertexIter.next()
+      newGraph.addVertex(room)
+    }
+
+    val edgeIter: java.util.Iterator[DefaultEdge] = roomGraph.edgeSet().iterator()
+    while(edgeIter.hasNext) {
+      val edge = edgeIter.next()
+      val weightedEdge: DefaultWeightedEdge = newGraph.addEdge(roomGraph.getEdgeSource(edge), roomGraph.getEdgeTarget(edge))
+      newGraph.setEdgeWeight(weightedEdge, Random.nextFloat())
+
+    }
+
+    weightedGraph = newGraph
+
+    //addRoomToGraph(room)
   }
 
   def update(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
@@ -383,7 +401,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     }
 
     import org.jgrapht.alg.shortestpath.DijkstraShortestPath
-    val dijkstraShortestPath = new DijkstraShortestPath(roomGraph)
+    val dijkstraShortestPath = new DijkstraShortestPath(weightedGraph)
 
     var shortestPath: java.util.List[Room] = null
     try {

@@ -7,7 +7,7 @@ import com.kamilkurp.building.Room
 import com.kamilkurp.util.Configuration
 import org.jgrapht.GraphPath
 import org.jgrapht.alg.shortestpath.KShortestSimplePaths
-import org.jgrapht.graph.{DefaultEdge, SimpleGraph}
+import org.jgrapht.graph.{DefaultEdge, DefaultWeightedEdge, SimpleGraph, SimpleWeightedGraph}
 
 import scala.collection.mutable
 import scala.util.Random
@@ -79,7 +79,7 @@ class BehaviorManager {
 //    val randomPath: GraphPath[Room, DefaultEdge] = paths.get(Random.nextInt(paths.size()))
 //
 //
-//    val newGraph = new SimpleGraph[Room, DefaultEdge](classOf[DefaultEdge])
+//    val newGraph = new SimpleWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
 //
 //    val vertexIter: java.util.Iterator[Room] = randomPath.getVertexList.iterator()
 //    while(vertexIter.hasNext) {
@@ -90,7 +90,9 @@ class BehaviorManager {
 //    val edgeIter: java.util.Iterator[DefaultEdge] = randomPath.getEdgeList.iterator()
 //    while(edgeIter.hasNext) {
 //      val edge = edgeIter.next()
-//      newGraph.addEdge(agent.roomGraph.getEdgeSource(edge), agent.roomGraph.getEdgeTarget(edge))
+//      val weightedEdge: DefaultWeightedEdge = newGraph.addEdge(agent.roomGraph.getEdgeSource(edge), agent.roomGraph.getEdgeTarget(edge))
+//      newGraph.setEdgeWeight(weightedEdge, Random.nextFloat())
+//
 //    }
 //
 //    agent.roomGraph = newGraph
