@@ -11,7 +11,10 @@ class Flames(var room: Room, var posX: Float, var posY: Float, var image: Image)
   override var currentVelocityX: Float = _
   override var currentVelocityY: Float = _
   override var shape: Shape = _
+  override var debug: Boolean = false
+
   var dontUpdate: Boolean = _
+
 
   name = "fire"
   currentVelocityX = 0

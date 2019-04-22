@@ -18,6 +18,13 @@ class FlamesManager() {
     flamesImage = new Image(Configuration.FLAMES_IMAGE_LOCATION)
     flamesList = new ListBuffer[Flames]()
 
+
+    for (i <- 0 until 0) {
+      addRandomFlame(roomList)
+    }
+  }
+
+  def addRandomFlame(roomList: ListBuffer[Room]): Unit = {
     val randomRoom = Random.nextInt(roomList.length)
     val room: Room = roomList(randomRoom)
 
@@ -25,7 +32,6 @@ class FlamesManager() {
 
     room.flamesList += flames
     flamesList += flames
-
   }
 
   def handleFlamePropagation(): Unit = {
@@ -95,7 +101,7 @@ class FlamesManager() {
                           val spotX = leadingToDoor.posX + i * 60
                           val spotY = leadingToDoor.posY + j * 60
 
-                          if (!Globals.isRectOccupied(leadingToDoor.room, spotX - 10, spotY - 10, newFlames.shape.getWidth + 20, newFlames.shape.getHeight + 20)) {
+                          if (!Globals.isRectOccupied(leadingToDoor.room, spotX - 10, spotY - 10, newFlames.shape.getWidth + 20, newFlames.shape.getHeight + 20, newFlames)) {
 
                             val newRoom: Room = that.leadingToDoor.room
 

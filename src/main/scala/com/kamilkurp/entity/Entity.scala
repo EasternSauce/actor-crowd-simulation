@@ -13,6 +13,8 @@ abstract class Entity() {
 
   var shape: Shape
 
+  var debug: Boolean
+
   def onCollision(entity: Entity)
 
   def changeRoom(entryDoor: Door, newX: Float, newY: Float)

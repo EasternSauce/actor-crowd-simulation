@@ -4,6 +4,7 @@ import akka.actor.ActorRef
 import com.kamilkurp.behavior._
 import com.kamilkurp.building.{Door, MeetPoint, Room}
 import com.kamilkurp.entity.Entity
+import com.kamilkurp.stats.Statistics
 import com.kamilkurp.util.ControlScheme.ControlScheme
 import com.kamilkurp.util.{Configuration, ControlScheme, Globals, Timer}
 import org.jgrapht.Graph
@@ -18,9 +19,10 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
   override var currentVelocityX: Float = _
   override var currentVelocityY: Float = _
   override var shape: Shape = _
+  override var debug: Boolean = _
   var walkAngle: Float = _
   var viewAngle: Float = _
-  var viewCone: AgentViewCone = _
+  var vision: AgentVision = _
   var controls: (Int, Int, Int, Int) = _
   var slow: Float = _
   var beingPushed: Boolean = _
@@ -38,13 +40,13 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
   var pastPositionY: Float = _
   var goAroundObstacle: Boolean = _
   var goAroundAngle: Float = _
-  var debug: Boolean = _
   var goTowardsDoor: Boolean = _
   var changedVelocityX: Float = _
   var changedVelocityY: Float = _
   var changedVelocity: Boolean = _
   var followManager: FollowManager = _
-  var behaviorManager: BehaviorManager = _
+  var behavior: BehaviorManager = _
+  var lastEntryDoor: Door = _
 
   def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int), image: Image, roomGraph: Graph[Room, DefaultEdge]) {
     this(name, room, controlScheme, image, roomGraph)
@@ -59,10 +61,10 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     walkAngle = 0.0f
     viewAngle = 0.0f
 
-    behaviorManager = new BehaviorManager()
-    behaviorManager.init(this)
+    behavior = new BehaviorManager()
+    behavior.init(this)
 
-    viewCone = new AgentViewCone(this)
+    vision = new AgentVision(this)
     slow = 0.0f
     beingPushed = false
 
@@ -95,6 +97,8 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     changedVelocityY = 0.0f
     changedVelocity = false
 
+    lastEntryDoor = null
+
     followManager = new FollowManager()
 
     while (!isFree) {
@@ -113,7 +117,11 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
   }
 
   def update(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
-    viewCone.update(delta)
+    vision.update(delta)
+
+    if (debug) {
+      println("velocity: " + currentVelocityX + " " + currentVelocityY)
+    }
 
     if (changedVelocity) {
       changedVelocity = false
@@ -188,7 +196,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     }
 
     if (controlScheme == ControlScheme.Agent) {
-      behaviorManager.getBehavior(behaviorManager.currentBehavior).perform(delta)
+      behavior.getBehavior(behavior.currentBehavior).perform(delta)
     }
     else if (controlScheme == ControlScheme.Manual) {
       ControlScheme.handleManualControls(this, gc, delta, renderScale)
@@ -204,6 +212,8 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
       shape.setY(shape.getY + collisionVelocityY)
     }
 
+    vision.update(delta)
+
 
   }
 
@@ -213,10 +223,10 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     if (entity.getClass == classOf[Agent]) {
 
       val agent: Agent = entity.asInstanceOf[Agent]
-
-      if (debug) {
-        println("collision with " + agent.name)
-      }
+//
+//      if (debug) {
+//        println("collision with " + agent.name)
+//      }
 
       pushBack(this, agent)
 
@@ -232,8 +242,8 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
   }
 
   def pushBack(pusher: Agent, pushed: Agent): Unit = {
-    if (pushed.behaviorManager.currentBehavior == FollowBehavior.name || pushed.behaviorManager.currentBehavior == SearchExitBehavior.name) {
-      if (pusher.behaviorManager.currentBehavior == LeaderBehavior.name) {
+    if (pushed.behavior.currentBehavior == FollowBehavior.name || pushed.behavior.currentBehavior == SearchExitBehavior.name) {
+      if (pusher.behavior.currentBehavior == LeaderBehavior.name) {
         if (!pushed.beingPushed) {
           val vector = new Vector2f(pusher.currentVelocityX, pusher.currentVelocityY)
 
@@ -252,7 +262,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
         }
 
       }
-      else if ((pusher.behaviorManager.currentBehavior == FollowBehavior.name || pushed.behaviorManager.currentBehavior == SearchExitBehavior.name) && pusher.beingPushed) {
+      else if ((pusher.behavior.currentBehavior == FollowBehavior.name || pushed.behavior.currentBehavior == SearchExitBehavior.name) && pusher.beingPushed) {
         if (!pushed.beingPushed) {
           val vector = new Vector2f(currentVelocityX, currentVelocityY)
 
@@ -275,7 +285,18 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
   }
 
   override def changeRoom(entryDoor: Door, newX: Float, newY: Float): Unit = {
-    if (controlScheme != ControlScheme.Manual && doorToEnter != entryDoor) return
+
+    if (debug) {
+      println("changeRoom")
+    }
+    lastEntryDoor = entryDoor
+
+    if (doorToEnter != entryDoor) {
+      if (controlScheme != ControlScheme.Manual) {
+        return
+      }
+    }
+
 
     if (!roomGraph.containsVertex(entryDoor.leadingToDoor.room)) {
       addRoomToGraph(entryDoor.leadingToDoor.room)
@@ -303,7 +324,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
     goTowardsDoor = false
 
-    behaviorManager.getBehavior(behaviorManager.currentBehavior).afterChangeRoom()
+    behavior.getBehavior(behavior.currentBehavior).afterChangeRoom()
   }
 
   def setActor(actor: ActorRef): Unit = {
@@ -313,8 +334,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
   def draw(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
     g.drawImage(image, room.x + shape.getX - offsetX, room.y + shape.getY - offsetY)
 
-    viewCone.update(15) // workaround - otherwise cone not drawn properly
-    viewCone.draw(g, offsetX, offsetY)
+    vision.draw(g, offsetX, offsetY)
   }
 
   def drawName(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
@@ -323,14 +343,14 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
       g.setColor(Color.blue)
     }
     g.drawString(name, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 40 - offsetY)
-    g.setColor(behaviorManager.getBehavior(behaviorManager.currentBehavior).color)
+    g.setColor(behavior.getBehavior(behavior.currentBehavior).color)
 
     var tag: String = ""
-    if (behaviorManager.currentBehavior == FollowBehavior.name && followManager.followedAgent != null) {
-      tag = "[" + behaviorManager.currentBehavior + " " + followManager.followedAgent.name + "]"
+    if (behavior.currentBehavior == FollowBehavior.name && followManager.followedAgent != null) {
+      tag = "[" + behavior.currentBehavior + " " + followManager.followedAgent.name + "]"
     }
     else {
-      tag = "[" + behaviorManager.currentBehavior + "]"
+      tag = "[" + behavior.currentBehavior + "]"
 
     }
     g.drawString(tag, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 25 - offsetY)
@@ -373,6 +393,8 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     catch {
       case _: NullPointerException =>
         return null
+      case _: IllegalArgumentException =>
+        return null
     }
 
     for (door: Door <- room.doorList) {
@@ -396,9 +418,11 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     val vector = new Vector2f(x - shape.getCenterX, y - shape.getCenterY)
     vector.normalise()
 
-    if (goAroundObstacle) {
-      vector.setTheta(vector.getTheta + goAroundAngle)
-    }
+//    if (goAroundObstacle) {
+//      vector.setTheta(vector.getTheta + goAroundAngle)
+//    }
+
+    vector.setTheta(vector.getTheta + vision.colavoidAngle * 1.5f)
 
     walkAngle = vector.getTheta.floatValue()
 

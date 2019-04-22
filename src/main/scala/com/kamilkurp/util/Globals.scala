@@ -86,20 +86,32 @@ object Globals {
     collisionDetails
   }
 
-  def isRectOccupied(room: Room, x: Float, y: Float, w: Float, h: Float): Boolean = {
+  def isRectOccupied(room: Room, x: Float, y: Float, w: Float, h: Float, entity: Entity): Boolean = {
     var occupied = false
 
     if (x < 0 || x > room.w - w) occupied = true
     if (y < 0 || y > room.h - h) occupied = true
 
+    if (occupied == true && entity.debug) {
+      println("occupied by wall")
+
+    }
+
     room.agentList.foreach(agent => {
       if (intersects(agent, x, y, w, h, 0, 0)) {
+
+        if (entity.debug) {
+          println("occupied by " + agent.name)
+        }
         occupied = true
       }
     })
 
     room.doorList.foreach(door => {
       if (intersects(door, x, y, w, h, 0, 0)) {
+        if (entity.debug) {
+          println("occupied by " + door.name)
+        }
         occupied = true
       }
     })

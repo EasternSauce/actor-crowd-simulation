@@ -2,7 +2,7 @@ package com.kamilkurp.simulation
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import com.kamilkurp.agent.{Agent, AgentActor}
-import com.kamilkurp.behavior.{IdleBehavior, SearchExitBehavior}
+import com.kamilkurp.behavior.{IdleBehavior, LeaderBehavior, SearchExitBehavior, StationaryBehavior}
 import com.kamilkurp.building.{Door, MeetPoint, Room}
 import com.kamilkurp.flame.FlamesManager
 import com.kamilkurp.stats.Statistics
@@ -58,8 +58,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   var cameraControls: CameraControls = _
 
-  var stats: Statistics = _
-
   var generalTimer: Timer = _
 
   override def init(gc: GameContainer): Unit = {
@@ -75,8 +73,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     actorList = new ListBuffer[ActorRef]()
 
     textFieldFocused = false
-
-    stats = new Statistics()
 
     roomGraph = new SimpleGraph[Room, DefaultEdge](classOf[DefaultEdge])
 
@@ -117,24 +113,46 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
 
     for (_ <- 0 until Configuration.NUMBER_OF_AGENTS) {
-
-      val randomOffice = Random.nextInt(officeList.length)
-      val room: Room = officeList(randomOffice)
-
       val randomNameIndex = Random.nextInt(listOfNames.length)
       val randomName = listOfNames(randomNameIndex) + nameIndices(listOfNames(randomNameIndex))
       nameIndices.put(listOfNames(randomNameIndex), nameIndices(listOfNames(randomNameIndex)) + 1)
+      val randomOffice = Random.nextInt(officeList.length)
+      val room: Room = officeList(randomOffice)
 
-      val agent = new Agent(randomName, room, ControlScheme.Agent, agentImage, roomGraph)
-      agent.init()
-      room.agentList += agent
-      val actor = actorSystem.actorOf(Props(new AgentActor(randomName, agent)))
-      actorList += actor
 
-      agentList += agent
-
-      agent.setActor(actor)
+      addAgent(randomName, room)
     }
+
+//    val agent1 = addAgent("agent1", officeList.head)
+//    agent1.shape.setCenterX(360)
+//    agent1.shape.setCenterY(300)
+//    agent1.behaviorManager.setBehavior(StationaryBehavior.name)
+//
+//    val agent2 = addAgent("agent2", officeList.head)
+//    agent2.shape.setCenterX(450)
+//    agent2.shape.setCenterY(280)
+//    agent2.behaviorManager.setBehavior(StationaryBehavior.name)
+//
+//    val agent3 = addAgent("agent3", officeList.head)
+//    agent3.shape.setCenterX(400)
+//    agent3.shape.setCenterY(320)
+//    agent3.behaviorManager.setBehavior(StationaryBehavior.name)
+//
+//    val agent4 = addAgent("agent4", officeList.head)
+//    agent4.shape.setCenterX(380)
+//    agent4.shape.setCenterY(270)
+//    agent4.behaviorManager.setBehavior(StationaryBehavior.name)
+//
+//    val agent5 = addAgent("agent5", officeList.head)
+//    agent5.shape.setCenterX(320)
+//    agent5.shape.setCenterY(290)
+//    agent5.behaviorManager.setBehavior(StationaryBehavior.name)
+//
+//    val agent6 = addAgent("agent6", officeList.head)
+//    agent6.shape.setCenterX(50)
+//    agent6.shape.setCenterY(150)
+//    agent6.behaviorManager.setBehavior(LeaderBehavior.name)
+//    agent6.viewCone.drawRays = true
 
     ControlScheme.tryAddManualAgent(roomList, actorSystem, agentImage, roomGraph)
 
@@ -149,6 +167,20 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   }
 
 
+  private def addAgent(name: String, room: Room): Agent = {
+
+    val agent = new Agent(name, room, ControlScheme.Agent, agentImage, roomGraph)
+    agent.init()
+    room.agentList += agent
+    val actor = actorSystem.actorOf(Props(new AgentActor(name, agent)))
+    actorList += actor
+
+    agentList += agent
+
+    agent.setActor(actor)
+
+    agent
+  }
 
   override def update(gc: GameContainer, i: Int): Unit = {
     Timer.updateTimers(i)
@@ -192,10 +224,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     roomList.foreach(room => {
       room.agentList.filter(agent => agent.name == currentMonitored).foreach(agent => {
-        println("current_velocity_x=" + agent.currentVelocityX)
-        println("current_velocity_y=" + agent.currentVelocityY)
-        println("being_pushed=" + agent.beingPushed)
-        println("pushed_timer=" + agent.pushedTimer.time)
+        Statistics.params.put("doorToEnter", agent.doorToEnter.name)
       })
     })
 
@@ -204,8 +233,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       untilAlarmTimer.reset()
 
       agentList.foreach(agent => {
-        if (agent.behaviorManager.currentBehavior == IdleBehavior.name) {
-          agent.behaviorManager.setBehavior(SearchExitBehavior.name)
+        if (agent.behavior.currentBehavior == IdleBehavior.name) {
+          agent.behavior.setBehavior(SearchExitBehavior.name)
         }
       })
     }
@@ -213,9 +242,10 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     flamesManager.handleFlamePropagation()
 
 
-    stats.params.put("Total agents", agentList.length.toString)
-    stats.params.put("Total evacuated", agentList.filter(agent => agent.behaviorManager.currentBehavior == "holdMeetPoint").toList.length.toString)
-    stats.params.put("Time", (generalTimer.time/1000f).toString)
+    Statistics.params.put("Total agents", agentList.length.toString)
+    Statistics.params.put("Total evacuated", agentList.filter(agent => agent.behavior.currentBehavior == "holdMeetPoint").toList.length.toString)
+    Statistics.params.put("Time", (generalTimer.time/1000f).toString)
+
   }
 
   override def render(gc: GameContainer, g: Graphics): Unit = {
@@ -242,8 +272,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
 
     var i = 0
-    for (param <- stats.params) {
-      font.drawString(textWindowX + 20, textWindowY + 20 + 40 * i, param._1 + ": " + param._2, Color.green)
+    for (param <- Statistics.params) {
+      font.drawString(textWindowX + 20 + 350 * Math.floor(i/8).toFloat, textWindowY + 20 + 40 * (i%8), param._1 + ": " + param._2, Color.green)
       i = i + 1
     }
 

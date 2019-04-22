@@ -45,7 +45,7 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
     else if (agent.room.meetPointList.nonEmpty) {
       agent.followManager.setFollow(agent.room.meetPointList.head.shape.getCenterX, agent.room.meetPointList.head.shape.getCenterY)
 
-      agent.behaviorManager.setBehavior(IdleBehavior.name)
+      agent.behavior.setBehavior(IdleBehavior.name)
     }
   }
 
