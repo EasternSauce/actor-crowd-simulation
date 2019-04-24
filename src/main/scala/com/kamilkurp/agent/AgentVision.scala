@@ -132,7 +132,16 @@ class AgentVision(agent: Agent) {
     agent.room.flamesList.foreach(fire =>
       viewRayList.foreach(rayShape =>
         if (fire.shape.intersects(rayShape)) {
-          agent.actor ! FireWithinVision(fire, fire.shape.getCenterX, fire.shape.getCenterY)
+
+
+//          if (agent.getDistanceTo(fire.shape.getCenterX, fire.shape.getCenterY) < 300 {
+
+            if (agent.avoidFireTimer.timedOut()) {
+              agent.avoidFireTimer.reset()
+              agent.avoidFireTimer.start()
+              agent.actor ! FireWithinVision(fire, fire.shape.getCenterX, fire.shape.getCenterY)
+            }
+//          }
         }
       )
     )

@@ -222,11 +222,11 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     }
 
-    roomList.foreach(room => {
-      room.agentList.filter(agent => agent.name == currentMonitored).foreach(agent => {
-        Statistics.params.put("doorToEnter", agent.doorToEnter.name)
-      })
-    })
+//    roomList.foreach(room => {
+//      room.agentList.filter(agent => agent.name == currentMonitored).foreach(agent => {
+//        Statistics.params.put("doorToEnter", agent.doorToEnter.name)
+//      })
+//    })
 
     if (untilAlarmTimer.timedOut()) {
       untilAlarmTimer.stop()

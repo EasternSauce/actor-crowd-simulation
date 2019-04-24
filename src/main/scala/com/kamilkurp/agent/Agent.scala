@@ -12,6 +12,8 @@ import org.jgrapht.graph.{DefaultEdge, DefaultWeightedEdge, SimpleGraph, SimpleW
 import org.newdawn.slick.geom.{Shape, _}
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
+import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, var image: Image, var roomGraph: SimpleGraph[Room, DefaultEdge]) extends Entity {
@@ -49,6 +51,9 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
   var lastEntryDoor: Door = _
   var weightedGraph: SimpleWeightedGraph[Room, DefaultWeightedEdge] = _
 
+  var avoidFireTimer: Timer = _
+
+
   def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int), image: Image, roomGraph: SimpleGraph[Room, DefaultEdge]) {
     this(name, room, controlScheme, image, roomGraph)
     this.controls = controls
@@ -81,6 +86,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     outOfWayTimer.start()
     checkProgressTimer.start()
 
+
     movingOutOfTheWay = false
 
     isFree = false
@@ -100,6 +106,9 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
     lastEntryDoor = null
 
+    avoidFireTimer = new Timer(3000)
+    avoidFireTimer.time = avoidFireTimer.timeout+1
+
     followManager = new FollowManager()
 
     while (!isFree) {
@@ -113,33 +122,17 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
       }
     }
 
-    val newGraph = new SimpleWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
-
-    val vertexIter: java.util.Iterator[Room] = roomGraph.vertexSet().iterator()
-    while(vertexIter.hasNext) {
-      val room = vertexIter.next()
-      newGraph.addVertex(room)
-    }
-
-    val edgeIter: java.util.Iterator[DefaultEdge] = roomGraph.edgeSet().iterator()
-    while(edgeIter.hasNext) {
-      val edge = edgeIter.next()
-      val weightedEdge: DefaultWeightedEdge = newGraph.addEdge(roomGraph.getEdgeSource(edge), roomGraph.getEdgeTarget(edge))
-      newGraph.setEdgeWeight(weightedEdge, Random.nextFloat())
-
-    }
-
-    weightedGraph = newGraph
+    weightedGraph = Globals.copyGraph(roomGraph)
 
     //addRoomToGraph(room)
   }
 
   def update(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
     vision.update(delta)
-
-    if (debug) {
-      println("velocity: " + currentVelocityX + " " + currentVelocityY)
-    }
+//
+//    if (debug) {
+//      println("velocity: " + currentVelocityX + " " + currentVelocityY)
+//    }
 
     if (changedVelocity) {
       changedVelocity = false
@@ -304,9 +297,9 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
   override def changeRoom(entryDoor: Door, newX: Float, newY: Float): Unit = {
 
-    if (debug) {
-      println("changeRoom")
-    }
+//    if (debug) {
+//      println("changeRoom")
+//    }
     lastEntryDoor = entryDoor
 
     if (doorToEnter != entryDoor) {
@@ -400,8 +393,27 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
       return null
     }
 
+    var graphCopy: SimpleWeightedGraph[Room, DefaultWeightedEdge] = Globals.copyGraph(weightedGraph)
+
+
+    var doorDistances: mutable.Map[Door, Float] = mutable.Map[Door, Float]()
+
+    for (door <- room.doorList) {
+      doorDistances.put(door, getDistanceTo(door))
+    }
+
+    val maxDistance: Float = doorDistances.values.max
+
+    for (pair <- doorDistances) {
+      //println(pair._2)
+      val edge: DefaultWeightedEdge = graphCopy.getEdge(room, pair._1.leadingToDoor.room)
+      if (edge != null) graphCopy.setEdgeWeight(edge, pair._2 / maxDistance)
+      //println(pair._2 / maxDistance)
+    }
+    //println()
+
     import org.jgrapht.alg.shortestpath.DijkstraShortestPath
-    val dijkstraShortestPath = new DijkstraShortestPath(weightedGraph)
+    val dijkstraShortestPath = new DijkstraShortestPath(graphCopy)
 
     var shortestPath: java.util.List[Room] = null
     try {
@@ -415,11 +427,22 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
         return null
     }
 
+
+    if (debug) {
+      print("shortest path: " + "from " + room + " to " + meetPointRoom + " ")
+      for (i <- 0 until shortestPath.size()) {
+        print(shortestPath.get(i).name + " ")
+      }
+      println()
+    }
+
     for (door: Door <- room.doorList) {
+      // return NEXT room on path (second element)
       if (shortestPath.size() > 1 && door.leadingToDoor.room == shortestPath.get(1)) {
         return door
       }
     }
+
 
     null
   }

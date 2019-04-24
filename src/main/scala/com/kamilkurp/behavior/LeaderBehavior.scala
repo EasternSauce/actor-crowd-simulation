@@ -36,8 +36,9 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
           }
         }
         else {
-          if (!waitAtDoorTimer.timedOut()) agent.stopMoving()
-          else agent.moveTowards(door)
+//          if (!waitAtDoorTimer.timedOut()) agent.stopMoving()
+//          else
+          agent.moveTowards(door)
         }
       }
 

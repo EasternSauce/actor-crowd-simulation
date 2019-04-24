@@ -19,9 +19,19 @@ class FlamesManager() {
     flamesList = new ListBuffer[Flames]()
 
 
-    for (i <- 0 until 0) {
+    for (i <- 0 until 7) {
       addRandomFlame(roomList)
     }
+
+
+//    val corrD: Room = roomList.filter(room => room.name == "corrD").head
+//
+//    println(corrD.doorList)
+//
+//    val flames = new Flames(corrD, Random.nextInt(corrD.w-flamesImage.getWidth), Random.nextInt(corrD.h-flamesImage.getHeight), flamesImage)
+//
+//    corrD.flamesList += flames
+//    flamesList += flames
   }
 
   def addRandomFlame(roomList: ListBuffer[Room]): Unit = {

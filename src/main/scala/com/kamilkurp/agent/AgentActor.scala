@@ -5,7 +5,11 @@ import com.kamilkurp.behavior._
 import com.kamilkurp.building.Door
 import com.kamilkurp.entity.Entity
 import com.kamilkurp.flame.Flames
+import org.jgrapht.graph.DefaultWeightedEdge
 import org.newdawn.slick.geom.Vector2f
+
+import scala.collection.mutable.ListBuffer
+import scala.util.Random
 
 case class AgentWithinVision(entity: Entity, distance: Float)
 
@@ -57,11 +61,44 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
 
     case FireWithinVision(flames, locationX, locationY) =>
 
-      if (agent.getDistanceTo(locationX, locationY) < 100) {
-        //agent.behaviorManager.setBehavior(AvoidFireBehavior.name)
-        agent.roomGraph.removeVertex(agent.doorToEnter.leadingToDoor.room)
-        println("aaaaaaaaaa")
+
+
+//      println(agent.name + " saw fire!")
+
+      //agent.behaviorManager.setBehavior(AvoidFireBehavior.name)
+
+      val edgeIter = agent.weightedGraph.edgeSet().iterator()
+
+      var toRemove: ListBuffer[DefaultWeightedEdge] = new ListBuffer[DefaultWeightedEdge]()
+      while(edgeIter.hasNext) {
+        val edge = edgeIter.next()
+
+        if(agent.doorToEnter != null) {
+          if (agent.weightedGraph.getEdgeSource(edge) == agent.room && agent.weightedGraph.getEdgeTarget(edge) == agent.doorToEnter.leadingToDoor.room) {
+//            println("removing edge " + agent.weightedGraph.getEdgeSource(edge).name + " " + agent.weightedGraph.getEdgeTarget(edge).name)
+            toRemove += edge
+          }
+        }
+
+
       }
+
+      for (edge <- toRemove) {
+        if (agent.weightedGraph.getEdgeTarget(edge).meetPointList.isEmpty) {
+          if (agent.debug) {
+            println("removed edge " + agent.weightedGraph.getEdgeSource(edge) + " " + agent.weightedGraph.getEdgeTarget(edge))
+          }
+          agent.weightedGraph.removeEdge(edge)
+
+        }
+      }
+
+      agent.doorToEnter = agent.findDoorToEnterNext()
+
+
+
+
+
 
 
   }

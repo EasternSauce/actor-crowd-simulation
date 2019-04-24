@@ -2,8 +2,50 @@ package com.kamilkurp.util
 
 import com.kamilkurp.building.Room
 import com.kamilkurp.entity.Entity
+import org.jgrapht.Graph
+import org.jgrapht.graph.{DefaultEdge, DefaultWeightedEdge, SimpleGraph, SimpleWeightedGraph}
 
 object Globals {
+  def copyGraph(graph: Graph[Room, DefaultEdge]): SimpleWeightedGraph[Room, DefaultWeightedEdge] = {
+    val newGraph = new SimpleWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
+
+    val vertexIter: java.util.Iterator[Room] = graph.vertexSet().iterator()
+    while(vertexIter.hasNext) {
+      val room = vertexIter.next()
+      newGraph.addVertex(room)
+    }
+
+    val edgeIter: java.util.Iterator[DefaultEdge] = graph.edgeSet().iterator()
+    while(edgeIter.hasNext) {
+      val edge = edgeIter.next()
+      val weightedEdge: DefaultWeightedEdge = newGraph.addEdge(graph.getEdgeSource(edge), graph.getEdgeTarget(edge))
+      newGraph.setEdgeWeight(weightedEdge, 1.0f)
+
+    }
+
+    newGraph
+  }
+
+  def copyGraph(graph: SimpleWeightedGraph[Room, DefaultWeightedEdge]): SimpleWeightedGraph[Room, DefaultWeightedEdge] = {
+    val newGraph = new SimpleWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
+
+    val vertexIter: java.util.Iterator[Room] = graph.vertexSet().iterator()
+    while(vertexIter.hasNext) {
+      val room = vertexIter.next()
+      newGraph.addVertex(room)
+    }
+
+    val edgeArray: Array[AnyRef] = graph.edgeSet().toArray
+    for (edgeRef <- edgeArray) {
+      val edge = edgeRef.asInstanceOf[DefaultWeightedEdge]
+      val weightedEdge: DefaultWeightedEdge = newGraph.addEdge(graph.getEdgeSource(edge), graph.getEdgeTarget(edge))
+      newGraph.setEdgeWeight(weightedEdge, 1.0f)
+
+    }
+
+    newGraph
+  }
+
   val AGENT_SIZE: Int = 40
   val WINDOW_X: Int = 2560
   val WINDOW_Y: Int = 1440
@@ -91,27 +133,27 @@ object Globals {
 
     if (x < 0 || x > room.w - w) occupied = true
     if (y < 0 || y > room.h - h) occupied = true
-
-    if (occupied == true && entity.debug) {
-      println("occupied by wall")
-
-    }
+//
+//    if (occupied == true && entity.debug) {
+//      println("occupied by wall")
+//
+//    }
 
     room.agentList.foreach(agent => {
       if (intersects(agent, x, y, w, h, 0, 0)) {
 
-        if (entity.debug) {
-          println("occupied by " + agent.name)
-        }
+//        if (entity.debug) {
+//          println("occupied by " + agent.name)
+//        }
         occupied = true
       }
     })
 
     room.doorList.foreach(door => {
       if (intersects(door, x, y, w, h, 0, 0)) {
-        if (entity.debug) {
-          println("occupied by " + door.name)
-        }
+//        if (entity.debug) {
+//          println("occupied by " + door.name)
+//        }
         occupied = true
       }
     })
