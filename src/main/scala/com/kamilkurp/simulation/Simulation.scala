@@ -233,8 +233,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       untilAlarmTimer.reset()
 
       agentList.foreach(agent => {
-        if (agent.behavior.currentBehavior == IdleBehavior.name) {
-          agent.behavior.setBehavior(SearchExitBehavior.name)
+        if (agent.currentBehavior == IdleBehavior.name) {
+          agent.setBehavior(SearchExitBehavior.name)
         }
       })
     }
@@ -243,7 +243,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
 
     Statistics.params.put("Total agents", agentList.length.toString)
-    Statistics.params.put("Total evacuated", agentList.filter(agent => agent.behavior.currentBehavior == "holdMeetPoint").toList.length.toString)
+    Statistics.params.put("Total evacuated", agentList.filter(agent => agent.currentBehavior.name == "holdMeetPoint").toList.length.toString)
     Statistics.params.put("Time", (generalTimer.time/1000f).toString)
 
   }

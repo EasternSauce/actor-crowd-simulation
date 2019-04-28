@@ -24,7 +24,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
   override var debug: Boolean = _
   var walkAngle: Float = _
   var viewAngle: Float = _
-  var vision: AgentVision = _
+  private var visionModule: VisionModule = _
   var controls: (Int, Int, Int, Int) = _
   var slow: Float = _
   var beingPushed: Boolean = _
@@ -46,12 +46,14 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
   var changedVelocityX: Float = _
   var changedVelocityY: Float = _
   var changedVelocity: Boolean = _
-  var followManager: FollowManager = _
-  var behavior: BehaviorManager = _
+  var followModule: FollowModule = _
+  var behaviorModule: BehaviorModule = _
   var lastEntryDoor: Door = _
   var weightedGraph: SimpleWeightedGraph[Room, DefaultWeightedEdge] = _
 
   var avoidFireTimer: Timer = _
+
+  var followTimer: Timer = _
 
 
   def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int), image: Image, roomGraph: SimpleGraph[Room, DefaultEdge]) {
@@ -67,10 +69,9 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     walkAngle = 0.0f
     viewAngle = 0.0f
 
-    behavior = new BehaviorManager()
-    behavior.init(this)
+    behaviorModule = BehaviorModule(this)
+    visionModule = VisionModule(this)
 
-    vision = new AgentVision(this)
     slow = 0.0f
     beingPushed = false
 
@@ -85,6 +86,8 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     lookTimer.start()
     outOfWayTimer.start()
     checkProgressTimer.start()
+
+    followTimer = new Timer(Configuration.AGENT_FOLLOW_TIMER)
 
 
     movingOutOfTheWay = false
@@ -109,7 +112,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     avoidFireTimer = new Timer(3000)
     avoidFireTimer.time = avoidFireTimer.timeout+1
 
-    followManager = new FollowManager()
+    followModule = FollowModule()
 
     while (!isFree) {
       shape.setX(Random.nextInt(room.w - Globals.AGENT_SIZE))
@@ -128,7 +131,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
   }
 
   def update(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
-    vision.update(delta)
+    visionModule.update(delta)
 //
 //    if (debug) {
 //      println("velocity: " + currentVelocityX + " " + currentVelocityY)
@@ -207,7 +210,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     }
 
     if (controlScheme == ControlScheme.Agent) {
-      behavior.getBehavior(behavior.currentBehavior).perform(delta)
+      currentBehavior.perform(delta)
     }
     else if (controlScheme == ControlScheme.Manual) {
       ControlScheme.handleManualControls(this, gc, delta, renderScale)
@@ -223,7 +226,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
       shape.setY(shape.getY + collisionVelocityY)
     }
 
-    vision.update(delta)
+    visionModule.update(delta)
 
 
   }
@@ -253,8 +256,8 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
   }
 
   def pushBack(pusher: Agent, pushed: Agent): Unit = {
-    if (pushed.behavior.currentBehavior == FollowBehavior.name || pushed.behavior.currentBehavior == SearchExitBehavior.name) {
-      if (pusher.behavior.currentBehavior == LeaderBehavior.name) {
+    if (pushed.currentBehavior.name == FollowBehavior.name || pushed.currentBehavior.name == SearchExitBehavior.name) {
+      if (pusher.currentBehavior.name == LeaderBehavior.name) {
         if (!pushed.beingPushed) {
           val vector = new Vector2f(pusher.currentVelocityX, pusher.currentVelocityY)
 
@@ -273,7 +276,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
         }
 
       }
-      else if ((pusher.behavior.currentBehavior == FollowBehavior.name || pushed.behavior.currentBehavior == SearchExitBehavior.name) && pusher.beingPushed) {
+      else if ((pusher.currentBehavior.name == FollowBehavior.name || pushed.currentBehavior.name == SearchExitBehavior.name) && pusher.beingPushed) {
         if (!pushed.beingPushed) {
           val vector = new Vector2f(currentVelocityX, currentVelocityY)
 
@@ -316,7 +319,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
     atDoor = false
 
-    followManager.followTimer.reset()
+    followTimer.reset()
 
     val newRoom: Room = entryDoor.leadingToDoor.room
 
@@ -335,7 +338,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
     goTowardsDoor = false
 
-    behavior.getBehavior(behavior.currentBehavior).afterChangeRoom()
+    currentBehavior.afterChangeRoom()
   }
 
   def setActor(actor: ActorRef): Unit = {
@@ -345,7 +348,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
   def draw(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
     g.drawImage(image, room.x + shape.getX - offsetX, room.y + shape.getY - offsetY)
 
-    vision.draw(g, offsetX, offsetY)
+    visionModule.draw(g, offsetX, offsetY)
   }
 
   def drawName(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
@@ -354,14 +357,14 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
       g.setColor(Color.blue)
     }
     g.drawString(name, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 40 - offsetY)
-    g.setColor(behavior.getBehavior(behavior.currentBehavior).color)
+    g.setColor(currentBehavior.color)
 
     var tag: String = ""
-    if (behavior.currentBehavior == FollowBehavior.name && followManager.followedAgent != null) {
-      tag = "[" + behavior.currentBehavior + " " + followManager.followedAgent.name + "]"
+    if (currentBehavior.name == FollowBehavior.name && followModule.followedAgent.name != null) {
+      tag = "[" + currentBehavior.name + " " + followModule.followedAgent.name + "]"
     }
     else {
-      tag = "[" + behavior.currentBehavior + "]"
+      tag = "[" + currentBehavior.name + "]"
 
     }
     g.drawString(tag, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 25 - offsetY)
@@ -463,7 +466,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 //      vector.setTheta(vector.getTheta + goAroundAngle)
 //    }
 
-    vector.setTheta(vector.getTheta + vision.colavoidAngle * 1.5f)
+    vector.setTheta(vector.getTheta + visionModule.colavoidAngle * 1.5f)
 
     walkAngle = vector.getTheta.floatValue()
 
@@ -478,4 +481,8 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     currentVelocityX = 0
     currentVelocityY = 0
   }
+
+  def currentBehavior: Behavior = behaviorModule.currentBehavior
+  def setBehavior(behaviorName: String): Unit = behaviorModule.setBehavior(behaviorName)
+  def follow(agent: Agent, posX: Float, posY: Float, atDistance: Float): Unit = currentBehavior.follow(agent, posX, posY, atDistance)
 }

@@ -30,9 +30,9 @@ class AvoidFireBehavior(agent: Agent, name: String, color: Color) extends Behavi
 
     }
     else if (agent.room.meetPointList.nonEmpty) {
-      agent.followManager.setFollow(agent.room.meetPointList.head.shape.getCenterX, agent.room.meetPointList.head.shape.getCenterY)
+      agent.followModule.setFollow(agent.room.meetPointList.head.shape.getCenterX, agent.room.meetPointList.head.shape.getCenterY)
 
-      agent.behavior.setBehavior(IdleBehavior.name)
+      agent.behaviorModule.setBehavior(IdleBehavior.name)
     }
   }
 
@@ -41,7 +41,7 @@ class AvoidFireBehavior(agent: Agent, name: String, color: Color) extends Behavi
   }
 
   override def afterChangeRoom(): Unit = {
-    agent.behavior.setBehavior(LeaderBehavior.name)
+    agent.behaviorModule.setBehavior(LeaderBehavior.name)
   }
 }
 

@@ -7,29 +7,22 @@ import org.newdawn.slick.{Color, Graphics}
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
-class AgentVision(agent: Agent) {
-  var firstRay: (Rectangle, Float) = (new Rectangle(0, 0, 0, 0), 0)
-  var lastRay: (Rectangle, Float) = (new Rectangle(0, 0, 0, 0), 0)
+class VisionModule private() {
 
-  var visionTimer: Timer = new Timer(Configuration.AGENT_VISION_TIMER + Random.nextInt(300) - 150)
-  visionTimer.start()
+  private var agent: Agent = _
 
-  var viewRayList: ListBuffer[Shape] = ListBuffer[Shape]()
+  private var firstRay: (Rectangle, Float) = _
+  private var lastRay: (Rectangle, Float) = _
 
-  var viewRayColorList: ListBuffer[Color] = ListBuffer[Color]()
+  private var visionTimer: Timer = _
 
-  var drawRays: Boolean = false
+  private var viewRayList: ListBuffer[Shape] = _
 
-  var colavoidAngle: Float = 0.0f
+  private var viewRayColorList: ListBuffer[Color] = _
 
-  for (_ <- 0 until 24) {
-    var polygon: Shape = new Polygon(new Rectangle(0, 0, 200, 1).getPoints)
-    viewRayList += polygon
-    viewRayColorList += Color.green
-  }
+  private var drawRays: Boolean = _
 
-
-
+  var colavoidAngle: Float = _
 
   def update(delta: Int) {
 
@@ -187,4 +180,35 @@ class AgentVision(agent: Agent) {
 
   }
 
+}
+
+
+object VisionModule {
+  def apply(agent: Agent): VisionModule = {
+    val visionModule = new VisionModule
+
+    visionModule.agent = agent
+
+    visionModule.firstRay = (new Rectangle(0, 0, 0, 0), 0)
+    visionModule.lastRay = (new Rectangle(0, 0, 0, 0), 0)
+
+    visionModule.visionTimer = new Timer(Configuration.AGENT_VISION_TIMER + Random.nextInt(300) - 150)
+    visionModule.visionTimer.start()
+
+    visionModule.viewRayList = ListBuffer[Shape]()
+
+    visionModule.viewRayColorList = ListBuffer[Color]()
+
+    visionModule.drawRays = false
+
+    visionModule.colavoidAngle = 0.0f
+
+    for (_ <- 0 until 24) {
+      var polygon: Shape = new Polygon(new Rectangle(0, 0, 200, 1).getPoints)
+      visionModule.viewRayList += polygon
+      visionModule.viewRayColorList += Color.green
+    }
+
+    visionModule
+  }
 }
