@@ -2,6 +2,7 @@ package com.kamilkurp.behavior
 
 import com.kamilkurp.agent.{Agent, AgentLeading}
 import com.kamilkurp.behavior_utils.Broadcasting
+import com.kamilkurp.building.Door
 import com.kamilkurp.util.{Configuration, ControlScheme, Timer}
 import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
@@ -20,26 +21,32 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
       return
     }
 
-    if (agent.followModule.lastSeenFollowedEntityTimer.timedOut()) {
-      agent.followModule.lostSightOfFollowedEntity = true
-      agent.followModule.lastSeenFollowedEntityTimer.stop()
-    }
 
-    if (agent.outOfWayTimer.timedOut()) {
-      agent.outOfWayTimer.stop()
-      agent.movingOutOfTheWay = false
-      if (agent.controlScheme != ControlScheme.Manual) {
+    if (agent.controlScheme != ControlScheme.Manual) {
 
-        if (!agent.movementModule.beingPushed) {
-          if (agent.getDistanceTo(agent.followModule.followX, agent.followModule.followY) > agent.followModule.followDistance) {
-            agent.movementModule.moveTowards(agent.followModule.followX, agent.followModule.followY)
+      if (!agent.movementModule.beingPushed && agent.followModule.followedAgent != null) {
+        if (agent.followModule.followedAgent.room == agent.room) {
+          if (agent.getDistanceTo(agent.followModule.followedAgent.shape.getCenterX, agent.followModule.followedAgent.shape.getCenterY) > agent.followModule.followDistance) {
+            agent.movementModule.moveTowards(agent.followModule.followedAgent.shape.getCenterX, agent.followModule.followedAgent.shape.getCenterY)
           }
           else {
             agent.movementModule.stopMoving()
           }
         }
+        else {
+          var door: Door = agent.doorLeadingToRoom(agent.weightedGraph, agent.followModule.followedAgent.room)
+
+          if (door != null) {
+            agent.doorToEnter = door
+
+            agent.movementModule.moveTowards(door)
+          }
+        }
+
+
       }
     }
+
 
     if (agent.room.meetPointList.nonEmpty) {
       agent.followModule.setFollow(agent.room.meetPointList.head.shape.getCenterX, agent.room.meetPointList.head.shape.getCenterY)

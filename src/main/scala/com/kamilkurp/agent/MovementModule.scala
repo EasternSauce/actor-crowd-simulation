@@ -25,7 +25,6 @@ class MovementModule {
   var pastPositionY: Float = _
   var goAroundObstacle: Boolean = _
   var goAroundAngle: Float = _
-  var goTowardsDoor: Boolean = _
   var slowTimer: Timer = _
   var lookTimer: Timer = _
 
@@ -226,8 +225,6 @@ object MovementModule {
 
     movementModule.goAroundObstacle = false
     movementModule.goAroundAngle = 0
-
-    movementModule.goTowardsDoor = false
 
     movementModule.slowTimer = new Timer(Configuration.AGENT_SLOW_TIMER)
     movementModule.lookTimer = new Timer(Configuration.AGENT_LOOK_TIMER)

@@ -11,8 +11,6 @@ class FollowModule private() {
   var followDistance: Float = _
   var followedAgent: Agent = _
   var followTimer: Timer = _
-  var lastSeenFollowedEntityTimer: Timer = _
-  var lostSightOfFollowedEntity: Boolean = _
 
   def setFollow(x: Float, y: Float): Unit = {
     _followX = x
@@ -32,11 +30,6 @@ object FollowModule {
     followModule.followDistance = 0
 
     followModule.followedAgent = null
-
-
-    followModule.lastSeenFollowedEntityTimer = new Timer(1000 + new Random().nextInt(600))
-
-    followModule.lostSightOfFollowedEntity = false
 
     followModule.followTimer = new Timer(Configuration.AGENT_FOLLOW_TIMER)
 

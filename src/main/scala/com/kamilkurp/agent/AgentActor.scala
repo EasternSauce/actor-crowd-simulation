@@ -28,26 +28,22 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
   override def receive: Receive = {
     case AgentWithinVision(that: Agent, distance: Float) =>
 
-      if (!agent.movementModule.goTowardsDoor) {
-        if (agent.currentBehavior.name != LeaderBehavior.name) {
-          if (that.currentBehavior.name == LeaderBehavior.name) {
-            agent.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
-            agent.followModule.lostSightOfFollowedEntity = false
-            agent.followModule.lastSeenFollowedEntityTimer.reset()
-            agent.followModule.lastSeenFollowedEntityTimer.start()
-          }
+      if (agent.currentBehavior.name != LeaderBehavior.name) {
+        if (that.currentBehavior.name == LeaderBehavior.name) {
+          if (agent.followModule.followedAgent == null) agent.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
         }
       }
 
 
+
     case AgentEnteredDoor(that, door, locationX, locationY) =>
-      if (that.currentBehavior.name == LeaderBehavior.name) {
-        agent.doorToEnter = door
-        agent.behaviorModule.follow(that, locationX, locationY, 0)
-        agent.followModule.followTimer.start()
-        agent.followModule.followTimer.reset()
-        agent.movementModule.goTowardsDoor = true
-      }
+//      if (that.currentBehavior.name == LeaderBehavior.name) {
+//        agent.doorToEnter = door
+//        agent.behaviorModule.follow(that, locationX, locationY, 0)
+//        agent.followModule.followTimer.start()
+//        agent.followModule.followTimer.reset()
+//        agent.movementModule.goTowardsDoor = true
+//      }
 
     case AgentLeading(entity, locationX, locationY) =>
       if (agent.currentBehavior.name == IdleBehavior.name || agent.currentBehavior.name == SearchExitBehavior.name || agent.currentBehavior.name == FollowBehavior.name) {

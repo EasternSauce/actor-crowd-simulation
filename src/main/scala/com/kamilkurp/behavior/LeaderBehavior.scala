@@ -18,9 +18,7 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
   def perform(delta: Int): Unit = {
     broadcastLeading()
 
-    var door: Door = null
-
-    door = agent.findDoorToEnterNext()
+    var door: Door = agent.findDoorToEnterNext()
 
     if (door != null) {
       agent.doorToEnter = door

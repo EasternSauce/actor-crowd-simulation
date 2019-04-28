@@ -115,6 +115,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     for (_ <- 0 until Configuration.NUMBER_OF_AGENTS) {
       val randomNameIndex = Random.nextInt(listOfNames.length)
       val randomName = listOfNames(randomNameIndex) + nameIndices(listOfNames(randomNameIndex))
+      //println("adding " + randomName)
       nameIndices.put(listOfNames(randomNameIndex), nameIndices(listOfNames(randomNameIndex)) + 1)
       val randomOffice = Random.nextInt(officeList.length)
       val room: Room = officeList(randomOffice)

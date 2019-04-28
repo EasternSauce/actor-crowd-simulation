@@ -28,8 +28,6 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
   var actor: ActorRef = _
   var atDoor: Boolean = _
 
-  var outOfWayTimer: Timer = _
-  var movingOutOfTheWay: Boolean = _
   var isFree: Boolean = _
   var doorToEnter: Door = _
 
@@ -51,13 +49,8 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
     atDoor = false
 
-    outOfWayTimer = new Timer(Configuration.AGENT_MOVE_OUT_OF_WAY_TIMER)
-
-    outOfWayTimer.start()
 
     followTimer = new Timer(Configuration.AGENT_FOLLOW_TIMER)
-
-    movingOutOfTheWay = false
 
     isFree = false
 
@@ -103,7 +96,9 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
     //visionModule.update(delta)
 
-
+    if (debug) {
+      Statistics.params.put("Location", room.name + " " + shape.getCenterX + " " + shape.getCenterY)
+    }
   }
 
   override def onCollision(entity: Entity): Unit = {
@@ -177,8 +172,6 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     room = newRoom
     shape.setX(newX)
     shape.setY(newY)
-
-    movementModule.goTowardsDoor = false
 
     currentBehavior.afterChangeRoom()
   }
