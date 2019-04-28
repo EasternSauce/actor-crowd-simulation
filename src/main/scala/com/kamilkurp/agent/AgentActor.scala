@@ -28,7 +28,7 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
   override def receive: Receive = {
     case AgentWithinVision(that: Agent, distance: Float) =>
 
-      if (!agent.goTowardsDoor) {
+      if (!agent.movementModule.goTowardsDoor) {
         if (agent.currentBehavior.name != LeaderBehavior.name) {
           if (that.currentBehavior.name == LeaderBehavior.name) {
             agent.follow(that, that.shape.getCenterX, that.shape.getCenterY, 120)
@@ -46,7 +46,7 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
         agent.behaviorModule.follow(that, locationX, locationY, 0)
         agent.followModule.followTimer.start()
         agent.followModule.followTimer.reset()
-        agent.goTowardsDoor = true
+        agent.movementModule.goTowardsDoor = true
       }
 
     case AgentLeading(entity, locationX, locationY) =>
@@ -55,7 +55,7 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
         val normalVector = new Vector2f(locationX - agent.shape.getCenterX, locationY - agent.shape.getCenterY)
         normalVector.normalise()
 
-        agent.walkAngle = normalVector.getTheta.floatValue()
+        agent.movementModule.walkAngle = normalVector.getTheta.floatValue()
         //agent.viewAngle = normalVector.getTheta.floatValue()
       }
 

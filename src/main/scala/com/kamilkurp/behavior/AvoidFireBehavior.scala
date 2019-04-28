@@ -19,11 +19,11 @@ class AvoidFireBehavior(agent: Agent, name: String, color: Color) extends Behavi
         val normalVector = new Vector2f(agent.lastEntryDoor.shape.getCenterX - agent.shape.getCenterX, agent.lastEntryDoor.shape.getCenterY - agent.shape.getCenterY)
         normalVector.normalise()
 
-        agent.walkAngle = normalVector.getTheta.floatValue()
+        agent.movementModule.walkAngle = normalVector.getTheta.floatValue()
 
-        if (!agent.beingPushed) {
-          if (!agent.atDoor) agent.moveTowards(agent.lastEntryDoor)
-          else agent.stopMoving()
+        if (!agent.movementModule.beingPushed) {
+          if (!agent.atDoor) agent.movementModule.moveTowards(agent.lastEntryDoor)
+          else agent.movementModule.stopMoving()
         }
 
       }

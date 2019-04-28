@@ -19,33 +19,33 @@ object ControlScheme extends Enumeration {
     var moved = false
 
     if (gc.getInput.isKeyDown(agent.controls._1)) {
-      agent.currentVelocityX = -Configuration.AGENT_SPEED
+      agent.movementModule.currentVelocityX = -Configuration.AGENT_SPEED
       moved = true
     }
     else if (gc.getInput.isKeyDown(agent.controls._2)) {
-      agent.currentVelocityX = Configuration.AGENT_SPEED
+      agent.movementModule.currentVelocityX = Configuration.AGENT_SPEED
       moved = true
     }
     else {
-      agent.currentVelocityX = 0
+      agent.movementModule.currentVelocityX = 0
     }
     if (gc.getInput.isKeyDown(agent.controls._3)) {
-      agent.currentVelocityY = -Configuration.AGENT_SPEED
+      agent.movementModule.currentVelocityY = -Configuration.AGENT_SPEED
       moved = true
     }
     else if (gc.getInput.isKeyDown(agent.controls._4)) {
-      agent.currentVelocityY = Configuration.AGENT_SPEED
+      agent.movementModule.currentVelocityY = Configuration.AGENT_SPEED
       moved = true
     }
     else {
-      agent.currentVelocityY = 0
+      agent.movementModule.currentVelocityY = 0
     }
 
-    if (agent.currentVelocityX != 0 || agent.currentVelocityY != 0) {
-      val normalVector = new Vector2f(agent.currentVelocityX, agent.currentVelocityY)
+    if (agent.movementModule.currentVelocityX != 0 || agent.movementModule.currentVelocityY != 0) {
+      val normalVector = new Vector2f(agent.movementModule.currentVelocityX, agent.movementModule.currentVelocityY)
       normalVector.normalise()
 
-      agent.walkAngle = normalVector.getTheta.floatValue()
+      agent.movementModule.walkAngle = normalVector.getTheta.floatValue()
     }
 
     if (moved) {
@@ -60,7 +60,8 @@ object ControlScheme extends Enumeration {
     val room1 = if (roomsFiltered.nonEmpty) roomsFiltered.head else null
 
     if (Configuration.ADD_MANUAL_AGENT) {
-      val agent = new Agent(Configuration.MANUAL_AGENT_NAME, room1, ControlScheme.Manual, (Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S), agentImage, roomGraph)
+      val agent = new Agent(Configuration.MANUAL_AGENT_NAME, room1, ControlScheme.Manual, agentImage, roomGraph)
+      agent.setControls((Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S))
       agent.init()
 
       val actor = actorSystem.actorOf(Props(new AgentActor(Configuration.MANUAL_AGENT_NAME, agent)))

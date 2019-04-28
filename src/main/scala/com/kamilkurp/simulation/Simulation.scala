@@ -233,7 +233,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       untilAlarmTimer.reset()
 
       agentList.foreach(agent => {
-        if (agent.currentBehavior == IdleBehavior.name) {
+        if (agent.currentBehavior.name == IdleBehavior.name) {
           agent.setBehavior(SearchExitBehavior.name)
         }
       })

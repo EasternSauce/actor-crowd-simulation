@@ -27,7 +27,7 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
 
       if (agent.controlScheme != ControlScheme.Manual) {
         if (!agent.atDoor) {
-          agent.moveTowards(door)
+          agent.movementModule.moveTowards(door)
 
           if (agent.getDistanceTo(agent.doorToEnter.shape.getCenterX, agent.doorToEnter.shape.getCenterY) < 100) {
             waitAtDoorTimer.reset()
@@ -38,7 +38,7 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
         else {
 //          if (!waitAtDoorTimer.timedOut()) agent.stopMoving()
 //          else
-          agent.moveTowards(door)
+          agent.movementModule.moveTowards(door)
         }
       }
 

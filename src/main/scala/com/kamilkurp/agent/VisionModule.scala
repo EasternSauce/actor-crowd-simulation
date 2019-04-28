@@ -37,7 +37,7 @@ class VisionModule private() {
       val rect = new Rectangle(x, y, 1200, 1)
       var polygon: Shape = new Polygon(rect.getPoints)
 
-      val radianAngle = agent.viewAngle - 60 + i * 5
+      val radianAngle = agent.movementModule.viewAngle - 60 + i * 5
       val t: Transform = Transform.createRotateTransform(Math.toRadians(radianAngle).toFloat, x, y)
       polygon = polygon.transform(t)
 

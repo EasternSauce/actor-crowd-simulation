@@ -18,36 +18,24 @@ import scala.util.Random
 
 class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, var image: Image, var roomGraph: SimpleGraph[Room, DefaultEdge]) extends Entity {
 
-  override var currentVelocityX: Float = _
-  override var currentVelocityY: Float = _
+
   override var shape: Shape = _
   override var debug: Boolean = _
-  var walkAngle: Float = _
-  var viewAngle: Float = _
-  private var visionModule: VisionModule = _
+
+  var visionModule: VisionModule = _
   var controls: (Int, Int, Int, Int) = _
-  var slow: Float = _
-  var beingPushed: Boolean = _
-  var pushedTimer: Timer = _
+
   var actor: ActorRef = _
   var atDoor: Boolean = _
-  var slowTimer: Timer = _
-  var lookTimer: Timer = _
+
   var outOfWayTimer: Timer = _
-  var checkProgressTimer: Timer = _
   var movingOutOfTheWay: Boolean = _
   var isFree: Boolean = _
   var doorToEnter: Door = _
-  var pastPositionX: Float = _
-  var pastPositionY: Float = _
-  var goAroundObstacle: Boolean = _
-  var goAroundAngle: Float = _
-  var goTowardsDoor: Boolean = _
-  var changedVelocityX: Float = _
-  var changedVelocityY: Float = _
-  var changedVelocity: Boolean = _
+
   var followModule: FollowModule = _
   var behaviorModule: BehaviorModule = _
+  var movementModule: MovementModule = _
   var lastEntryDoor: Door = _
   var weightedGraph: SimpleWeightedGraph[Room, DefaultWeightedEdge] = _
 
@@ -55,57 +43,28 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
   var followTimer: Timer = _
 
-
-  def this(name: String, room: Room, controlScheme: ControlScheme, controls: (Int, Int, Int, Int), image: Image, roomGraph: SimpleGraph[Room, DefaultEdge]) {
-    this(name, room, controlScheme, image, roomGraph)
-    this.controls = controls
-  }
-
   def init(): Unit = {
-    currentVelocityX = 0.0f
-    currentVelocityY = 0.0f
-    shape = new Rectangle(0, 0, Globals.AGENT_SIZE, Globals.AGENT_SIZE)
 
-    walkAngle = 0.0f
-    viewAngle = 0.0f
+    shape = new Rectangle(0, 0, Globals.AGENT_SIZE, Globals.AGENT_SIZE)
 
     behaviorModule = BehaviorModule(this)
     visionModule = VisionModule(this)
+    movementModule = MovementModule(this)
 
-    slow = 0.0f
-    beingPushed = false
-
-    pushedTimer = new Timer(500)
     atDoor = false
 
-    slowTimer = new Timer(Configuration.AGENT_SLOW_TIMER)
-    lookTimer = new Timer(Configuration.AGENT_LOOK_TIMER)
     outOfWayTimer = new Timer(Configuration.AGENT_MOVE_OUT_OF_WAY_TIMER)
-    checkProgressTimer = new Timer(2000)
-    slowTimer.start()
-    lookTimer.start()
+
     outOfWayTimer.start()
-    checkProgressTimer.start()
 
     followTimer = new Timer(Configuration.AGENT_FOLLOW_TIMER)
-
 
     movingOutOfTheWay = false
 
     isFree = false
 
-    pastPositionX = 0
-    pastPositionY = 0
-    goAroundObstacle = false
-    goAroundAngle = 0
-
     debug = false
 
-    goTowardsDoor = false
-
-    changedVelocityX = 0.0f
-    changedVelocityY = 0.0f
-    changedVelocity = false
 
     lastEntryDoor = null
 
@@ -126,124 +85,28 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     }
 
     weightedGraph = Globals.copyGraph(roomGraph)
+  }
 
-    //addRoomToGraph(room)
+  def setControls(controls: (Int, Int, Int, Int)): Unit = {
+    this.controls = controls
   }
 
   def update(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
     visionModule.update(delta)
-//
-//    if (debug) {
-//      println("velocity: " + currentVelocityX + " " + currentVelocityY)
-//    }
 
-    if (changedVelocity) {
-      changedVelocity = false
-      currentVelocityX = changedVelocityX
-      currentVelocityY = changedVelocityY
-    }
+    movementModule.update(gc, delta, renderScale)
 
-    if (checkProgressTimer.timedOut()) {
-      checkProgressTimer.reset()
-
-      val progress = getDistanceTo(pastPositionX, pastPositionY)
-
-
-      if (progress < 60) {
-        goAroundObstacle = true
-        goAroundAngle = Random.nextInt(60) - 30
-      }
-      else goAroundObstacle = false
-
-      pastPositionX = shape.getX
-      pastPositionY = shape.getY
-    }
-
-    if (lookTimer.timedOut() && walkAngle != viewAngle) {
-
-      lookTimer.reset()
-
-      def findSideToTurn(currentAngle: Float, desiredAngle: Float): Boolean = {
-        var clockwise = false
-        if (currentAngle < 180) {
-          if (desiredAngle - currentAngle >= 0 && desiredAngle - currentAngle < 180) clockwise = true
-          else clockwise = false
-        }
-        else {
-          if (currentAngle - desiredAngle >= 0 && currentAngle - desiredAngle < 180) clockwise = false
-          else clockwise = true
-
-        }
-        clockwise
-      }
-
-
-      def adjustViewAngle(clockwise: Boolean): Unit = {
-        val turnSpeed = Configuration.AGENT_TURN_SPEED
-        if (Math.abs(viewAngle - walkAngle) > turnSpeed && Math.abs((viewAngle + 180) % 360 - (walkAngle + 180) % 360) > turnSpeed) {
-          if (clockwise) { // clockwise
-            if (viewAngle + turnSpeed < 360) viewAngle += turnSpeed
-            else viewAngle = viewAngle + turnSpeed - 360
-          }
-          else { // counterclockwise
-            if (viewAngle - turnSpeed > 0) viewAngle -= turnSpeed
-            else viewAngle = viewAngle - turnSpeed + 360
-          }
-        }
-        else {
-          viewAngle = walkAngle
-        }
-      }
-
-      adjustViewAngle(findSideToTurn(viewAngle, walkAngle))
-
-    }
-
-    if (slowTimer.timedOut()) {
-      slow = 0f
-      slowTimer.stop()
-    }
-
-    if (pushedTimer.timedOut()) {
-      beingPushed = false
-      pushedTimer.stop()
-    }
-
-    if (controlScheme == ControlScheme.Agent) {
-      currentBehavior.perform(delta)
-    }
-    else if (controlScheme == ControlScheme.Manual) {
-      ControlScheme.handleManualControls(this, gc, delta, renderScale)
-    }
-
-    val collisionVelocityX = currentVelocityX * delta
-    val collisionVelocityY = currentVelocityY * delta
-    val collisionDetails = Globals.manageCollisions(room, this, collisionVelocityX, collisionVelocityY)
-    if (!collisionDetails.colX) {
-      shape.setX(shape.getX + collisionVelocityX)
-    }
-    if (!collisionDetails.colY) {
-      shape.setY(shape.getY + collisionVelocityY)
-    }
-
-    visionModule.update(delta)
+    //visionModule.update(delta)
 
 
   }
-
-
 
   override def onCollision(entity: Entity): Unit = {
     if (entity.getClass == classOf[Agent]) {
 
       val agent: Agent = entity.asInstanceOf[Agent]
-//
-//      if (debug) {
-//        println("collision with " + agent.name)
-//      }
 
-      pushBack(this, agent)
-
+      movementModule.pushBack(this, agent)
 
     }
 
@@ -253,56 +116,30 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
       shape.setY(1000)
       room.agentList -= this
     }
-  }
 
-  def pushBack(pusher: Agent, pushed: Agent): Unit = {
-    if (pushed.currentBehavior.name == FollowBehavior.name || pushed.currentBehavior.name == SearchExitBehavior.name) {
-      if (pusher.currentBehavior.name == LeaderBehavior.name) {
-        if (!pushed.beingPushed) {
-          val vector = new Vector2f(pusher.currentVelocityX, pusher.currentVelocityY)
+    if (entity.getClass == classOf[Door]) {
+      val door = entity.asInstanceOf[Door]
+      val leadingToDoor = door.leadingToDoor
+      var normalVector = new Vector2f(movementModule.currentVelocityX, movementModule.currentVelocityY)
 
-          vector.setTheta(vector.getTheta + Random.nextInt(30) - 15)
+      normalVector.normalise()
 
-          pushed.changedVelocityX = vector.x
-          pushed.changedVelocityY = vector.y
-          pushed.changedVelocity = true
+      for (_ <- 1 to 36) {
+        normalVector.setTheta(normalVector.getTheta + 10)
+        val spotX = leadingToDoor.posX + normalVector.x * 50
+        val spotY = leadingToDoor.posY + normalVector.y * 50
 
-          pushed.walkAngle = vector.getTheta.toFloat
-          pushed.viewAngle = vector.getTheta.toFloat
-
-          pushed.beingPushed = true
-          pushed.pushedTimer.reset()
-          pushed.pushedTimer.start()
+        if (!Globals.isRectOccupied(leadingToDoor.room, spotX - 5, spotY - 5, shape.getWidth + 10, shape.getHeight + 10, this)) {
+          changeRoom(door, spotX, spotY)
+          return
         }
-
-      }
-      else if ((pusher.currentBehavior.name == FollowBehavior.name || pushed.currentBehavior.name == SearchExitBehavior.name) && pusher.beingPushed) {
-        if (!pushed.beingPushed) {
-          val vector = new Vector2f(currentVelocityX, currentVelocityY)
-
-          vector.setTheta(vector.getTheta + Random.nextInt(30) - 15)
-
-          pushed.changedVelocityX = vector.x
-          pushed.changedVelocityY = vector.y
-          pushed.changedVelocity = true
-
-          pushed.walkAngle = vector.getTheta.toFloat
-          pushed.viewAngle = vector.getTheta.toFloat
-
-          pushed.beingPushed = true
-          pushed.pushedTimer.time = pusher.pushedTimer.time
-          pushed.pushedTimer.start()
-        }
-
       }
     }
   }
 
-  override def changeRoom(entryDoor: Door, newX: Float, newY: Float): Unit = {
 
-//    if (debug) {
-//      println("changeRoom")
-//    }
+
+  override def changeRoom(entryDoor: Door, newX: Float, newY: Float): Unit = {
     lastEntryDoor = entryDoor
 
     if (doorToEnter != entryDoor) {
@@ -336,7 +173,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     shape.setX(newX)
     shape.setY(newY)
 
-    goTowardsDoor = false
+    movementModule.goTowardsDoor = false
 
     currentBehavior.afterChangeRoom()
   }
@@ -353,7 +190,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
   def drawName(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
     g.setColor(Color.pink)
-    if(beingPushed) {
+    if(movementModule.beingPushed) {
       g.setColor(Color.blue)
     }
     g.drawString(name, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 40 - offsetY)
@@ -408,12 +245,9 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     val maxDistance: Float = doorDistances.values.max
 
     for (pair <- doorDistances) {
-      //println(pair._2)
       val edge: DefaultWeightedEdge = graphCopy.getEdge(room, pair._1.leadingToDoor.room)
       if (edge != null) graphCopy.setEdgeWeight(edge, pair._2 / maxDistance)
-      //println(pair._2 / maxDistance)
     }
-    //println()
 
     import org.jgrapht.alg.shortestpath.DijkstraShortestPath
     val dijkstraShortestPath = new DijkstraShortestPath(graphCopy)
@@ -430,15 +264,6 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
         return null
     }
 
-
-    if (debug) {
-      print("shortest path: " + "from " + room + " to " + meetPointRoom + " ")
-      for (i <- 0 until shortestPath.size()) {
-        print(shortestPath.get(i).name + " ")
-      }
-      println()
-    }
-
     for (door: Door <- room.doorList) {
       // return NEXT room on path (second element)
       if (shortestPath.size() > 1 && door.leadingToDoor.room == shortestPath.get(1)) {
@@ -448,38 +273,6 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
 
     null
-  }
-
-  def moveTowards(x: Float, y: Float): Unit = {
-    goTo(x, y)
-  }
-
-  def moveTowards(entity: Entity): Unit = {
-    goTo(entity.shape.getCenterX, entity.shape.getCenterY)
-  }
-
-  private def goTo(x: Float, y: Float): Unit = {
-    val vector = new Vector2f(x - shape.getCenterX, y - shape.getCenterY)
-    vector.normalise()
-
-//    if (goAroundObstacle) {
-//      vector.setTheta(vector.getTheta + goAroundAngle)
-//    }
-
-    vector.setTheta(vector.getTheta + visionModule.colavoidAngle * 1.5f)
-
-    walkAngle = vector.getTheta.floatValue()
-
-    if (!beingPushed) {
-      currentVelocityX = vector.x * Configuration.AGENT_SPEED * (1f - slow)
-      currentVelocityY = vector.y * Configuration.AGENT_SPEED * (1f - slow)
-    }
-
-  }
-
-  def stopMoving(): Unit = {
-    currentVelocityX = 0
-    currentVelocityY = 0
   }
 
   def currentBehavior: Behavior = behaviorModule.currentBehavior

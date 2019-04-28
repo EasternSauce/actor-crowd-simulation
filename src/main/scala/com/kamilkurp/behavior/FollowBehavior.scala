@@ -30,12 +30,12 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
       agent.movingOutOfTheWay = false
       if (agent.controlScheme != ControlScheme.Manual) {
 
-        if (!agent.beingPushed) {
+        if (!agent.movementModule.beingPushed) {
           if (agent.getDistanceTo(agent.followModule.followX, agent.followModule.followY) > agent.followModule.followDistance) {
-            agent.moveTowards(agent.followModule.followX, agent.followModule.followY)
+            agent.movementModule.moveTowards(agent.followModule.followX, agent.followModule.followY)
           }
           else {
-            agent.stopMoving()
+            agent.movementModule.stopMoving()
           }
         }
       }

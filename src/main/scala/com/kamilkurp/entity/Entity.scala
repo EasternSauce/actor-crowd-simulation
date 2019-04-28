@@ -6,8 +6,6 @@ import org.newdawn.slick.geom.Shape
 
 abstract class Entity() {
   var name: String
-  var currentVelocityX: Float
-  var currentVelocityY: Float
   var room: Room
   var image: Image
 

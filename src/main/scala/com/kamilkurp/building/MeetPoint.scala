@@ -6,8 +6,6 @@ import org.newdawn.slick.{Color, Graphics, Image}
 
 class MeetPoint(var name: String, var room: Room, var posX: Float, var posY: Float) extends Entity {
 
-  override var currentVelocityX: Float = 0
-  override var currentVelocityY: Float = 0
   override var image: Image = _
   override var shape: Shape = _
   override var debug: Boolean = false

@@ -8,8 +8,6 @@ import org.newdawn.slick.{Graphics, Image}
 class Flames(var room: Room, var posX: Float, var posY: Float, var image: Image) extends Entity {
 
   override var name: String = _
-  override var currentVelocityX: Float = _
-  override var currentVelocityY: Float = _
   override var shape: Shape = _
   override var debug: Boolean = false
 
@@ -17,8 +15,6 @@ class Flames(var room: Room, var posX: Float, var posY: Float, var image: Image)
 
 
   name = "fire"
-  currentVelocityX = 0
-  currentVelocityY = 0
   dontUpdate = false
   shape = new Rectangle(posX, posY, image.getWidth, image.getHeight)
 

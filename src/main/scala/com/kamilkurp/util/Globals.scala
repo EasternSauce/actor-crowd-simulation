@@ -1,5 +1,7 @@
 package com.kamilkurp.util
 
+import java.util.ConcurrentModificationException
+
 import com.kamilkurp.building.Room
 import com.kamilkurp.entity.Entity
 import org.jgrapht.Graph
@@ -35,7 +37,18 @@ object Globals {
       newGraph.addVertex(room)
     }
 
-    val edgeArray: Array[AnyRef] = graph.edgeSet().toArray
+
+    var edgeArray: Array[AnyRef] = null
+
+    while(edgeArray == null) {
+      try {
+        edgeArray = graph.edgeSet().toArray
+      } catch {
+        case _: ConcurrentModificationException =>
+          edgeArray = null
+      }
+    }
+
     for (edgeRef <- edgeArray) {
       val edge = edgeRef.asInstanceOf[DefaultWeightedEdge]
       val weightedEdge: DefaultWeightedEdge = newGraph.addEdge(graph.getEdgeSource(edge), graph.getEdgeTarget(edge))

@@ -6,8 +6,6 @@ import org.newdawn.slick.geom.{Rectangle, Shape, Vector2f}
 import org.newdawn.slick.{Color, Graphics, Image}
 
 class Door(var name: String, var room: Room, var posX: Float, var posY: Float, var image: Image) extends Entity {
-  override var currentVelocityX = 0.0f
-  override var currentVelocityY = 0.0f
   override var shape: Shape = _
   override var debug: Boolean = false
 
@@ -27,41 +25,7 @@ class Door(var name: String, var room: Room, var posX: Float, var posY: Float, v
   }
 
   override def onCollision(entity: Entity): Unit = {
-    var normalVector = new Vector2f(entity.currentVelocityX, entity.currentVelocityY)
 
-//    if (entity.debug) {
-//      println(normalVector.length())
-//    }
-
-    normalVector.normalise()
-//
-//    if (entity.debug) {
-//      println("normalized" + normalVector.length())
-//    }
-//
-//    if (entity.debug) {
-//      println("on coll")
-//    }
-
-
-    for (_ <- 1 to 36) {
-      normalVector.setTheta(normalVector.getTheta + 10)
-      val spotX = leadingToDoor.posX + normalVector.x * 50
-      val spotY = leadingToDoor.posY + normalVector.y * 50
-//
-//      if (entity.debug) {
-//        println("checking spot " + spotX + " " + spotY)
-//      }
-
-      if (!Globals.isRectOccupied(leadingToDoor.room, spotX- 5, spotY - 5, entity.shape.getWidth + 10, entity.shape.getHeight + 10, entity)) {
-//        if (entity.debug) {
-//          println("unocuppied")
-//        }
-
-        entity.changeRoom(this, spotX, spotY)
-        return
-      }
-    }
 
   }
 

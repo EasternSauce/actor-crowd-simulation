@@ -27,11 +27,11 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
         val normalVector = new Vector2f(doorToEnterNext.shape.getCenterX - agent.shape.getCenterX, doorToEnterNext.shape.getCenterY - agent.shape.getCenterY)
         normalVector.normalise()
 
-        agent.walkAngle = normalVector.getTheta.floatValue()
+        agent.movementModule.walkAngle = normalVector.getTheta.floatValue()
 
-        if (!agent.beingPushed) {
-          if (!agent.atDoor) agent.moveTowards(doorToEnterNext)
-          else agent.stopMoving()
+        if (!agent.movementModule.beingPushed) {
+          if (!agent.atDoor) agent.movementModule.moveTowards(doorToEnterNext)
+          else agent.movementModule.stopMoving()
         }
 
       }
