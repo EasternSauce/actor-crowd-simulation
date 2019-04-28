@@ -47,9 +47,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
     shape = new Rectangle(0, 0, Globals.AGENT_SIZE, Globals.AGENT_SIZE)
 
-    behaviorModule = BehaviorModule(this)
-    visionModule = VisionModule(this)
-    movementModule = MovementModule(this)
+
 
     atDoor = false
 
@@ -71,7 +69,13 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     avoidFireTimer = new Timer(3000)
     avoidFireTimer.time = avoidFireTimer.timeout+1
 
+    weightedGraph = Globals.copyGraph(roomGraph)
+
+
     followModule = FollowModule()
+    behaviorModule = BehaviorModule(this)
+    visionModule = VisionModule(this)
+    movementModule = MovementModule(this)
 
     while (!isFree) {
       shape.setX(Random.nextInt(room.w - Globals.AGENT_SIZE))
@@ -84,7 +88,8 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
       }
     }
 
-    weightedGraph = Globals.copyGraph(roomGraph)
+
+
   }
 
   def setControls(controls: (Int, Int, Int, Int)): Unit = {
@@ -229,12 +234,15 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
       if (room.meetPointList.nonEmpty) meetPointRoom = room
     }
 
-    if (!roomGraph.containsVertex(meetPointRoom)) {
+    doorLeadingToRoom(weightedGraph, meetPointRoom)
+  }
+
+  def doorLeadingToRoom(graph: SimpleWeightedGraph[Room, DefaultWeightedEdge], targetRoom: Room): Door = {
+    if (!graph.containsVertex(targetRoom)) {
       return null
     }
 
     var graphCopy: SimpleWeightedGraph[Room, DefaultWeightedEdge] = Globals.copyGraph(weightedGraph)
-
 
     var doorDistances: mutable.Map[Door, Float] = mutable.Map[Door, Float]()
 
@@ -249,12 +257,30 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
       if (edge != null) graphCopy.setEdgeWeight(edge, pair._2 / maxDistance)
     }
 
+    val path = shortestPath(graphCopy, room, targetRoom)
+
+    if (path == null) return null
+
+    for (door: Door <- room.doorList) {
+      // return NEXT room on path (second element)
+      if (path.size() > 1 && door.leadingToDoor.room == path.get(1)) {
+        return door
+      }
+    }
+
+
+    null
+
+  }
+
+
+  def shortestPath(graph: SimpleWeightedGraph[Room, DefaultWeightedEdge], from: Room, to: Room): java.util.List[Room] = {
     import org.jgrapht.alg.shortestpath.DijkstraShortestPath
-    val dijkstraShortestPath = new DijkstraShortestPath(graphCopy)
+    val dijkstraShortestPath = new DijkstraShortestPath(graph)
 
     var shortestPath: java.util.List[Room] = null
     try {
-      shortestPath = dijkstraShortestPath.getPath(room, meetPointRoom).getVertexList
+      shortestPath = dijkstraShortestPath.getPath(room, to).getVertexList
 
     }
     catch {
@@ -264,15 +290,7 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
         return null
     }
 
-    for (door: Door <- room.doorList) {
-      // return NEXT room on path (second element)
-      if (shortestPath.size() > 1 && door.leadingToDoor.room == shortestPath.get(1)) {
-        return door
-      }
-    }
-
-
-    null
+    shortestPath
   }
 
   def currentBehavior: Behavior = behaviorModule.currentBehavior

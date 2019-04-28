@@ -27,7 +27,7 @@ class IdleBehavior(agent: Agent, name: String, color: Color) extends Behavior(ag
       if (agent.room.meetPointList.nonEmpty) {
         agent.followModule.setFollow(agent.room.meetPointList.head.shape.getCenterX, agent.room.meetPointList.head.shape.getCenterY)
 
-        agent.behaviorModule.setBehavior(HoldMeetPointBehavior.name)
+        agent.setBehavior(HoldMeetPointBehavior.name)
       }
 
 
@@ -35,7 +35,7 @@ class IdleBehavior(agent: Agent, name: String, color: Color) extends Behavior(ag
   }
 
   override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
-    agent.behaviorModule.setBehavior(FollowBehavior.name)
+    agent.setBehavior(FollowBehavior.name)
 
     agent.followModule.setFollow(posX, posY)
     agent.followModule.followDistance = atDistance

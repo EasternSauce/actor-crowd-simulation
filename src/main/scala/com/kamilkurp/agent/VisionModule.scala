@@ -76,6 +76,16 @@ class VisionModule private() {
       }
     })
 
+    agent.room.flamesList.foreach(that => {
+      for (i <- viewRayList.indices) {
+        if (that.shape.intersects(viewRayList(i))) {
+          if (agent.getDistanceTo(that) < 120) {
+            viewRayColorList(i) = Color.red
+          }
+        }
+      }
+    })
+
 
 
     var largestClusterPos = -1

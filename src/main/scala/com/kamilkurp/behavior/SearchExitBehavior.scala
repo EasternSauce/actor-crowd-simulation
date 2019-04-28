@@ -40,12 +40,12 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
     else if (agent.room.meetPointList.nonEmpty) {
       agent.followModule.setFollow(agent.room.meetPointList.head.shape.getCenterX, agent.room.meetPointList.head.shape.getCenterY)
 
-      agent.behaviorModule.setBehavior(IdleBehavior.name)
+      agent.setBehavior(IdleBehavior.name)
     }
   }
 
   override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
-    agent.behaviorModule.setBehavior(FollowBehavior.name)
+    agent.setBehavior(FollowBehavior.name)
 
     agent.followModule.setFollow(posX, posY)
     agent.followModule.followDistance = atDistance

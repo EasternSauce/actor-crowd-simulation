@@ -67,11 +67,11 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
 
       //agent.behaviorManager.setBehavior(AvoidFireBehavior.name)
 
-      val edgeIter = agent.weightedGraph.edgeSet().iterator()
+      val edgeArray = agent.weightedGraph.edgeSet().toArray
 
       var toRemove: ListBuffer[DefaultWeightedEdge] = new ListBuffer[DefaultWeightedEdge]()
-      while(edgeIter.hasNext) {
-        val edge = edgeIter.next()
+      for (edgeRef <- edgeArray){
+        val edge = edgeRef.asInstanceOf[DefaultWeightedEdge]
 
         if(agent.doorToEnter != null) {
           if (agent.weightedGraph.getEdgeSource(edge) == agent.room && agent.weightedGraph.getEdgeTarget(edge) == agent.doorToEnter.leadingToDoor.room) {
@@ -79,27 +79,22 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
             toRemove += edge
           }
         }
-
-
       }
 
       for (edge <- toRemove) {
-        if (agent.weightedGraph.getEdgeTarget(edge).meetPointList.isEmpty) {
+
           if (agent.debug) {
             println("removed edge " + agent.weightedGraph.getEdgeSource(edge) + " " + agent.weightedGraph.getEdgeTarget(edge))
           }
-          agent.weightedGraph.removeEdge(edge)
 
-        }
+//        if (agent.weightedGraph.getEdgeTarget(edge).meetPointList.nonEmpty) {
+//          agent.setBehavior(AvoidFireBehavior.name)
+//        }
+        agent.weightedGraph.removeEdge(edge)
+
       }
 
-      agent.doorToEnter = agent.findDoorToEnterNext()
-
-
-
-
-
-
-
+      if (agent.currentBehavior.name == LeaderBehavior.name) agent.doorToEnter = agent.findDoorToEnterNext()
+      //if (agent.currentBehavior.name == AvoidFireBehavior.name) agent.doorToEnter = agent.
   }
 }
