@@ -8,7 +8,5 @@ abstract class Behavior(val agent: Agent, val name: String, val color: Color) {
 
   def perform(delta: Int): Unit
 
-  def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit
-
   def afterChangeRoom(): Unit
 }

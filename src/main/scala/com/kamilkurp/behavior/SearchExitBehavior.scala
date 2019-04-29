@@ -10,8 +10,6 @@ import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
-  val broadcastTimer: Timer = new Timer(Configuration.AGENT_BROADCAST_TIMER)
-
   var doorToEnterNext: Door = _
 
   override def init(): Unit = {
@@ -38,19 +36,12 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
 
     }
     else if (agent.room.meetPointList.nonEmpty) {
-      agent.followModule.setFollow(agent.room.meetPointList.head.shape.getCenterX, agent.room.meetPointList.head.shape.getCenterY)
+      agent.followX = agent.room.meetPointList.head.shape.getCenterX
+      agent.followY = agent.room.meetPointList.head.shape.getCenterY
+
 
       agent.setBehavior(IdleBehavior.name)
     }
-  }
-
-  override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
-    agent.setBehavior(FollowBehavior.name)
-
-    agent.followModule.setFollow(posX, posY)
-    agent.followModule.followDistance = atDistance
-    agent.followModule.followedAgent = that
-    agent.followModule.followTimer.reset()
   }
 
   override def afterChangeRoom(): Unit = {
@@ -71,7 +62,7 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
 
         if (leadingToRoom.name.startsWith("corr")) doorToCorrList += doorInRoom
 
-        if (leadingToRoom.meetPointList.nonEmpty || (leadingToRoom.name.startsWith("corr") && !agent.roomGraph.containsVertex(leadingToRoom))) {
+        if (leadingToRoom.meetPointList.nonEmpty || (leadingToRoom.name.startsWith("corr") && !agent.mentalMapGraph.containsVertex(leadingToRoom))) {
           door = doorInRoom
         }
       }

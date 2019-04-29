@@ -12,10 +12,6 @@ class StationaryBehavior(agent: Agent, name: String, color: Color) extends Behav
 
   }
 
-  override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
-
-  }
-
   override def afterChangeRoom(): Unit = {
 
   }

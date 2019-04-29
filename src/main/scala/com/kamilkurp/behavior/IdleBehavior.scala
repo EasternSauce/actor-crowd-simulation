@@ -25,22 +25,14 @@ class IdleBehavior(agent: Agent, name: String, color: Color) extends Behavior(ag
       else agent.movementModule.moveTowards(agent.shape.getX + (Random.nextInt(3) - 1) * 50f, agent.shape.getY + (Random.nextInt(3) - 1) * 50f)
 
       if (agent.room.meetPointList.nonEmpty) {
-        agent.followModule.setFollow(agent.room.meetPointList.head.shape.getCenterX, agent.room.meetPointList.head.shape.getCenterY)
+        agent.followX = agent.room.meetPointList.head.shape.getCenterX
+        agent.followY = agent.room.meetPointList.head.shape.getCenterY
 
         agent.setBehavior(HoldMeetPointBehavior.name)
       }
 
 
     }
-  }
-
-  override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
-    agent.setBehavior(FollowBehavior.name)
-
-    agent.followModule.setFollow(posX, posY)
-    agent.followModule.followDistance = atDistance
-    agent.followModule.followedAgent = that
-    agent.followModule.followTimer.reset()
   }
 
   override def afterChangeRoom(): Unit = {

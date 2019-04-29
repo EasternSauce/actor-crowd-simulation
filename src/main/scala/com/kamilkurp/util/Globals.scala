@@ -8,26 +8,6 @@ import org.jgrapht.Graph
 import org.jgrapht.graph.{DefaultEdge, DefaultWeightedEdge, SimpleGraph, SimpleWeightedGraph}
 
 object Globals {
-  def copyGraph(graph: Graph[Room, DefaultEdge]): SimpleWeightedGraph[Room, DefaultWeightedEdge] = {
-    val newGraph = new SimpleWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
-
-    val vertexIter: java.util.Iterator[Room] = graph.vertexSet().iterator()
-    while(vertexIter.hasNext) {
-      val room = vertexIter.next()
-      newGraph.addVertex(room)
-    }
-
-    val edgeIter: java.util.Iterator[DefaultEdge] = graph.edgeSet().iterator()
-    while(edgeIter.hasNext) {
-      val edge = edgeIter.next()
-      val weightedEdge: DefaultWeightedEdge = newGraph.addEdge(graph.getEdgeSource(edge), graph.getEdgeTarget(edge))
-      newGraph.setEdgeWeight(weightedEdge, 1.0f)
-
-    }
-
-    newGraph
-  }
-
   def copyGraph(graph: SimpleWeightedGraph[Room, DefaultWeightedEdge]): SimpleWeightedGraph[Room, DefaultWeightedEdge] = {
     val newGraph = new SimpleWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
 

@@ -8,7 +8,7 @@ import com.kamilkurp.flame.FlamesManager
 import com.kamilkurp.stats.Statistics
 import com.kamilkurp.util._
 import org.jgrapht.Graph
-import org.jgrapht.graph.{DefaultEdge, SimpleGraph}
+import org.jgrapht.graph.{DefaultEdge, DefaultWeightedEdge, SimpleGraph, SimpleWeightedGraph}
 import org.newdawn.slick._
 import org.newdawn.slick.gui.TextField
 import org.newdawn.slick.opengl.renderer.Renderer
@@ -41,7 +41,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   var flamesManager: FlamesManager = _
 
-  var roomGraph: SimpleGraph[Room, DefaultEdge] = _
+  var roomGraph: SimpleWeightedGraph[Room, DefaultWeightedEdge] = _
 
   var textField: TextField = _
 
@@ -74,7 +74,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     textFieldFocused = false
 
-    roomGraph = new SimpleGraph[Room, DefaultEdge](classOf[DefaultEdge])
+    roomGraph = new SimpleWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
 
     listOfNames = Array("Virgil", "Dominique", "Hermina",
       "Carolynn", "Adina", "Elida", "Classie", "Raymonde",
@@ -103,7 +103,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     for (door <- doorList) {
       if (!roomGraph.containsEdge(door.room, door.leadingToDoor.room)) {
-        roomGraph.addEdge(door.room, door.leadingToDoor.room)
+        val edge: DefaultWeightedEdge = roomGraph.addEdge(door.room, door.leadingToDoor.room)
+        roomGraph.setEdgeWeight(edge, 1.0f)
       }
     }
 
@@ -115,7 +116,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     for (_ <- 0 until Configuration.NUMBER_OF_AGENTS) {
       val randomNameIndex = Random.nextInt(listOfNames.length)
       val randomName = listOfNames(randomNameIndex) + nameIndices(listOfNames(randomNameIndex))
-      //println("adding " + randomName)
       nameIndices.put(listOfNames(randomNameIndex), nameIndices(listOfNames(randomNameIndex)) + 1)
       val randomOffice = Random.nextInt(officeList.length)
       val room: Room = officeList(randomOffice)
@@ -124,36 +124,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       addAgent(randomName, room)
     }
 
-//    val agent1 = addAgent("agent1", officeList.head)
-//    agent1.shape.setCenterX(360)
-//    agent1.shape.setCenterY(300)
-//    agent1.behaviorManager.setBehavior(StationaryBehavior.name)
-//
-//    val agent2 = addAgent("agent2", officeList.head)
-//    agent2.shape.setCenterX(450)
-//    agent2.shape.setCenterY(280)
-//    agent2.behaviorManager.setBehavior(StationaryBehavior.name)
-//
-//    val agent3 = addAgent("agent3", officeList.head)
-//    agent3.shape.setCenterX(400)
-//    agent3.shape.setCenterY(320)
-//    agent3.behaviorManager.setBehavior(StationaryBehavior.name)
-//
-//    val agent4 = addAgent("agent4", officeList.head)
-//    agent4.shape.setCenterX(380)
-//    agent4.shape.setCenterY(270)
-//    agent4.behaviorManager.setBehavior(StationaryBehavior.name)
-//
-//    val agent5 = addAgent("agent5", officeList.head)
-//    agent5.shape.setCenterX(320)
-//    agent5.shape.setCenterY(290)
-//    agent5.behaviorManager.setBehavior(StationaryBehavior.name)
-//
-//    val agent6 = addAgent("agent6", officeList.head)
-//    agent6.shape.setCenterX(50)
-//    agent6.shape.setCenterY(150)
-//    agent6.behaviorManager.setBehavior(LeaderBehavior.name)
-//    agent6.viewCone.drawRays = true
 
     ControlScheme.tryAddManualAgent(roomList, actorSystem, agentImage, roomGraph)
 
@@ -222,12 +192,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
 
     }
-
-//    roomList.foreach(room => {
-//      room.agentList.filter(agent => agent.name == currentMonitored).foreach(agent => {
-//        Statistics.params.put("doorToEnter", agent.doorToEnter.name)
-//      })
-//    })
 
     if (untilAlarmTimer.timedOut()) {
       untilAlarmTimer.stop()

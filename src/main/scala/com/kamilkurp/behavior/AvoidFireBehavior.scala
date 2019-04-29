@@ -16,7 +16,7 @@ class AvoidFireBehavior(agent: Agent, name: String, color: Color) extends Behavi
   }
 
   def pickRoomToStay(): Unit = {
-    val knownRooms: Array[AnyRef] = agent.weightedGraph.vertexSet().toArray
+    val knownRooms: Array[AnyRef] = agent.mentalMapGraph.vertexSet().toArray
 
     roomToStay = knownRooms(Random.nextInt(knownRooms.length)).asInstanceOf[Room]
   }
@@ -24,10 +24,11 @@ class AvoidFireBehavior(agent: Agent, name: String, color: Color) extends Behavi
   override def perform(delta: Int): Unit = {
 
     if (roomToStay == agent.room) {
-      agent.followModule.setFollow(agent.room.w / 2, agent.room.h/2)
+      agent.followX = agent.room.w/2
+      agent.followY = agent.room.h/2
 
-      if (agent.getDistanceTo(agent.followModule.followX, agent.followModule.followY) > agent.followModule.followDistance) {
-        agent.movementModule.moveTowards(agent.followModule.followX, agent.followModule.followY)
+      if (agent.getDistanceTo(agent.followX, agent.followY) > agent.followDistance) {
+        agent.movementModule.moveTowards(agent.followX, agent.followY)
       }
       else {
         agent.movementModule.stopMoving()
@@ -37,7 +38,7 @@ class AvoidFireBehavior(agent: Agent, name: String, color: Color) extends Behavi
 
     var door: Door = null
 
-    door = agent.doorLeadingToRoom(agent.weightedGraph, roomToStay)
+    door = agent.doorLeadingToRoom(agent.mentalMapGraph, roomToStay)
 
     if (door != null) {
       agent.doorToEnter = door
@@ -48,7 +49,8 @@ class AvoidFireBehavior(agent: Agent, name: String, color: Color) extends Behavi
 
     }
     else if (agent.room.meetPointList.nonEmpty) {
-      agent.followModule.setFollow(agent.room.meetPointList.head.shape.getCenterX, agent.room.meetPointList.head.shape.getCenterY)
+      agent.followX = agent.room.meetPointList.head.shape.getCenterX
+      agent.followY = agent.room.meetPointList.head.shape.getCenterY
 
       agent.setBehavior(IdleBehavior.name)
     }
@@ -57,10 +59,6 @@ class AvoidFireBehavior(agent: Agent, name: String, color: Color) extends Behavi
       pickRoomToStay()
 
     }
-  }
-
-  override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
-
   }
 
   override def afterChangeRoom(): Unit = {

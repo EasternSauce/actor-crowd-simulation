@@ -34,15 +34,14 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
           }
         }
         else {
-//          if (!waitAtDoorTimer.timedOut()) agent.stopMoving()
-//          else
           agent.movementModule.moveTowards(door)
         }
       }
 
     }
     else if (agent.room.meetPointList.nonEmpty) {
-      agent.followModule.setFollow(agent.room.meetPointList.head.shape.getCenterX, agent.room.meetPointList.head.shape.getCenterY)
+      agent.followX = agent.room.meetPointList.head.shape.getCenterX
+      agent.followY = agent.room.meetPointList.head.shape.getCenterY
 
       agent.setBehavior(IdleBehavior.name)
     }
@@ -51,9 +50,6 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
     }
   }
 
-  override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
-
-  }
 
   override def afterChangeRoom(): Unit = {
 

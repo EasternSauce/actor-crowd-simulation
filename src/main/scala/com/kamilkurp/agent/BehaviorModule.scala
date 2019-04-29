@@ -18,10 +18,6 @@ class BehaviorModule private() {
     behaviorMap(behaviorName).init()
   }
 
-  def follow(agent: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
-    getBehavior(_currentBehavior).follow(agent, posX, posY, atDistance)
-  }
-
   private def getBehavior(behaviorName: String): Behavior = behaviorMap(behaviorName)
 
   def currentBehavior: Behavior = behaviorMap(_currentBehavior)

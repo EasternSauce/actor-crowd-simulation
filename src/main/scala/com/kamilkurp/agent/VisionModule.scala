@@ -125,26 +125,17 @@ class VisionModule private() {
 
     if (largestClusterPos != -1) {
       if (agent.name == "agent6") println(largestClusterPos + " " + largestClusterSize)
-
-//      for (i <- 0 until largestClusterSize) {
-//        viewRayColorList(largestClusterPos + i) = Color.cyan
-//      }
     }
 
 
     agent.room.flamesList.foreach(fire =>
       viewRayList.foreach(rayShape =>
         if (fire.shape.intersects(rayShape)) {
-
-
-//          if (agent.getDistanceTo(fire.shape.getCenterX, fire.shape.getCenterY) < 300 {
-
             if (agent.avoidFireTimer.timedOut()) {
               agent.avoidFireTimer.reset()
               agent.avoidFireTimer.start()
               agent.actor ! FireWithinVision(fire, fire.shape.getCenterX, fire.shape.getCenterY)
             }
-//          }
         }
       )
     )

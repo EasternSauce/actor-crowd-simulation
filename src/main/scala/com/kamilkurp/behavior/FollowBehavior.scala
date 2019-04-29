@@ -14,27 +14,27 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
 
 
   def perform(delta: Int): Unit = {
-    if (agent.followModule.followTimer.timedOut()) {
-      agent.followModule.followTimer.stop()
+    if (agent.followTimer.timedOut()) {
+      agent.followTimer.stop()
       agent.setBehavior(SearchExitBehavior.name)
-      agent.followModule.followedAgent = null
+      agent.followedAgent = null
       return
     }
 
 
     if (agent.controlScheme != ControlScheme.Manual) {
 
-      if (!agent.movementModule.beingPushed && agent.followModule.followedAgent != null) {
-        if (agent.followModule.followedAgent.room == agent.room) {
-          if (agent.getDistanceTo(agent.followModule.followedAgent.shape.getCenterX, agent.followModule.followedAgent.shape.getCenterY) > agent.followModule.followDistance) {
-            agent.movementModule.moveTowards(agent.followModule.followedAgent.shape.getCenterX, agent.followModule.followedAgent.shape.getCenterY)
+      if (!agent.movementModule.beingPushed && agent.followedAgent != null) {
+        if (agent.followedAgent.room == agent.room) {
+          if (agent.getDistanceTo(agent.followedAgent.shape.getCenterX, agent.followedAgent.shape.getCenterY) > agent.followDistance) {
+            agent.movementModule.moveTowards(agent.followedAgent.shape.getCenterX, agent.followedAgent.shape.getCenterY)
           }
           else {
             agent.movementModule.stopMoving()
           }
         }
         else {
-          var door: Door = agent.doorLeadingToRoom(agent.weightedGraph, agent.followModule.followedAgent.room)
+          var door: Door = agent.doorLeadingToRoom(agent.buildingPlanGraph, agent.followedAgent.room)
 
           if (door != null) {
             agent.doorToEnter = door
@@ -49,19 +49,13 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
 
 
     if (agent.room.meetPointList.nonEmpty) {
-      agent.followModule.setFollow(agent.room.meetPointList.head.shape.getCenterX, agent.room.meetPointList.head.shape.getCenterY)
+      agent.followX = agent.room.meetPointList.head.shape.getCenterX
+      agent.followY = agent.room.meetPointList.head.shape.getCenterY
 
       agent.setBehavior(IdleBehavior.name)
     }
 
 
-  }
-
-  override def follow(that: Agent, posX: Float, posY: Float, atDistance: Float): Unit = {
-    agent.followModule.setFollow(posX, posY)
-    agent.followModule.followTimer.reset()
-    agent.followModule.followDistance = atDistance
-    if (that != agent.followModule.followedAgent) agent.followModule.followedAgent = that
   }
 
   override def afterChangeRoom(): Unit = {
