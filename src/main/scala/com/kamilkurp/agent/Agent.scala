@@ -13,7 +13,7 @@ import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 import scala.collection.mutable
 import scala.util.Random
 
-class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, var image: Image, var buildingPlanGraph: SimpleWeightedGraph[Room, DefaultWeightedEdge]) extends Entity {
+class Agent private (var name: String, var room: Room, val controlScheme: ControlScheme, var image: Image, var buildingPlanGraph: SimpleWeightedGraph[Room, DefaultWeightedEdge]) extends Entity {
 
 
   override var shape: Shape = _
@@ -43,59 +43,6 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
   var knownFireLocations: mutable.Set[Room] = _
 
-
-  def init(): Unit = {
-
-    shape = new Rectangle(0, 0, Globals.AGENT_SIZE, Globals.AGENT_SIZE)
-
-    followTimer = new Timer(Configuration.AGENT_FOLLOW_TIMER)
-
-    isFree = false
-
-    debug = false
-
-
-    lastEntryDoor = null
-
-    avoidFireTimer = new Timer(3000)
-    avoidFireTimer.time = avoidFireTimer.timeout+1
-
-    behaviorModule = BehaviorModule(this)
-    visionModule = VisionModule(this)
-    movementModule = MovementModule(this)
-
-    if (currentBehavior.name == LeaderBehavior.name) {
-      mentalMapGraph = Globals.copyGraph(buildingPlanGraph)
-    }
-    else {
-      mentalMapGraph = new SimpleWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
-      addRoomToGraph(room)
-
-    }
-
-    while (!isFree) {
-      shape.setX(Random.nextInt(room.w - Globals.AGENT_SIZE))
-      shape.setY(Random.nextInt(room.h - Globals.AGENT_SIZE))
-
-      val collisionDetails = Globals.manageCollisions(room, this, 0, 0)
-
-      if (!collisionDetails.colX && !collisionDetails.colY) {
-        isFree = true
-      }
-    }
-
-    followX = 0
-    followY = 0
-    followDistance = 0
-
-    followedAgent = null
-
-    followTimer = new Timer(Configuration.AGENT_FOLLOW_TIMER)
-
-    knownFireLocations = mutable.Set()
-
-  }
-
   def setControls(controls: (Int, Int, Int, Int)): Unit = {
     this.controls = controls
   }
@@ -110,9 +57,11 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
   override def onCollision(entity: Entity): Unit = {
     if (entity.getClass == classOf[Agent]) {
 
-      val agent: Agent = entity.asInstanceOf[Agent]
+      val that: Agent = entity.asInstanceOf[Agent]
 
-      movementModule.pushBack(this, agent)
+      if (that.currentBehavior.name == FollowBehavior.name || that.currentBehavior.name == SearchExitBehavior.name) {
+        movementModule.pushBack(this, that)
+      }
 
     }
 
@@ -219,9 +168,9 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
     var meetPointRoom: Room = null
 
-    val it: java.util.Iterator[Room] = buildingPlanGraph.vertexSet().iterator()
-    while(it.hasNext) {
-      val room = it.next()
+    val vertices: Array[AnyRef] = buildingPlanGraph.vertexSet().toArray
+    for (ref <- vertices) {
+      val room = ref.asInstanceOf[Room]
       if (room.meetPointList.nonEmpty) meetPointRoom = room
     }
 
@@ -329,7 +278,57 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
 
 object Agent {
-  def apply(): Unit = {
+  def apply(name: String, room: Room, controlScheme: ControlScheme, image: Image, buildingPlanGraph: SimpleWeightedGraph[Room, DefaultWeightedEdge]): Agent = {
+    val agent = new Agent(name, room, controlScheme, image, buildingPlanGraph)
 
+    agent.shape = new Rectangle(0, 0, Globals.AGENT_SIZE, Globals.AGENT_SIZE)
+
+    agent.followTimer = new Timer(Configuration.AGENT_FOLLOW_TIMER)
+
+    agent.isFree = false
+
+    agent.debug = false
+
+
+    agent.lastEntryDoor = null
+
+    agent.avoidFireTimer = new Timer(3000)
+    agent.avoidFireTimer.time = agent.avoidFireTimer.timeout+1
+
+    agent.behaviorModule = BehaviorModule(agent)
+    agent.visionModule = VisionModule(agent)
+    agent.movementModule = MovementModule(agent)
+
+    if (agent.currentBehavior.name == LeaderBehavior.name) {
+      agent.mentalMapGraph = Globals.copyGraph(buildingPlanGraph)
+    }
+    else {
+      agent.mentalMapGraph = new SimpleWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
+      agent.addRoomToGraph(room)
+
+    }
+
+    while (!agent.isFree) {
+      agent.shape.setX(Random.nextInt(room.w - Globals.AGENT_SIZE))
+      agent.shape.setY(Random.nextInt(room.h - Globals.AGENT_SIZE))
+
+      val collisionDetails = Globals.manageCollisions(room, agent, 0, 0)
+
+      if (!collisionDetails.colX && !collisionDetails.colY) {
+        agent.isFree = true
+      }
+    }
+
+    agent.followX = 0
+    agent.followY = 0
+    agent.followDistance = 0
+
+    agent.followedAgent = null
+
+    agent.followTimer = new Timer(Configuration.AGENT_FOLLOW_TIMER)
+
+    agent.knownFireLocations = mutable.Set()
+
+    agent
   }
 }

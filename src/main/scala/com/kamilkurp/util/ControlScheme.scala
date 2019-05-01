@@ -13,7 +13,7 @@ import scala.collection.mutable.ListBuffer
 
 object ControlScheme extends Enumeration {
   type ControlScheme = Value
-  val Manual, Static, Agent = Value
+  val Manual, Static, Autonomous = Value
 
   def handleManualControls(agent: Agent, gc: GameContainer, delta: Int, renderScale: Float): Unit = {
     var moved = false
@@ -60,9 +60,8 @@ object ControlScheme extends Enumeration {
     val room1 = if (roomsFiltered.nonEmpty) roomsFiltered.head else null
 
     if (Configuration.ADD_MANUAL_AGENT) {
-      val agent = new Agent(Configuration.MANUAL_AGENT_NAME, room1, ControlScheme.Manual, agentImage, roomGraph)
+      val agent: Agent = Agent(Configuration.MANUAL_AGENT_NAME, room1, ControlScheme.Manual, agentImage, roomGraph)
       agent.setControls((Input.KEY_A, Input.KEY_D, Input.KEY_W, Input.KEY_S))
-      agent.init()
 
       val actor = actorSystem.actorOf(Props(new AgentActor(Configuration.MANUAL_AGENT_NAME, agent)))
 

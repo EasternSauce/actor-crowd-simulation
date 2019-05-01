@@ -140,8 +140,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   private def addAgent(name: String, room: Room): Agent = {
 
-    val agent = new Agent(name, room, ControlScheme.Agent, agentImage, roomGraph)
-    agent.init()
+    val agent = Agent(name, room, ControlScheme.Autonomous, agentImage, roomGraph)
     room.agentList += agent
     val actor = actorSystem.actorOf(Props(new AgentActor(name, agent)))
     actorList += actor

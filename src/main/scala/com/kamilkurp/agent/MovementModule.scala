@@ -133,7 +133,7 @@ class MovementModule {
       pushedTimer.stop()
     }
 
-    if (agent.controlScheme == ControlScheme.Agent) {
+    if (agent.controlScheme == ControlScheme.Autonomous) {
       agent.currentBehavior.perform(delta)
     }
     else if (agent.controlScheme == ControlScheme.Manual) {
@@ -153,47 +153,46 @@ class MovementModule {
   }
 
   def pushBack(pusher: Agent, pushed: Agent): Unit = {
-    if (pushed.currentBehavior.name == FollowBehavior.name || pushed.currentBehavior.name == SearchExitBehavior.name) {
-      if (pusher.currentBehavior.name == LeaderBehavior.name || pusher.currentBehavior.name == AvoidFireBehavior.name) {
-        if (!pushed.movementModule.beingPushed) {
-          val vector = new Vector2f(pusher.movementModule.currentVelocityX, pusher.movementModule.currentVelocityY)
+    if (pusher.currentBehavior.name == LeaderBehavior.name || pusher.currentBehavior.name == AvoidFireBehavior.name) {
+      if (!pushed.movementModule.beingPushed) {
+        val vector = new Vector2f(pusher.movementModule.currentVelocityX, pusher.movementModule.currentVelocityY)
 
-          vector.setTheta(vector.getTheta + Random.nextInt(30) - 15)
+        vector.setTheta(vector.getTheta + Random.nextInt(30) - 15)
 
-          pushed.movementModule.changedVelocityX = vector.x
-          pushed.movementModule.changedVelocityY = vector.y
-          pushed.movementModule.changedVelocity = true
+        pushed.movementModule.changedVelocityX = vector.x
+        pushed.movementModule.changedVelocityY = vector.y
+        pushed.movementModule.changedVelocity = true
 
-          pushed.movementModule.walkAngle = vector.getTheta.toFloat
-          pushed.movementModule.viewAngle = vector.getTheta.toFloat
+        pushed.movementModule.walkAngle = vector.getTheta.toFloat
+        pushed.movementModule.viewAngle = vector.getTheta.toFloat
 
-          pushed.movementModule.beingPushed = true
-          pushed.movementModule.pushedTimer.reset()
-          pushed.movementModule.pushedTimer.start()
-        }
-
+        pushed.movementModule.beingPushed = true
+        pushed.movementModule.pushedTimer.reset()
+        pushed.movementModule.pushedTimer.start()
       }
-      else if ((pusher.currentBehavior.name == FollowBehavior.name || pushed.currentBehavior.name == SearchExitBehavior.name) && pusher.movementModule.beingPushed) {
-        if (!pushed.movementModule.beingPushed) {
-          val vector = new Vector2f(currentVelocityX, currentVelocityY)
 
-          vector.setTheta(vector.getTheta + Random.nextInt(30) - 15)
+    }
+    else if ((pusher.currentBehavior.name == FollowBehavior.name || pushed.currentBehavior.name == SearchExitBehavior.name) && pusher.movementModule.beingPushed) {
+      if (!pushed.movementModule.beingPushed) {
+        val vector = new Vector2f(currentVelocityX, currentVelocityY)
 
-          pushed.movementModule.changedVelocityX = vector.x
-          pushed.movementModule.changedVelocityY = vector.y
-          pushed.movementModule.changedVelocity = true
+        vector.setTheta(vector.getTheta + Random.nextInt(30) - 15)
 
-          pushed.movementModule.walkAngle = vector.getTheta.toFloat
-          pushed.movementModule.viewAngle = vector.getTheta.toFloat
+        pushed.movementModule.changedVelocityX = vector.x
+        pushed.movementModule.changedVelocityY = vector.y
+        pushed.movementModule.changedVelocity = true
 
-          pushed.movementModule.beingPushed = true
-          pushed.movementModule.pushedTimer.time = pusher.movementModule.pushedTimer.time
-          pushed.movementModule.pushedTimer.start()
-        }
+        pushed.movementModule.walkAngle = vector.getTheta.toFloat
+        pushed.movementModule.viewAngle = vector.getTheta.toFloat
 
+        pushed.movementModule.beingPushed = true
+        pushed.movementModule.pushedTimer.time = pusher.movementModule.pushedTimer.time
+        pushed.movementModule.pushedTimer.start()
       }
+
     }
   }
+
 }
 
 object MovementModule {
