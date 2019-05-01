@@ -1,6 +1,6 @@
 package com.kamilkurp.agent
 
-import com.kamilkurp.behavior.{FollowBehavior, LeaderBehavior, SearchExitBehavior}
+import com.kamilkurp.behavior.{AvoidFireBehavior, FollowBehavior, LeaderBehavior, SearchExitBehavior}
 import com.kamilkurp.entity.Entity
 import com.kamilkurp.util.{Configuration, ControlScheme, Globals, Timer}
 import org.newdawn.slick.GameContainer
@@ -154,7 +154,7 @@ class MovementModule {
 
   def pushBack(pusher: Agent, pushed: Agent): Unit = {
     if (pushed.currentBehavior.name == FollowBehavior.name || pushed.currentBehavior.name == SearchExitBehavior.name) {
-      if (pusher.currentBehavior.name == LeaderBehavior.name) {
+      if (pusher.currentBehavior.name == LeaderBehavior.name || pusher.currentBehavior.name == AvoidFireBehavior.name) {
         if (!pushed.movementModule.beingPushed) {
           val vector = new Vector2f(pusher.movementModule.currentVelocityX, pusher.movementModule.currentVelocityY)
 

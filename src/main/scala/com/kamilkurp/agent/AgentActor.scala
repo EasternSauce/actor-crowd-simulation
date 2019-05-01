@@ -2,19 +2,23 @@ package com.kamilkurp.agent
 
 import akka.actor.{Actor, ActorLogging}
 import com.kamilkurp.behavior._
-import com.kamilkurp.building.Door
+import com.kamilkurp.building.Room
 import com.kamilkurp.entity.Entity
 import com.kamilkurp.flame.Flames
 import org.jgrapht.graph.DefaultWeightedEdge
-import org.newdawn.slick.geom.Vector2f
 
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-case class AgentWithinVision(entity: Entity, distance: Float)
+abstract class AgentMessage
 
-case class AgentLeading(agent: Agent, locationX: Float, locationY: Float)
+case class AgentWithinVision(entity: Entity, distance: Float) extends AgentMessage
 
-case class FireWithinVision(flames: Flames, locationX: Float, locationY: Float)
+case class AgentLeading(agent: Agent, locationX: Float, locationY: Float) extends AgentMessage
+
+case class FireWithinVision(flames: Flames, locationX: Float, locationY: Float) extends AgentMessage
+
+case class FireLocationInfo(fireLocations: mutable.Set[Room]) extends AgentMessage
 
 
 class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLogging {
@@ -28,22 +32,21 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
       if (agent.currentBehavior.name != LeaderBehavior.name) {
         if (that.currentBehavior.name == LeaderBehavior.name) {
           if (agent.followedAgent == null) {
-            agent.followedAgent = that
-            agent.followX = that.shape.getCenterX
-            agent.followY = that.shape.getCenterY
-            agent.followDistance = 120
-            agent.setBehavior(FollowBehavior.name)
+            agent.followLeader(that)
           }
         }
       }
 
-    case AgentLeading(entity, locationX, locationY) =>
+    case AgentLeading(that, locationX, locationY) =>
       if (agent.currentBehavior.name == IdleBehavior.name || agent.currentBehavior.name == SearchExitBehavior.name || agent.currentBehavior.name == FollowBehavior.name) {
+        if (agent.currentBehavior.name != LeaderBehavior.name) {
+          if (that.currentBehavior.name == LeaderBehavior.name) {
+            if (agent.followedAgent == null) {
+              agent.followLeader(that)
+            }
+          }
+        }
 
-        val normalVector = new Vector2f(locationX - agent.shape.getCenterX, locationY - agent.shape.getCenterY)
-        normalVector.normalise()
-
-        agent.movementModule.walkAngle = normalVector.getTheta.floatValue()
       }
 
     case FireWithinVision(flames, locationX, locationY) =>
@@ -62,15 +65,21 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
       }
 
       for (edge <- toRemove) {
-
-          if (agent.debug) {
-            println("removed edge " + agent.mentalMapGraph.getEdgeSource(edge) + " " + agent.mentalMapGraph.getEdgeTarget(edge))
-          }
-
         agent.mentalMapGraph.removeEdge(edge)
 
       }
 
+      agent.knownFireLocations += agent.room
+
       if (agent.currentBehavior.name == LeaderBehavior.name) agent.doorToEnter = agent.findDoorToEnterNext()
+
+    case FireLocationInfo(fireLocations: mutable.Set[Room]) =>
+      fireLocations.foreach(location => {
+        if(!agent.knownFireLocations.contains(location)) {
+          agent.knownFireLocations += location
+          agent.doorToEnter = agent.findDoorToEnterNext()
+        }
+      })
+
   }
 }

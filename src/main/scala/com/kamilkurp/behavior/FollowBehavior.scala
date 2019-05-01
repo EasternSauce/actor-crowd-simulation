@@ -1,11 +1,9 @@
 package com.kamilkurp.behavior
 
-import com.kamilkurp.agent.{Agent, AgentLeading}
-import com.kamilkurp.behavior_utils.Broadcasting
+import com.kamilkurp.agent.Agent
 import com.kamilkurp.building.Door
-import com.kamilkurp.util.{Configuration, ControlScheme, Timer}
+import com.kamilkurp.util.ControlScheme
 import org.newdawn.slick.Color
-import org.newdawn.slick.geom.Vector2f
 
 class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
 

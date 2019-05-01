@@ -4,16 +4,13 @@ import akka.actor.ActorRef
 import com.kamilkurp.behavior._
 import com.kamilkurp.building.{Door, MeetPoint, Room}
 import com.kamilkurp.entity.Entity
-import com.kamilkurp.stats.Statistics
 import com.kamilkurp.util.ControlScheme.ControlScheme
 import com.kamilkurp.util.{Configuration, ControlScheme, Globals, Timer}
-import org.jgrapht.Graph
-import org.jgrapht.graph.{DefaultEdge, DefaultWeightedEdge, SimpleWeightedGraph}
+import org.jgrapht.graph.{DefaultWeightedEdge, SimpleWeightedGraph}
 import org.newdawn.slick.geom.{Shape, _}
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, var image: Image, var buildingPlanGraph: SimpleWeightedGraph[Room, DefaultWeightedEdge]) extends Entity {
@@ -26,7 +23,6 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
   var controls: (Int, Int, Int, Int) = _
 
   var actor: ActorRef = _
-  var atDoor: Boolean = _
 
   var isFree: Boolean = _
   var doorToEnter: Door = _
@@ -45,15 +41,12 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
   var followDistance: Float = _
   var followedAgent: Agent = _
 
+  var knownFireLocations: mutable.Set[Room] = _
+
 
   def init(): Unit = {
 
     shape = new Rectangle(0, 0, Globals.AGENT_SIZE, Globals.AGENT_SIZE)
-
-
-
-    atDoor = false
-
 
     followTimer = new Timer(Configuration.AGENT_FOLLOW_TIMER)
 
@@ -66,9 +59,6 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
     avoidFireTimer = new Timer(3000)
     avoidFireTimer.time = avoidFireTimer.timeout+1
-
-
-
 
     behaviorModule = BehaviorModule(this)
     visionModule = VisionModule(this)
@@ -102,6 +92,8 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
     followTimer = new Timer(Configuration.AGENT_FOLLOW_TIMER)
 
+    knownFireLocations = mutable.Set()
+
   }
 
   def setControls(controls: (Int, Int, Int, Int)): Unit = {
@@ -113,9 +105,6 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
     movementModule.update(gc, delta, renderScale)
 
-    if (debug) {
-      Statistics.params.put("Location", room.name + " " + shape.getCenterX + " " + shape.getCenterY)
-    }
   }
 
   override def onCollision(entity: Entity): Unit = {
@@ -169,9 +158,6 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
     if (!mentalMapGraph.containsVertex(entryDoor.leadingToDoor.room)) {
       addRoomToGraph(entryDoor.leadingToDoor.room)
     }
-
-
-    atDoor = false
 
     followTimer.reset()
 
@@ -244,11 +230,6 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
   def doorLeadingToRoom(graph: SimpleWeightedGraph[Room, DefaultWeightedEdge], targetRoom: Room): Door = {
 
-//    if (currentBehavior.name == FollowBehavior.name) println("follower graph: " + graph.toString)
-//
-//    if (currentBehavior.name == LeaderBehavior.name) println("leader graph: " + graph.toString)
-//
-
     if (!graph.containsVertex(targetRoom)) {
       return null
     }
@@ -267,7 +248,15 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
     for (pair <- doorDistances) {
       val edge: DefaultWeightedEdge = graphCopy.getEdge(room, pair._1.leadingToDoor.room)
-      if (edge != null) graphCopy.setEdgeWeight(edge, pair._2 / maxDistance)
+      if (edge != null) {
+        if (knownFireLocations.contains(pair._1.leadingToDoor.room)) {
+          graphCopy.setEdgeWeight(edge, 100f)
+        }
+        else {
+          graphCopy.setEdgeWeight(edge, pair._2 / maxDistance)
+        }
+
+      }
     }
 
     val path = shortestPath(graphCopy, room, targetRoom)
@@ -317,4 +306,30 @@ class Agent(var name: String, var room: Room, val controlScheme: ControlScheme, 
 
   def currentBehavior: Behavior = behaviorModule.currentBehavior
   def setBehavior(behaviorName: String): Unit = behaviorModule.setBehavior(behaviorName)
+
+  def followLeader(leader: Agent): Unit = {
+    followedAgent = leader
+    followX = leader.shape.getCenterX
+    followY = leader.shape.getCenterY
+    followDistance = 120
+    setBehavior(FollowBehavior.name)
+  }
+
+  def broadcast(msg: AgentMessage, timer: Timer): Unit = {
+    if (timer.timedOut()) {
+      room.agentList.foreach(that => {
+        if (getDistanceTo(that) < 400 && that != this) {
+          that.actor ! msg
+        }
+      })
+      timer.reset()
+    }
+  }
+}
+
+
+object Agent {
+  def apply(): Unit = {
+
+  }
 }

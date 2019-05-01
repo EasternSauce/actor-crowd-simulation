@@ -1,8 +1,8 @@
 package com.kamilkurp.behavior
 
-import com.kamilkurp.agent.{Agent, AgentLeading}
+import com.kamilkurp.agent.Agent
 import com.kamilkurp.building.Door
-import com.kamilkurp.util.{Configuration, ControlScheme, Timer}
+import com.kamilkurp.util.ControlScheme
 import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
 
@@ -28,8 +28,7 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
         agent.movementModule.walkAngle = normalVector.getTheta.floatValue()
 
         if (!agent.movementModule.beingPushed) {
-          if (!agent.atDoor) agent.movementModule.moveTowards(doorToEnterNext)
-          else agent.movementModule.stopMoving()
+          agent.movementModule.moveTowards(doorToEnterNext)
         }
 
       }

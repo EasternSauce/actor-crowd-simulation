@@ -1,22 +1,29 @@
 package com.kamilkurp.behavior
 
-import com.kamilkurp.agent.Agent
-import com.kamilkurp.behavior_utils.Broadcasting
+import com.kamilkurp.agent.{Agent, AgentLeading, FireLocationInfo}
 import com.kamilkurp.building.Door
 import com.kamilkurp.util.{Configuration, ControlScheme, Timer}
 import org.newdawn.slick.Color
-import org.newdawn.slick.geom.Vector2f
 
-class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) with Broadcasting {
+class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
 
-  val waitAtDoorTimer: Timer = new Timer(Configuration.WAIT_AT_DOOR_TIMER)
+  var broadcastTimer: Timer = _
+  var fireLocationInfoTimer: Timer = _
 
   override def init(): Unit = {
-    broadcastingInit()
+    broadcastTimer = new Timer(Configuration.AGENT_BROADCAST_TIMER)
+    broadcastTimer.start()
+    fireLocationInfoTimer = new Timer(500)
+    fireLocationInfoTimer.start()
   }
 
-  def perform(delta: Int): Unit = {
-    broadcastLeading()
+  override def afterChangeRoom(): Unit = {
+
+  }
+
+  override def perform(delta: Int): Unit = {
+    agent.broadcast(AgentLeading(agent, agent.shape.getCenterX, agent.shape.getCenterY), broadcastTimer)
+    agent.broadcast(FireLocationInfo(agent.knownFireLocations), fireLocationInfoTimer)
 
     var door: Door = agent.findDoorToEnterNext()
 
@@ -24,18 +31,8 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
       agent.doorToEnter = door
 
       if (agent.controlScheme != ControlScheme.Manual) {
-        if (!agent.atDoor) {
-          agent.movementModule.moveTowards(door)
+        agent.movementModule.moveTowards(door)
 
-          if (agent.getDistanceTo(agent.doorToEnter.shape.getCenterX, agent.doorToEnter.shape.getCenterY) < 100) {
-            waitAtDoorTimer.reset()
-            waitAtDoorTimer.start()
-            agent.atDoor = true
-          }
-        }
-        else {
-          agent.movementModule.moveTowards(door)
-        }
       }
 
     }
@@ -50,10 +47,6 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
     }
   }
 
-
-  override def afterChangeRoom(): Unit = {
-
-  }
 }
 
 
