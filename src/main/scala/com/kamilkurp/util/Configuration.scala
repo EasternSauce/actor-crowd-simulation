@@ -12,7 +12,7 @@ object Configuration {
   var NUMBER_OF_AGENTS: Int = 120
   val ADD_MANUAL_AGENT: Boolean = false
   val MANUAL_AGENT_NAME: String = "Player"
-  val FLAME_PROPAGATION_SPEED: Float = 2
+  val FLAME_PROPAGATION_SPEED: Float = 5
 
   val AGENT_SPEED: Float = 0.2f
   val LEADER_PERCENTAGE: Float = 0.4f

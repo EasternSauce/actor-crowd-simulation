@@ -8,7 +8,7 @@ import com.kamilkurp.flame.FlamesManager
 import com.kamilkurp.stats.Statistics
 import com.kamilkurp.util._
 import org.jgrapht.Graph
-import org.jgrapht.graph.{DefaultEdge, DefaultWeightedEdge, SimpleGraph, SimpleWeightedGraph}
+import org.jgrapht.graph.{DefaultEdge, DefaultWeightedEdge, SimpleGraph, DefaultDirectedWeightedGraph}
 import org.newdawn.slick._
 import org.newdawn.slick.gui.TextField
 import org.newdawn.slick.opengl.renderer.Renderer
@@ -41,7 +41,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   var flamesManager: FlamesManager = _
 
-  var roomGraph: SimpleWeightedGraph[Room, DefaultWeightedEdge] = _
+  var roomGraph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge] = _
 
   var textField: TextField = _
 
@@ -74,7 +74,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     textFieldFocused = false
 
-    roomGraph = new SimpleWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
+    roomGraph = new DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
 
     listOfNames = Array("Virgil", "Dominique", "Hermina",
       "Carolynn", "Adina", "Elida", "Classie", "Raymonde",
@@ -103,8 +103,10 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     for (door <- doorList) {
       if (!roomGraph.containsEdge(door.room, door.leadingToDoor.room)) {
-        val edge: DefaultWeightedEdge = roomGraph.addEdge(door.room, door.leadingToDoor.room)
-        roomGraph.setEdgeWeight(edge, 1.0f)
+        val edge1: DefaultWeightedEdge = roomGraph.addEdge(door.room, door.leadingToDoor.room)
+        roomGraph.setEdgeWeight(edge1, 1.0f)
+        val edge2: DefaultWeightedEdge = roomGraph.addEdge(door.leadingToDoor.room, door.room)
+        roomGraph.setEdgeWeight(edge2, 1.0f)
       }
     }
 

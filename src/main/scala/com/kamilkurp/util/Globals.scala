@@ -5,11 +5,11 @@ import java.util.ConcurrentModificationException
 import com.kamilkurp.building.Room
 import com.kamilkurp.entity.Entity
 import org.jgrapht.Graph
-import org.jgrapht.graph.{DefaultEdge, DefaultWeightedEdge, SimpleGraph, SimpleWeightedGraph}
+import org.jgrapht.graph.{DefaultEdge, DefaultWeightedEdge, SimpleGraph, DefaultDirectedWeightedGraph}
 
 object Globals {
-  def copyGraph(graph: SimpleWeightedGraph[Room, DefaultWeightedEdge]): SimpleWeightedGraph[Room, DefaultWeightedEdge] = {
-    val newGraph = new SimpleWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
+  def copyGraph(graph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge]): DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge] = {
+    val newGraph = new DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
 
     val vertexIter: java.util.Iterator[Room] = graph.vertexSet().iterator()
     while(vertexIter.hasNext) {

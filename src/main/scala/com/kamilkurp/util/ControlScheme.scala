@@ -5,7 +5,7 @@ import com.kamilkurp.agent.{Agent, AgentActor}
 import com.kamilkurp.building.Room
 import com.kamilkurp.simulation.CameraView
 import org.jgrapht.Graph
-import org.jgrapht.graph.{DefaultEdge, DefaultWeightedEdge, SimpleGraph, SimpleWeightedGraph}
+import org.jgrapht.graph.{DefaultEdge, DefaultWeightedEdge, SimpleGraph, DefaultDirectedWeightedGraph}
 import org.newdawn.slick.{GameContainer, Image, Input}
 import org.newdawn.slick.geom.Vector2f
 
@@ -54,7 +54,7 @@ object ControlScheme extends Enumeration {
     }
   }
 
-  def tryAddManualAgent(roomList: ListBuffer[Room], actorSystem: ActorSystem, agentImage: Image, roomGraph: SimpleWeightedGraph[Room, DefaultWeightedEdge]): Unit = {
+  def tryAddManualAgent(roomList: ListBuffer[Room], actorSystem: ActorSystem, agentImage: Image, roomGraph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge]): Unit = {
     val roomsFiltered = roomList.filter(room => room.name == "roomA")
 
     val room1 = if (roomsFiltered.nonEmpty) roomsFiltered.head else null

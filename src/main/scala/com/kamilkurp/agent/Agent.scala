@@ -6,14 +6,15 @@ import com.kamilkurp.building.{Door, MeetPoint, Room}
 import com.kamilkurp.entity.Entity
 import com.kamilkurp.util.ControlScheme.ControlScheme
 import com.kamilkurp.util.{Configuration, ControlScheme, Globals, Timer}
-import org.jgrapht.graph.{DefaultWeightedEdge, SimpleWeightedGraph}
+import org.jgrapht.graph.{DefaultDirectedWeightedGraph, DefaultWeightedEdge}
 import org.newdawn.slick.geom.{Shape, _}
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
-class Agent private (var name: String, var room: Room, val controlScheme: ControlScheme, var image: Image, var buildingPlanGraph: SimpleWeightedGraph[Room, DefaultWeightedEdge]) extends Entity {
+class Agent private (var name: String, var room: Room, val controlScheme: ControlScheme, var image: Image, var buildingPlanGraph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge]) extends Entity {
 
 
   override var shape: Shape = _
@@ -30,7 +31,7 @@ class Agent private (var name: String, var room: Room, val controlScheme: Contro
   var behaviorModule: BehaviorModule = _
   var movementModule: MovementModule = _
   var lastEntryDoor: Door = _
-  var mentalMapGraph: SimpleWeightedGraph[Room, DefaultWeightedEdge] = _
+  var mentalMapGraph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge] = _
 
   var avoidFireTimer: Timer = _
 
@@ -48,6 +49,9 @@ class Agent private (var name: String, var room: Room, val controlScheme: Contro
   }
 
   def update(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
+
+    //println(buildingPlanGraph)
+
     visionModule.update(delta)
 
     movementModule.update(gc, delta, renderScale)
@@ -177,7 +181,7 @@ class Agent private (var name: String, var room: Room, val controlScheme: Contro
     doorLeadingToRoom(mentalMapGraph, meetPointRoom)
   }
 
-  def doorLeadingToRoom(graph: SimpleWeightedGraph[Room, DefaultWeightedEdge], targetRoom: Room): Door = {
+  def doorLeadingToRoom(graph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge], targetRoom: Room): Door = {
 
     if (!graph.containsVertex(targetRoom)) {
       return null
@@ -185,7 +189,7 @@ class Agent private (var name: String, var room: Room, val controlScheme: Contro
 
 
 
-    var graphCopy: SimpleWeightedGraph[Room, DefaultWeightedEdge] = Globals.copyGraph(graph)
+    var graphCopy: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge] = Globals.copyGraph(graph)
 
     var doorDistances: mutable.Map[Door, Float] = mutable.Map[Door, Float]()
 
@@ -227,7 +231,7 @@ class Agent private (var name: String, var room: Room, val controlScheme: Contro
   }
 
 
-  def shortestPath(graph: SimpleWeightedGraph[Room, DefaultWeightedEdge], from: Room, to: Room): java.util.List[Room] = {
+  def shortestPath(graph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge], from: Room, to: Room): java.util.List[Room] = {
     import org.jgrapht.alg.shortestpath.DijkstraShortestPath
     val dijkstraShortestPath = new DijkstraShortestPath(graph)
 
@@ -274,11 +278,32 @@ class Agent private (var name: String, var room: Room, val controlScheme: Contro
       timer.reset()
     }
   }
+
+
+  def removeEdge(from: Room, to: Room): Unit = {
+    val edgeArray = mentalMapGraph.edgeSet().toArray
+
+    var toRemove: ListBuffer[DefaultWeightedEdge] = new ListBuffer[DefaultWeightedEdge]()
+    for (edgeRef <- edgeArray){
+      val edge = edgeRef.asInstanceOf[DefaultWeightedEdge]
+
+      if (mentalMapGraph.getEdgeSource(edge) == from && mentalMapGraph.getEdgeTarget(edge) == to) {
+        toRemove += edge
+      }
+
+    }
+
+    for (edge <- toRemove) {
+      mentalMapGraph.removeEdge(edge)
+
+    }
+
+  }
 }
 
 
 object Agent {
-  def apply(name: String, room: Room, controlScheme: ControlScheme, image: Image, buildingPlanGraph: SimpleWeightedGraph[Room, DefaultWeightedEdge]): Agent = {
+  def apply(name: String, room: Room, controlScheme: ControlScheme, image: Image, buildingPlanGraph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge]): Agent = {
     val agent = new Agent(name, room, controlScheme, image, buildingPlanGraph)
 
     agent.shape = new Rectangle(0, 0, Globals.AGENT_SIZE, Globals.AGENT_SIZE)
@@ -292,7 +317,7 @@ object Agent {
 
     agent.lastEntryDoor = null
 
-    agent.avoidFireTimer = new Timer(3000)
+    agent.avoidFireTimer = new Timer(500)
     agent.avoidFireTimer.time = agent.avoidFireTimer.timeout+1
 
     agent.behaviorModule = BehaviorModule(agent)
@@ -303,7 +328,7 @@ object Agent {
       agent.mentalMapGraph = Globals.copyGraph(buildingPlanGraph)
     }
     else {
-      agent.mentalMapGraph = new SimpleWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
+      agent.mentalMapGraph = new DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
       agent.addRoomToGraph(room)
 
     }

@@ -51,23 +51,7 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
 
     case FireWithinVision(flames, locationX, locationY) =>
 
-      val edgeArray = agent.mentalMapGraph.edgeSet().toArray
-
-      var toRemove: ListBuffer[DefaultWeightedEdge] = new ListBuffer[DefaultWeightedEdge]()
-      for (edgeRef <- edgeArray){
-        val edge = edgeRef.asInstanceOf[DefaultWeightedEdge]
-
-        if(agent.doorToEnter != null) {
-          if (agent.mentalMapGraph.getEdgeSource(edge) == agent.room && agent.mentalMapGraph.getEdgeTarget(edge) == agent.doorToEnter.leadingToDoor.room) {
-            toRemove += edge
-          }
-        }
-      }
-
-      for (edge <- toRemove) {
-        agent.mentalMapGraph.removeEdge(edge)
-
-      }
+      if (agent.doorToEnter != null) agent.removeEdge(agent.room, agent.doorToEnter.leadingToDoor.room)
 
       agent.knownFireLocations += agent.room
 
@@ -77,6 +61,9 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
       fireLocations.foreach(location => {
         if(!agent.knownFireLocations.contains(location)) {
           agent.knownFireLocations += location
+
+
+
           agent.doorToEnter = agent.findDoorToEnterNext()
         }
       })
