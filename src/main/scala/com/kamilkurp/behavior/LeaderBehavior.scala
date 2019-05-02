@@ -22,10 +22,10 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
   }
 
   override def perform(delta: Int): Unit = {
-    agent.broadcast(AgentLeading(agent, agent.shape.getCenterX, agent.shape.getCenterY), broadcastTimer)
-    agent.broadcast(FireLocationInfo(agent.knownFireLocations), fireLocationInfoTimer)
+    agent.broadcast(AgentLeading(agent), broadcastTimer)
+    agent.broadcast(FireLocationInfo(agent.spatialModule.knownFireLocations), fireLocationInfoTimer)
 
-    var door: Door = agent.findDoorToEnterNext()
+    var door: Door = agent.spatialModule.findDoorToEnterNext()
 
     if (door != null) {
       agent.doorToEnter = door
@@ -36,9 +36,9 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
       }
 
     }
-    else if (agent.room.meetPointList.nonEmpty) {
-      agent.followX = agent.room.meetPointList.head.shape.getCenterX
-      agent.followY = agent.room.meetPointList.head.shape.getCenterY
+    else if (agent.currentRoom.meetPointList.nonEmpty) {
+      agent.followX = agent.currentRoom.meetPointList.head.shape.getCenterX
+      agent.followY = agent.currentRoom.meetPointList.head.shape.getCenterY
 
       agent.setBehavior(IdleBehavior.name)
     }

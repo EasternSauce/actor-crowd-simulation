@@ -6,7 +6,7 @@ import org.newdawn.slick.geom.Shape
 
 abstract class Entity() {
   var name: String
-  var room: Room
+  var currentRoom: Room
   var image: Image
 
   var shape: Shape

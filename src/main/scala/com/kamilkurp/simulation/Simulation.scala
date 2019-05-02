@@ -2,23 +2,21 @@ package com.kamilkurp.simulation
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import com.kamilkurp.agent.{Agent, AgentActor}
-import com.kamilkurp.behavior.{IdleBehavior, LeaderBehavior, SearchExitBehavior, StationaryBehavior}
+import com.kamilkurp.behavior.{IdleBehavior, SearchExitBehavior}
 import com.kamilkurp.building.{Door, MeetPoint, Room}
 import com.kamilkurp.flame.FlamesManager
 import com.kamilkurp.stats.Statistics
 import com.kamilkurp.util._
-import org.jgrapht.Graph
-import org.jgrapht.graph.{DefaultEdge, DefaultWeightedEdge, SimpleGraph, DefaultDirectedWeightedGraph}
+import org.jgrapht.graph.{DefaultDirectedWeightedGraph, DefaultWeightedEdge}
 import org.newdawn.slick._
 import org.newdawn.slick.gui.TextField
+import org.newdawn.slick.opengl.SlickCallable
 import org.newdawn.slick.opengl.renderer.Renderer
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import scala.util.Random
-import org.newdawn.slick.opengl.SlickCallable
-
 
 
 object CameraView {
@@ -102,10 +100,10 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     }
 
     for (door <- doorList) {
-      if (!roomGraph.containsEdge(door.room, door.leadingToDoor.room)) {
-        val edge1: DefaultWeightedEdge = roomGraph.addEdge(door.room, door.leadingToDoor.room)
+      if (!roomGraph.containsEdge(door.currentRoom, door.leadingToDoor.currentRoom)) {
+        val edge1: DefaultWeightedEdge = roomGraph.addEdge(door.currentRoom, door.leadingToDoor.currentRoom)
         roomGraph.setEdgeWeight(edge1, 1.0f)
-        val edge2: DefaultWeightedEdge = roomGraph.addEdge(door.leadingToDoor.room, door.room)
+        val edge2: DefaultWeightedEdge = roomGraph.addEdge(door.leadingToDoor.currentRoom, door.currentRoom)
         roomGraph.setEdgeWeight(edge2, 1.0f)
       }
     }
@@ -130,7 +128,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     ControlScheme.tryAddManualAgent(roomList, actorSystem, agentImage, roomGraph)
 
     cameraControls = new CameraControls()
-    font = new TrueTypeFont(new java.awt.Font("Verdana", java.awt.Font.BOLD, (32*1/cameraControls.renderScale).toInt), false)
+    font = new TrueTypeFont(new java.awt.Font("Verdana", java.awt.Font.BOLD, (32 * 1 / cameraControls.renderScale).toInt), false)
     textField = new TextField(gc, font, 0, (Globals.WINDOW_Y * 0.955f).toInt, Globals.WINDOW_X, (Globals.WINDOW_Y * 0.04f).toInt)
     textField.setBorderColor(Color.transparent)
     textField.setTextColor(Color.green)
@@ -152,6 +150,55 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     agent.setActor(actor)
 
     agent
+  }
+
+  private def loadBuildingPlan(): Unit = {
+    val filename = Configuration.BUILDING_PLAN_LOCATION
+    for (line <- Source.fromFile(filename).getLines) {
+      if (!line.isEmpty) {
+        val split: Array[String] = line.split(" ")
+
+        if (split(0) == "room") {
+          val room = new Room(split(1), split(2).toInt, split(3).toInt, split(4).toInt, split(5).toInt)
+          roomList += room
+          if (room.name.startsWith("room")) officeList += room
+
+        }
+        else if (split(0) == "door") {
+          var room: Room = null
+          var linkToDoor: Door = null
+
+          if (split.length >= 6) {
+            roomList.foreach(that => {
+              if (that.name == split(5)) room = that
+            })
+          }
+          if (split.length >= 7) {
+            doorList.foreach(that => {
+              if (that.name == split(6)) linkToDoor = that
+            })
+          }
+          val door = new Door(split(1), room, split(3).toInt, split(4).toInt, doorImage)
+          if (linkToDoor != null) door.connectWith(linkToDoor)
+          if (split(2) == "1") {
+            room.evacuationDoor = door
+          }
+          doorList += door
+        }
+        else if (split(0) == "meet") {
+          var room: Room = null
+
+          if (split.length >= 5) {
+            roomList.foreach(that => {
+              if (that.name == split(4)) room = that
+            })
+          }
+
+          val meetPoint = new MeetPoint(split(1), room, split(2).toInt, split(3).toInt)
+          room.meetPointList += meetPoint
+        }
+      }
+    }
   }
 
   override def update(gc: GameContainer, i: Int): Unit = {
@@ -210,7 +257,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     Statistics.params.put("Total agents", agentList.length.toString)
     Statistics.params.put("Total evacuated", agentList.filter(agent => agent.currentBehavior.name == "holdMeetPoint").toList.length.toString)
-    Statistics.params.put("Time", (generalTimer.time/1000f).toString)
+    Statistics.params.put("Time", (generalTimer.time / 1000f).toString)
 
   }
 
@@ -233,13 +280,13 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     val textWindowX: Int = 0
     val textWindowY: Int = (Globals.WINDOW_Y * 0.7f).toInt
 
-    g.setColor(new Color(0,0,0,0.7f))
+    g.setColor(new Color(0, 0, 0, 0.7f))
     g.fillRect(0, Globals.WINDOW_Y * 0.7f, Globals.WINDOW_X, Globals.WINDOW_Y * 0.25f)
 
 
     var i = 0
     for (param <- Statistics.params) {
-      font.drawString(textWindowX + 20 + 350 * Math.floor(i/8).toFloat, textWindowY + 20 + 40 * (i%8), param._1 + ": " + param._2, Color.green)
+      font.drawString(textWindowX + 20 + 350 * Math.floor(i / 8).toFloat, textWindowY + 20 + 40 * (i % 8), param._1 + ": " + param._2, Color.green)
       i = i + 1
     }
 
@@ -248,56 +295,5 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     textField.render(gc, g)
 
 
-
-
-  }
-
-  private def loadBuildingPlan(): Unit = {
-    val filename = Configuration.BUILDING_PLAN_LOCATION
-    for (line <- Source.fromFile(filename).getLines) {
-      if (!line.isEmpty) {
-        val split: Array[String] = line.split(" ")
-
-        if (split(0) == "room") {
-          val room = new Room(split(1), split(2).toInt, split(3).toInt, split(4).toInt, split(5).toInt)
-          roomList += room
-          if (room.name.startsWith("room")) officeList += room
-
-        }
-        else if (split(0) == "door") {
-          var room: Room = null
-          var linkToDoor: Door = null
-
-          if (split.length >= 6) {
-            roomList.foreach(that => {
-              if (that.name == split(5)) room = that
-            })
-          }
-          if (split.length >= 7) {
-            doorList.foreach(that => {
-              if (that.name == split(6)) linkToDoor = that
-            })
-          }
-          val door = new Door(split(1), room, split(3).toInt, split(4).toInt, doorImage)
-          if (linkToDoor != null) door.connectWith(linkToDoor)
-          if (split(2) == "1") {
-            room.evacuationDoor = door
-          }
-          doorList += door
-        }
-        else if (split(0) == "meet") {
-          var room: Room = null
-
-          if (split.length >= 5) {
-            roomList.foreach(that => {
-              if (that.name == split(4)) room = that
-            })
-          }
-
-          val meetPoint = new MeetPoint(split(1), room, split(2).toInt, split(3).toInt)
-          room.meetPointList += meetPoint
-        }
-      }
-    }
   }
 }

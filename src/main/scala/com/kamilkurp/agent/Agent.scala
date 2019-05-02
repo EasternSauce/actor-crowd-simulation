@@ -10,17 +10,14 @@ import org.jgrapht.graph.{DefaultDirectedWeightedGraph, DefaultWeightedEdge}
 import org.newdawn.slick.geom.{Shape, _}
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
-class Agent private (var name: String, var room: Room, val controlScheme: ControlScheme, var image: Image, var buildingPlanGraph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge]) extends Entity {
+class Agent private(var name: String, var currentRoom: Room, val controlScheme: ControlScheme, var image: Image, var buildingPlanGraph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge]) extends Entity {
 
 
   override var shape: Shape = _
   override var debug: Boolean = _
 
-  var visionModule: VisionModule = _
   var controls: (Int, Int, Int, Int) = _
 
   var actor: ActorRef = _
@@ -28,10 +25,10 @@ class Agent private (var name: String, var room: Room, val controlScheme: Contro
   var isFree: Boolean = _
   var doorToEnter: Door = _
 
+  var visionModule: VisionModule = _
   var behaviorModule: BehaviorModule = _
   var movementModule: MovementModule = _
-  var lastEntryDoor: Door = _
-  var mentalMapGraph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge] = _
+  var spatialModule: SpatialModule = _
 
   var avoidFireTimer: Timer = _
 
@@ -42,15 +39,12 @@ class Agent private (var name: String, var room: Room, val controlScheme: Contro
   var followDistance: Float = _
   var followedAgent: Agent = _
 
-  var knownFireLocations: mutable.Set[Room] = _
 
   def setControls(controls: (Int, Int, Int, Int)): Unit = {
     this.controls = controls
   }
 
   def update(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
-
-    //println(buildingPlanGraph)
 
     visionModule.update(delta)
 
@@ -73,7 +67,7 @@ class Agent private (var name: String, var room: Room, val controlScheme: Contro
     if (entity.getClass == classOf[MeetPoint]) {
       shape.setX(1000)
       shape.setY(1000)
-      room.agentList -= this
+      currentRoom.agentList -= this
     }
 
     if (entity.getClass == classOf[Door]) {
@@ -88,7 +82,7 @@ class Agent private (var name: String, var room: Room, val controlScheme: Contro
         val spotX = leadingToDoor.posX + normalVector.x * 50
         val spotY = leadingToDoor.posY + normalVector.y * 50
 
-        if (!Globals.isRectOccupied(leadingToDoor.room, spotX - 5, spotY - 5, shape.getWidth + 10, shape.getHeight + 10, this)) {
+        if (!Globals.isRectOccupied(leadingToDoor.currentRoom, spotX - 5, spotY - 5, shape.getWidth + 10, shape.getHeight + 10, this)) {
           changeRoom(door, spotX, spotY)
           return
         }
@@ -96,11 +90,7 @@ class Agent private (var name: String, var room: Room, val controlScheme: Contro
     }
   }
 
-
-
   override def changeRoom(entryDoor: Door, newX: Float, newY: Float): Unit = {
-    lastEntryDoor = entryDoor
-
     if (doorToEnter != entryDoor) {
       if (controlScheme != ControlScheme.Manual) {
         return
@@ -108,40 +98,42 @@ class Agent private (var name: String, var room: Room, val controlScheme: Contro
     }
 
 
-    if (!mentalMapGraph.containsVertex(entryDoor.leadingToDoor.room)) {
-      addRoomToGraph(entryDoor.leadingToDoor.room)
+    if (!spatialModule.mentalMapGraph.containsVertex(entryDoor.leadingToDoor.currentRoom)) {
+      spatialModule.addRoomToGraph(entryDoor.leadingToDoor.currentRoom)
     }
 
     followTimer.reset()
 
-    val newRoom: Room = entryDoor.leadingToDoor.room
+    val newRoom: Room = entryDoor.leadingToDoor.currentRoom
 
-    room.removeAgent(this)
+    currentRoom.removeAgent(this)
     newRoom.addAgent(this)
 
-    room = newRoom
+    currentRoom = newRoom
     shape.setX(newX)
     shape.setY(newY)
 
     currentBehavior.afterChangeRoom()
   }
 
+  def currentBehavior: Behavior = behaviorModule.currentBehavior
+
   def setActor(actor: ActorRef): Unit = {
     this.actor = actor
   }
 
   def draw(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
-    g.drawImage(image, room.x + shape.getX - offsetX, room.y + shape.getY - offsetY)
+    g.drawImage(image, currentRoom.x + shape.getX - offsetX, currentRoom.y + shape.getY - offsetY)
 
     visionModule.draw(g, offsetX, offsetY)
   }
 
   def drawName(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
     g.setColor(Color.pink)
-    if(movementModule.beingPushed) {
+    if (movementModule.beingPushed) {
       g.setColor(Color.blue)
     }
-    g.drawString(name, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 40 - offsetY)
+    g.drawString(name, currentRoom.x + shape.getX - 10 - offsetX, currentRoom.y + shape.getY - 40 - offsetY)
     g.setColor(currentBehavior.color)
 
     var tag: String = ""
@@ -152,113 +144,9 @@ class Agent private (var name: String, var room: Room, val controlScheme: Contro
       tag = "[" + currentBehavior.name + "]"
 
     }
-    g.drawString(tag, room.x + shape.getX - 10 - offsetX, room.y + shape.getY - 25 - offsetY)
+    g.drawString(tag, currentRoom.x + shape.getX - 10 - offsetX, currentRoom.y + shape.getY - 25 - offsetY)
 
   }
-
-  def addRoomToGraph(room: Room): Unit = {
-    mentalMapGraph.addVertex(room)
-
-    for (door <- room.doorList) {
-      if (mentalMapGraph.containsVertex(door.leadingToDoor.room)) {
-        val edge: DefaultWeightedEdge = mentalMapGraph.addEdge(room, door.leadingToDoor.room)
-        mentalMapGraph.setEdgeWeight(edge, 1.0f)
-      }
-    }
-  }
-
-
-  def findDoorToEnterNext(): Door = {
-
-    var meetPointRoom: Room = null
-
-    val vertices: Array[AnyRef] = buildingPlanGraph.vertexSet().toArray
-    for (ref <- vertices) {
-      val room = ref.asInstanceOf[Room]
-      if (room.meetPointList.nonEmpty) meetPointRoom = room
-    }
-
-    doorLeadingToRoom(mentalMapGraph, meetPointRoom)
-  }
-
-  def doorLeadingToRoom(graph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge], targetRoom: Room): Door = {
-
-    if (!graph.containsVertex(targetRoom)) {
-      return null
-    }
-
-
-
-    var graphCopy: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge] = Globals.copyGraph(graph)
-
-    var doorDistances: mutable.Map[Door, Float] = mutable.Map[Door, Float]()
-
-    for (door <- room.doorList) {
-      doorDistances.put(door, getDistanceTo(door))
-    }
-
-    val maxDistance: Float = doorDistances.values.max
-
-    for (pair <- doorDistances) {
-      val edge: DefaultWeightedEdge = graphCopy.getEdge(room, pair._1.leadingToDoor.room)
-      if (edge != null) {
-        if (knownFireLocations.contains(pair._1.leadingToDoor.room)) {
-          graphCopy.setEdgeWeight(edge, 100f)
-        }
-        else {
-          graphCopy.setEdgeWeight(edge, pair._2 / maxDistance)
-        }
-
-      }
-    }
-
-    val path = shortestPath(graphCopy, room, targetRoom)
-
-
-
-    if (path == null) return null
-
-    for (door: Door <- room.doorList) {
-      // return NEXT room on path (second element)
-      if (path.size() > 1 && door.leadingToDoor.room == path.get(1)) {
-        return door
-      }
-    }
-
-
-    null
-
-  }
-
-
-  def shortestPath(graph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge], from: Room, to: Room): java.util.List[Room] = {
-    import org.jgrapht.alg.shortestpath.DijkstraShortestPath
-    val dijkstraShortestPath = new DijkstraShortestPath(graph)
-
-    if (currentBehavior.name == FollowBehavior.name) {
-    }
-
-    var shortestPath: java.util.List[Room] = null
-    try {
-      shortestPath = dijkstraShortestPath.getPath(room, to).getVertexList
-
-    }
-    catch {
-      case _: NullPointerException =>
-        if (currentBehavior.name == FollowBehavior.name) {
-        }
-        return null
-      case _: IllegalArgumentException =>
-        if (currentBehavior.name == FollowBehavior.name) {
-        }
-        return null
-    }
-
-    shortestPath
-  }
-
-  def currentBehavior: Behavior = behaviorModule.currentBehavior
-  def setBehavior(behaviorName: String): Unit = behaviorModule.setBehavior(behaviorName)
 
   def followLeader(leader: Agent): Unit = {
     followedAgent = leader
@@ -268,9 +156,11 @@ class Agent private (var name: String, var room: Room, val controlScheme: Contro
     setBehavior(FollowBehavior.name)
   }
 
+  def setBehavior(behaviorName: String): Unit = behaviorModule.setBehavior(behaviorName)
+
   def broadcast(msg: AgentMessage, timer: Timer): Unit = {
     if (timer.timedOut()) {
-      room.agentList.foreach(that => {
+      currentRoom.agentList.foreach(that => {
         if (getDistanceTo(that) < 400 && that != this) {
           that.actor ! msg
         }
@@ -278,29 +168,7 @@ class Agent private (var name: String, var room: Room, val controlScheme: Contro
       timer.reset()
     }
   }
-
-
-  def removeEdge(from: Room, to: Room): Unit = {
-    val edgeArray = mentalMapGraph.edgeSet().toArray
-
-    var toRemove: ListBuffer[DefaultWeightedEdge] = new ListBuffer[DefaultWeightedEdge]()
-    for (edgeRef <- edgeArray){
-      val edge = edgeRef.asInstanceOf[DefaultWeightedEdge]
-
-      if (mentalMapGraph.getEdgeSource(edge) == from && mentalMapGraph.getEdgeTarget(edge) == to) {
-        toRemove += edge
-      }
-
-    }
-
-    for (edge <- toRemove) {
-      mentalMapGraph.removeEdge(edge)
-
-    }
-
-  }
 }
-
 
 object Agent {
   def apply(name: String, room: Room, controlScheme: ControlScheme, image: Image, buildingPlanGraph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge]): Agent = {
@@ -314,24 +182,13 @@ object Agent {
 
     agent.debug = false
 
-
-    agent.lastEntryDoor = null
-
     agent.avoidFireTimer = new Timer(500)
-    agent.avoidFireTimer.time = agent.avoidFireTimer.timeout+1
+    agent.avoidFireTimer.time = agent.avoidFireTimer.timeout + 1
 
     agent.behaviorModule = BehaviorModule(agent)
     agent.visionModule = VisionModule(agent)
     agent.movementModule = MovementModule(agent)
-
-    if (agent.currentBehavior.name == LeaderBehavior.name) {
-      agent.mentalMapGraph = Globals.copyGraph(buildingPlanGraph)
-    }
-    else {
-      agent.mentalMapGraph = new DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
-      agent.addRoomToGraph(room)
-
-    }
+    agent.spatialModule = SpatialModule(agent)
 
     while (!agent.isFree) {
       agent.shape.setX(Random.nextInt(room.w - Globals.AGENT_SIZE))
@@ -352,7 +209,6 @@ object Agent {
 
     agent.followTimer = new Timer(Configuration.AGENT_FOLLOW_TIMER)
 
-    agent.knownFireLocations = mutable.Set()
 
     agent
   }

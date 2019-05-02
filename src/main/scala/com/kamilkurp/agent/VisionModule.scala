@@ -9,20 +9,14 @@ import scala.util.Random
 
 class VisionModule private() {
 
+  var colAvoidAngle: Float = _
   private var agent: Agent = _
-
   private var firstRay: (Rectangle, Float) = _
   private var lastRay: (Rectangle, Float) = _
-
   private var visionTimer: Timer = _
-
   private var viewRayList: ListBuffer[Shape] = _
-
   private var viewRayColorList: ListBuffer[Color] = _
-
   private var drawRays: Boolean = _
-
-  var colavoidAngle: Float = _
 
   def update(delta: Int) {
 
@@ -64,10 +58,10 @@ class VisionModule private() {
       viewRayColorList(i) = Color.green
     }
 
-    agent.room.agentList.filter(c => c != agent).foreach(that => {
+    agent.currentRoom.agentList.filter(c => c != agent).foreach(that => {
       for (i <- viewRayList.indices) {
         if (that.shape.intersects(viewRayList(i))) {
-          agent.actor ! AgentWithinVision(that, agent.getDistanceTo(that))
+          agent.actor ! AgentWithinVision(that)
 
           if (agent.getDistanceTo(that) < 120) {
             viewRayColorList(i) = Color.red
@@ -76,7 +70,7 @@ class VisionModule private() {
       }
     })
 
-    agent.room.flamesList.foreach(that => {
+    agent.currentRoom.flamesList.foreach(that => {
       for (i <- viewRayList.indices) {
         if (that.shape.intersects(viewRayList(i))) {
           if (agent.getDistanceTo(that) < 120) {
@@ -85,7 +79,6 @@ class VisionModule private() {
         }
       }
     })
-
 
 
     var largestClusterPos = -1
@@ -117,10 +110,10 @@ class VisionModule private() {
     }
 
     if (viewRayColorList(11) == Color.green && viewRayColorList(12) == Color.green) {
-      colavoidAngle = 0
+      colAvoidAngle = 0
     }
     else {
-      colavoidAngle = 60 - 5 * (largestClusterPos + largestClusterSize)
+      colAvoidAngle = 60 - 5 * (largestClusterPos + largestClusterSize)
     }
 
     if (largestClusterPos != -1) {
@@ -128,14 +121,14 @@ class VisionModule private() {
     }
 
 
-    agent.room.flamesList.foreach(fire =>
+    agent.currentRoom.flamesList.foreach(fire =>
       viewRayList.foreach(rayShape =>
         if (fire.shape.intersects(rayShape)) {
-            if (agent.avoidFireTimer.timedOut()) {
-              agent.avoidFireTimer.reset()
-              agent.avoidFireTimer.start()
-              agent.actor ! FireWithinVision(fire, fire.shape.getCenterX, fire.shape.getCenterY)
-            }
+          if (agent.avoidFireTimer.timedOut()) {
+            agent.avoidFireTimer.reset()
+            agent.avoidFireTimer.start()
+            agent.actor ! FireWithinVision()
+          }
         }
       )
     )
@@ -151,7 +144,7 @@ class VisionModule private() {
     col.a = 1f
 
     if (!drawRays) {
-      val t: Transform = Transform.createTranslateTransform(agent.room.x - offsetX, agent.room.y - offsetY)
+      val t: Transform = Transform.createTranslateTransform(agent.currentRoom.x - offsetX, agent.currentRoom.y - offsetY)
       var polygon1: Shape = new Polygon(firstRay._1.getPoints)
       val firstRotation: Transform = Transform.createRotateTransform(Math.toRadians(firstRay._2).toFloat, x, y)
       polygon1 = polygon1.transform(firstRotation)
@@ -170,13 +163,12 @@ class VisionModule private() {
       viewRayList.foreach(viewRay => {
         g.setColor(viewRayColorList(i))
         i = i + 1
-        val t: Transform = Transform.createTranslateTransform(agent.room.x - offsetX, agent.room.y - offsetY)
+        val t: Transform = Transform.createTranslateTransform(agent.currentRoom.x - offsetX, agent.currentRoom.y - offsetY)
         var polygon1: Shape = new Polygon(viewRay.getPoints)
         polygon1 = polygon1.transform(t)
         g.draw(polygon1)
       })
     }
-
 
 
   }
@@ -202,7 +194,7 @@ object VisionModule {
 
     visionModule.drawRays = false
 
-    visionModule.colavoidAngle = 0.0f
+    visionModule.colAvoidAngle = 0.0f
 
     for (_ <- 0 until 24) {
       var polygon: Shape = new Polygon(new Rectangle(0, 0, 200, 1).getPoints)

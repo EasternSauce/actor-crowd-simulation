@@ -9,7 +9,6 @@ import org.newdawn.slick.geom.Vector2f
 import scala.util.Random
 
 class MovementModule {
-  private var agent: Agent = _
   var currentVelocityX: Float = _
   var currentVelocityY: Float = _
   var changedVelocityX: Float = _
@@ -27,13 +26,10 @@ class MovementModule {
   var goAroundAngle: Float = _
   var slowTimer: Timer = _
   var lookTimer: Timer = _
+  private var agent: Agent = _
 
   def moveTowards(x: Float, y: Float): Unit = {
     goTo(x, y)
-  }
-
-  def moveTowards(entity: Entity): Unit = {
-    goTo(entity.shape.getCenterX, entity.shape.getCenterY)
   }
 
   private def goTo(x: Float, y: Float): Unit = {
@@ -44,7 +40,7 @@ class MovementModule {
     //      vector.setTheta(vector.getTheta + goAroundAngle)
     //    }
 
-    vector.setTheta(vector.getTheta + agent.visionModule.colavoidAngle * 1.5f)
+    vector.setTheta(vector.getTheta + agent.visionModule.colAvoidAngle * 1.5f)
 
     walkAngle = vector.getTheta.floatValue()
 
@@ -53,6 +49,10 @@ class MovementModule {
       currentVelocityY = vector.y * Configuration.AGENT_SPEED * (1f - slow)
     }
 
+  }
+
+  def moveTowards(entity: Entity): Unit = {
+    goTo(entity.shape.getCenterX, entity.shape.getCenterY)
   }
 
   def stopMoving(): Unit = {
@@ -142,7 +142,7 @@ class MovementModule {
 
     val collisionVelocityX = currentVelocityX * delta
     val collisionVelocityY = currentVelocityY * delta
-    val collisionDetails = Globals.manageCollisions(agent.room, agent, collisionVelocityX, collisionVelocityY)
+    val collisionDetails = Globals.manageCollisions(agent.currentRoom, agent, collisionVelocityX, collisionVelocityY)
     if (!collisionDetails.colX) {
       agent.shape.setX(agent.shape.getX + collisionVelocityX)
     }

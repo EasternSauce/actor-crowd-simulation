@@ -1,9 +1,8 @@
 package com.kamilkurp.behavior
 
 import com.kamilkurp.agent.Agent
-import com.kamilkurp.util.{Configuration, ControlScheme, Timer}
+import com.kamilkurp.util.{Configuration, Timer}
 import org.newdawn.slick.Color
-import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
@@ -24,9 +23,9 @@ class IdleBehavior(agent: Agent, name: String, color: Color) extends Behavior(ag
       if (inPlace) agent.movementModule.stopMoving()
       else agent.movementModule.moveTowards(agent.shape.getX + (Random.nextInt(3) - 1) * 50f, agent.shape.getY + (Random.nextInt(3) - 1) * 50f)
 
-      if (agent.room.meetPointList.nonEmpty) {
-        agent.followX = agent.room.meetPointList.head.shape.getCenterX
-        agent.followY = agent.room.meetPointList.head.shape.getCenterY
+      if (agent.currentRoom.meetPointList.nonEmpty) {
+        agent.followX = agent.currentRoom.meetPointList.head.shape.getCenterX
+        agent.followY = agent.currentRoom.meetPointList.head.shape.getCenterY
 
         agent.setBehavior(HoldMeetPointBehavior.name)
       }

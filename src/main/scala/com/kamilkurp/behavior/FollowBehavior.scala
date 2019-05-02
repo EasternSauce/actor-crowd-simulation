@@ -23,7 +23,7 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
     if (agent.controlScheme != ControlScheme.Manual) {
 
       if (!agent.movementModule.beingPushed && agent.followedAgent != null) {
-        if (agent.followedAgent.room == agent.room) {
+        if (agent.followedAgent.currentRoom == agent.currentRoom) {
           if (agent.getDistanceTo(agent.followedAgent.shape.getCenterX, agent.followedAgent.shape.getCenterY) > agent.followDistance) {
             agent.movementModule.moveTowards(agent.followedAgent.shape.getCenterX, agent.followedAgent.shape.getCenterY)
           }
@@ -32,7 +32,7 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
           }
         }
         else {
-          var door: Door = agent.doorLeadingToRoom(agent.buildingPlanGraph, agent.followedAgent.room)
+          var door: Door = agent.spatialModule.doorLeadingToRoom(agent.buildingPlanGraph, agent.followedAgent.currentRoom)
 
           if (door != null) {
             agent.doorToEnter = door
@@ -46,9 +46,9 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
     }
 
 
-    if (agent.room.meetPointList.nonEmpty) {
-      agent.followX = agent.room.meetPointList.head.shape.getCenterX
-      agent.followY = agent.room.meetPointList.head.shape.getCenterY
+    if (agent.currentRoom.meetPointList.nonEmpty) {
+      agent.followX = agent.currentRoom.meetPointList.head.shape.getCenterX
+      agent.followY = agent.currentRoom.meetPointList.head.shape.getCenterY
 
       agent.setBehavior(IdleBehavior.name)
     }

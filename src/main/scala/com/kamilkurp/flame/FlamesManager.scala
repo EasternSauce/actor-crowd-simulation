@@ -13,7 +13,7 @@ class FlamesManager() {
   var flamesList: ListBuffer[Flames] = _
 
   def init(roomList: ListBuffer[Room]): Unit = {
-    flamesPropagationTimer = new Timer((10000f/Configuration.FLAME_PROPAGATION_SPEED).toInt)
+    flamesPropagationTimer = new Timer((10000f / Configuration.FLAME_PROPAGATION_SPEED).toInt)
     flamesPropagationTimer.start()
     flamesImage = new Image(Configuration.FLAMES_IMAGE_LOCATION)
     flamesList = new ListBuffer[Flames]()
@@ -24,21 +24,21 @@ class FlamesManager() {
     }
 
 
-//    val corrD: Room = roomList.filter(room => room.name == "corrD").head
-//
-//    println(corrD.doorList)
-//
-//    val flames = new Flames(corrD, Random.nextInt(corrD.w-flamesImage.getWidth), Random.nextInt(corrD.h-flamesImage.getHeight), flamesImage)
-//
-//    corrD.flamesList += flames
-//    flamesList += flames
+    //    val corrD: Room = roomList.filter(room => room.name == "corrD").head
+    //
+    //    println(corrD.doorList)
+    //
+    //    val flames = new Flames(corrD, Random.nextInt(corrD.w-flamesImage.getWidth), Random.nextInt(corrD.h-flamesImage.getHeight), flamesImage)
+    //
+    //    corrD.flamesList += flames
+    //    flamesList += flames
   }
 
   def addRandomFlame(roomList: ListBuffer[Room]): Unit = {
     val randomRoom = Random.nextInt(roomList.length)
     val room: Room = roomList(randomRoom)
 
-    val flames = new Flames(room, Random.nextInt(room.w-flamesImage.getWidth), Random.nextInt(room.h-flamesImage.getHeight), flamesImage)
+    val flames = new Flames(room, Random.nextInt(room.w - flamesImage.getWidth), Random.nextInt(room.h - flamesImage.getHeight), flamesImage)
 
     room.flamesList += flames
     flamesList += flames
@@ -79,16 +79,16 @@ class FlamesManager() {
             if (!foundSpot) {
 
 
-              newFlames = new Flames(flames.room, flames.shape.getX, flames.shape.getY, flames.image)
+              newFlames = new Flames(flames.currentRoom, flames.shape.getX, flames.shape.getY, flames.image)
 
               newFlames.shape.setX(flames.shape.getX.toInt + (flamesImage.getWidth + 5) * pair._1)
               newFlames.shape.setY(flames.shape.getY.toInt + (flamesImage.getHeight + 5) * pair._2)
 
               var isFree = true
 
-              newFlames.room.flamesList.foreach(that => {
-                if (newFlames.shape.getX < 0 || newFlames.shape.getX > newFlames.room.w - newFlames.shape.getWidth) isFree = false
-                if (newFlames.shape.getY < 0 || newFlames.shape.getY > newFlames.room.h - newFlames.shape.getHeight) isFree = false
+              newFlames.currentRoom.flamesList.foreach(that => {
+                if (newFlames.shape.getX < 0 || newFlames.shape.getX > newFlames.currentRoom.w - newFlames.shape.getWidth) isFree = false
+                if (newFlames.shape.getY < 0 || newFlames.shape.getY > newFlames.currentRoom.h - newFlames.shape.getHeight) isFree = false
 
                 if (Globals.intersects(newFlames, that.shape.getX, that.shape.getY, that.shape.getWidth, that.shape.getHeight, 0, 0)) {
                   isFree = false
@@ -96,12 +96,12 @@ class FlamesManager() {
               })
 
               if (isFree) {
-                flames.room.flamesList += newFlames
+                flames.currentRoom.flamesList += newFlames
                 flamesList += newFlames
 
                 foundSpot = true
 
-                newFlames.room.doorList.foreach(that => {
+                newFlames.currentRoom.doorList.foreach(that => {
                   if (Globals.intersects(newFlames, that.shape.getX, that.shape.getY, that.shape.getWidth, that.shape.getHeight, 0, 0)) {
                     var foundNewRoomSpot = false
                     for (i <- -1 to 1) {
@@ -111,9 +111,9 @@ class FlamesManager() {
                           val spotX = leadingToDoor.posX + i * 60
                           val spotY = leadingToDoor.posY + j * 60
 
-                          if (!Globals.isRectOccupied(leadingToDoor.room, spotX - 10, spotY - 10, newFlames.shape.getWidth + 20, newFlames.shape.getHeight + 20, newFlames)) {
+                          if (!Globals.isRectOccupied(leadingToDoor.currentRoom, spotX - 10, spotY - 10, newFlames.shape.getWidth + 20, newFlames.shape.getHeight + 20, newFlames)) {
 
-                            val newRoom: Room = that.leadingToDoor.room
+                            val newRoom: Room = that.leadingToDoor.currentRoom
 
                             val newRoomFlames = new Flames(newRoom, spotX, spotY, flamesImage)
                             newRoom.flamesList += newRoomFlames

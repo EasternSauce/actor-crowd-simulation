@@ -5,7 +5,7 @@ import com.kamilkurp.entity.Entity
 import org.newdawn.slick.geom.{Rectangle, Shape}
 import org.newdawn.slick.{Graphics, Image}
 
-class Flames(var room: Room, var posX: Float, var posY: Float, var image: Image) extends Entity {
+class Flames(var currentRoom: Room, var posX: Float, var posY: Float, var image: Image) extends Entity {
 
   override var name: String = _
   override var shape: Shape = _
@@ -27,10 +27,8 @@ class Flames(var room: Room, var posX: Float, var posY: Float, var image: Image)
   }
 
   def draw(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
-    g.drawImage(this.image, room.x + shape.getX - offsetX, room.y + shape.getY - offsetY)
+    g.drawImage(this.image, currentRoom.x + shape.getX - offsetX, currentRoom.y + shape.getY - offsetY)
   }
-
-
 
 
 }

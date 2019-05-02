@@ -4,7 +4,6 @@ import com.kamilkurp.agent.Agent
 import com.kamilkurp.building.{Door, Room}
 import com.kamilkurp.util.ControlScheme
 import org.newdawn.slick.Color
-import org.newdawn.slick.geom.Vector2f
 
 import scala.util.Random
 
@@ -16,16 +15,16 @@ class AvoidFireBehavior(agent: Agent, name: String, color: Color) extends Behavi
   }
 
   def pickRoomToStay(): Unit = {
-    val knownRooms: Array[AnyRef] = agent.mentalMapGraph.vertexSet().toArray
+    val knownRooms: Array[AnyRef] = agent.spatialModule.mentalMapGraph.vertexSet().toArray
 
     roomToStay = knownRooms(Random.nextInt(knownRooms.length)).asInstanceOf[Room]
   }
 
   override def perform(delta: Int): Unit = {
 
-    if (roomToStay == agent.room) {
-      agent.followX = agent.room.w/2
-      agent.followY = agent.room.h/2
+    if (roomToStay == agent.currentRoom) {
+      agent.followX = agent.currentRoom.w / 2
+      agent.followY = agent.currentRoom.h / 2
 
       if (agent.getDistanceTo(agent.followX, agent.followY) > agent.followDistance) {
         agent.movementModule.moveTowards(agent.followX, agent.followY)
@@ -38,7 +37,7 @@ class AvoidFireBehavior(agent: Agent, name: String, color: Color) extends Behavi
 
     var door: Door = null
 
-    door = agent.doorLeadingToRoom(agent.mentalMapGraph, roomToStay)
+    door = agent.spatialModule.doorLeadingToRoom(agent.spatialModule.mentalMapGraph, roomToStay)
 
     if (door != null) {
       agent.doorToEnter = door
@@ -48,9 +47,9 @@ class AvoidFireBehavior(agent: Agent, name: String, color: Color) extends Behavi
       }
 
     }
-    else if (agent.room.meetPointList.nonEmpty) {
-      agent.followX = agent.room.meetPointList.head.shape.getCenterX
-      agent.followY = agent.room.meetPointList.head.shape.getCenterY
+    else if (agent.currentRoom.meetPointList.nonEmpty) {
+      agent.followX = agent.currentRoom.meetPointList.head.shape.getCenterX
+      agent.followY = agent.currentRoom.meetPointList.head.shape.getCenterY
 
       agent.setBehavior(IdleBehavior.name)
     }
@@ -69,5 +68,5 @@ class AvoidFireBehavior(agent: Agent, name: String, color: Color) extends Behavi
 
 object AvoidFireBehavior {
   val name: String = "avoidFire"
-  val color: Color = new Color(54,68,134)
+  val color: Color = new Color(54, 68, 134)
 }

@@ -5,18 +5,16 @@ import com.kamilkurp.behavior._
 import com.kamilkurp.building.Room
 import com.kamilkurp.entity.Entity
 import com.kamilkurp.flame.Flames
-import org.jgrapht.graph.DefaultWeightedEdge
 
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 
 abstract class AgentMessage
 
-case class AgentWithinVision(entity: Entity, distance: Float) extends AgentMessage
+case class AgentWithinVision(entity: Entity) extends AgentMessage
 
-case class AgentLeading(agent: Agent, locationX: Float, locationY: Float) extends AgentMessage
+case class AgentLeading(agent: Agent) extends AgentMessage
 
-case class FireWithinVision(flames: Flames, locationX: Float, locationY: Float) extends AgentMessage
+case class FireWithinVision() extends AgentMessage
 
 case class FireLocationInfo(fireLocations: mutable.Set[Room]) extends AgentMessage
 
@@ -27,7 +25,7 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
 
 
   override def receive: Receive = {
-    case AgentWithinVision(that: Agent, distance: Float) =>
+    case AgentWithinVision(that: Agent) =>
 
       if (agent.currentBehavior.name != LeaderBehavior.name) {
         if (that.currentBehavior.name == LeaderBehavior.name) {
@@ -37,7 +35,7 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
         }
       }
 
-    case AgentLeading(that, locationX, locationY) =>
+    case AgentLeading(that) =>
       if (agent.currentBehavior.name == IdleBehavior.name || agent.currentBehavior.name == SearchExitBehavior.name || agent.currentBehavior.name == FollowBehavior.name) {
         if (agent.currentBehavior.name != LeaderBehavior.name) {
           if (that.currentBehavior.name == LeaderBehavior.name) {
@@ -49,24 +47,11 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
 
       }
 
-    case FireWithinVision(flames, locationX, locationY) =>
-
-      if (agent.doorToEnter != null) agent.removeEdge(agent.room, agent.doorToEnter.leadingToDoor.room)
-
-      agent.knownFireLocations += agent.room
-
-      if (agent.currentBehavior.name == LeaderBehavior.name) agent.doorToEnter = agent.findDoorToEnterNext()
+    case FireWithinVision() =>
+      agent.spatialModule.onSpottingFire()
 
     case FireLocationInfo(fireLocations: mutable.Set[Room]) =>
-      fireLocations.foreach(location => {
-        if(!agent.knownFireLocations.contains(location)) {
-          agent.knownFireLocations += location
-
-
-
-          agent.doorToEnter = agent.findDoorToEnterNext()
-        }
-      })
+      agent.spatialModule.onReceiveFireLocationInfo(fireLocations)
 
   }
 }

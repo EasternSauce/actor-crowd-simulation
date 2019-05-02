@@ -4,10 +4,9 @@ import akka.actor.{ActorSystem, Props}
 import com.kamilkurp.agent.{Agent, AgentActor}
 import com.kamilkurp.building.Room
 import com.kamilkurp.simulation.CameraView
-import org.jgrapht.Graph
-import org.jgrapht.graph.{DefaultEdge, DefaultWeightedEdge, SimpleGraph, DefaultDirectedWeightedGraph}
-import org.newdawn.slick.{GameContainer, Image, Input}
+import org.jgrapht.graph.{DefaultDirectedWeightedGraph, DefaultWeightedEdge}
 import org.newdawn.slick.geom.Vector2f
+import org.newdawn.slick.{GameContainer, Image, Input}
 
 import scala.collection.mutable.ListBuffer
 
@@ -49,8 +48,8 @@ object ControlScheme extends Enumeration {
     }
 
     if (moved) {
-      CameraView.x = agent.room.x + agent.shape.getX - Globals.WINDOW_X / renderScale / 2 + agent.shape.getWidth / 2
-      CameraView.y = agent.room.y + agent.shape.getY - Globals.WINDOW_Y / renderScale / 2 + agent.shape.getHeight / 2
+      CameraView.x = agent.currentRoom.x + agent.shape.getX - Globals.WINDOW_X / renderScale / 2 + agent.shape.getWidth / 2
+      CameraView.y = agent.currentRoom.y + agent.shape.getY - Globals.WINDOW_Y / renderScale / 2 + agent.shape.getHeight / 2
     }
   }
 
