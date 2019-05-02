@@ -35,7 +35,7 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
           var door: Door = agent.spatialModule.doorLeadingToRoom(agent.buildingPlanGraph, agent.followedAgent.currentRoom)
 
           if (door != null) {
-            agent.doorToEnter = door
+            agent.intendedDoor = door
 
             agent.movementModule.moveTowards(door)
           }

@@ -4,6 +4,7 @@ import com.kamilkurp.agent.Agent
 import com.kamilkurp.building.{Door, Room}
 import com.kamilkurp.util.ControlScheme
 import org.newdawn.slick.Color
+import org.newdawn.slick.geom.{Line, Shape, Transform}
 
 import scala.util.Random
 
@@ -17,14 +18,66 @@ class AvoidFireBehavior(agent: Agent, name: String, color: Color) extends Behavi
   def pickRoomToStay(): Unit = {
     val knownRooms: Array[AnyRef] = agent.spatialModule.mentalMapGraph.vertexSet().toArray
 
-    roomToStay = knownRooms(Random.nextInt(knownRooms.length)).asInstanceOf[Room]
+    roomToStay = null
+    var i = 0
+    while (i < 3) {
+
+      val roomCandidate = knownRooms(Random.nextInt(knownRooms.length)).asInstanceOf[Room]
+
+      if (agent.spatialModule.shortestPath(agent.spatialModule.mentalMapGraph, agent.currentRoom, roomCandidate) != null) {
+        roomToStay = roomCandidate
+        i = 3
+      }
+
+      i = i + 1
+    }
+
+    if (roomToStay == null) {
+      roomToStay = agent.currentRoom
+      agent.followX = agent.currentRoom.w / 2
+      agent.followY = agent.currentRoom.h / 2
+      agent.followDistance = 40
+    }
   }
 
   override def perform(delta: Int): Unit = {
 
+
+    if (agent.debug) {
+      println(if (roomToStay == null) "null" else roomToStay.name)
+    }
+
     if (roomToStay == agent.currentRoom) {
-      agent.followX = agent.currentRoom.w / 2
-      agent.followY = agent.currentRoom.h / 2
+      if (agent.currentRoom.flamesList.nonEmpty) {
+        var pickedDoor = agent.spatialModule.findDoorToEnterNext()
+
+        for (door <- agent.currentRoom.doorList) {
+          val t1 = Transform.createRotateTransform(Math.toRadians(-10).toFloat, agent.shape.getCenterX, agent.shape.getCenterY)
+          val t2 = Transform.createRotateTransform(Math.toRadians(10).toFloat, agent.shape.getCenterX, agent.shape.getCenterY)
+          var line = new Line(agent.shape.getCenterX, agent.shape.getCenterY, door.shape.getCenterX, door.shape.getCenterY)
+          var lineLeft: Shape = new Line(agent.shape.getCenterX, agent.shape.getCenterY, door.shape.getCenterX, door.shape.getCenterY)
+          lineLeft = lineLeft.transform(t1)
+          var lineRight: Shape = new Line(agent.shape.getCenterX, agent.shape.getCenterY, door.shape.getCenterX, door.shape.getCenterY)
+          lineRight = lineRight.transform(t2)
+
+          for (flames <- agent.currentRoom.flamesList) {
+            if (roomToStay == agent.currentRoom) {
+              if (!(flames.shape.intersects(line) || flames.shape.intersects(lineLeft) || flames.shape.intersects(lineRight))) {
+                roomToStay = door.leadingToDoor.currentRoom
+                agent.intendedDoor = door
+                agent.followX = door.shape.getCenterX
+                agent.followY = door.shape.getCenterY
+                agent.followDistance = 0
+              }
+            }
+
+
+          }
+
+        }
+
+        if (pickedDoor != null) roomToStay = pickedDoor.leadingToDoor.currentRoom
+      }
 
       if (agent.getDistanceTo(agent.followX, agent.followY) > agent.followDistance) {
         agent.movementModule.moveTowards(agent.followX, agent.followY)
@@ -40,10 +93,11 @@ class AvoidFireBehavior(agent: Agent, name: String, color: Color) extends Behavi
     door = agent.spatialModule.doorLeadingToRoom(agent.spatialModule.mentalMapGraph, roomToStay)
 
     if (door != null) {
-      agent.doorToEnter = door
+      agent.intendedDoor = door
 
       if (agent.controlScheme != ControlScheme.Manual) {
         agent.movementModule.moveTowards(door)
+
       }
 
     }
@@ -54,14 +108,17 @@ class AvoidFireBehavior(agent: Agent, name: String, color: Color) extends Behavi
       agent.setBehavior(IdleBehavior.name)
     }
     else {
-      if (agent.debug) println("encountered fire, picking another room")
       pickRoomToStay()
 
     }
   }
 
   override def afterChangeRoom(): Unit = {
-    //agent.setBehavior(LeaderBehavior.name)
+    if (roomToStay == agent.currentRoom) {
+      agent.followX = agent.currentRoom.w / 2
+      agent.followY = agent.currentRoom.h / 2
+      agent.followDistance = 40
+    }
   }
 }
 

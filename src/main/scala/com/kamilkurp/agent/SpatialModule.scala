@@ -4,6 +4,7 @@ import com.kamilkurp.behavior.{FollowBehavior, LeaderBehavior}
 import com.kamilkurp.building.{Door, Room}
 import com.kamilkurp.util.Globals
 import org.jgrapht.graph.{DefaultDirectedWeightedGraph, DefaultWeightedEdge}
+import org.newdawn.slick.geom.{Line, Shape, Transform}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -20,18 +21,39 @@ class SpatialModule private() {
 
     for (door <- room.doorList) {
       if (mentalMapGraph.containsVertex(door.leadingToDoor.currentRoom)) {
-        val edge: DefaultWeightedEdge = mentalMapGraph.addEdge(room, door.leadingToDoor.currentRoom)
-        mentalMapGraph.setEdgeWeight(edge, 1.0f)
+        val edge1: DefaultWeightedEdge = mentalMapGraph.addEdge(room, door.leadingToDoor.currentRoom)
+        mentalMapGraph.setEdgeWeight(edge1, 1.0f)
+        val edge2: DefaultWeightedEdge = mentalMapGraph.addEdge(door.leadingToDoor.currentRoom, room)
+        mentalMapGraph.setEdgeWeight(edge2, 1.0f)
       }
     }
   }
 
   def onSpottingFire(): Unit = {
-    if (agent.doorToEnter != null) removeEdge(agent.currentRoom, agent.doorToEnter.leadingToDoor.currentRoom)
+    if (agent.intendedDoor != null)
+
+      for (door <- agent.currentRoom.doorList) {
+        val leadingToRoom = door.leadingToDoor.currentRoom
+
+        val t1 = Transform.createRotateTransform(Math.toRadians(-10).toFloat, agent.shape.getCenterX, agent.shape.getCenterY)
+        val t2 = Transform.createRotateTransform(Math.toRadians(10).toFloat, agent.shape.getCenterX, agent.shape.getCenterY)
+        var line = new Line(agent.shape.getCenterX, agent.shape.getCenterY, door.shape.getCenterX, door.shape.getCenterY)
+        var lineLeft: Shape = new Line(agent.shape.getCenterX, agent.shape.getCenterY, door.shape.getCenterX, door.shape.getCenterY)
+        lineLeft = lineLeft.transform(t1)
+        var lineRight: Shape = new Line(agent.shape.getCenterX, agent.shape.getCenterY, door.shape.getCenterX, door.shape.getCenterY)
+        lineRight = lineRight.transform(t2)
+
+        for (flames <- agent.currentRoom.flamesList) {
+          if (flames.shape.intersects(line) || flames.shape.intersects(lineLeft) || flames.shape.intersects(lineRight)) {
+            removeEdge(agent.currentRoom, leadingToRoom)
+          }
+        }
+
+      }
 
     knownFireLocations += agent.currentRoom
 
-    if (agent.currentBehavior.name == LeaderBehavior.name) agent.doorToEnter = findDoorToEnterNext()
+    if (agent.currentBehavior.name == LeaderBehavior.name) agent.intendedDoor = findDoorToEnterNext()
   }
 
   def removeEdge(from: Room, to: Room): Unit = {
@@ -59,10 +81,16 @@ class SpatialModule private() {
       if (!knownFireLocations.contains(location)) {
         knownFireLocations += location
 
+        removeVertex(location)
 
-        agent.doorToEnter = findDoorToEnterNext()
+        agent.intendedDoor = findDoorToEnterNext()
       }
     })
+  }
+
+  def removeVertex(vertex: Room): Unit = {
+    mentalMapGraph.removeVertex(vertex)
+
   }
 
   def findDoorToEnterNext(): Door = {
@@ -98,13 +126,7 @@ class SpatialModule private() {
     for (pair <- doorDistances) {
       val edge: DefaultWeightedEdge = graphCopy.getEdge(agent.currentRoom, pair._1.leadingToDoor.currentRoom)
       if (edge != null) {
-        if (knownFireLocations.contains(pair._1.leadingToDoor.currentRoom)) {
-          graphCopy.setEdgeWeight(edge, 100f)
-        }
-        else {
-          graphCopy.setEdgeWeight(edge, pair._2 / maxDistance)
-        }
-
+        graphCopy.setEdgeWeight(edge, pair._2 / maxDistance)
       }
     }
 

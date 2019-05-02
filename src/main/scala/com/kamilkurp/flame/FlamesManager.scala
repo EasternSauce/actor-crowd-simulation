@@ -23,15 +23,6 @@ class FlamesManager() {
       addRandomFlame(roomList)
     }
 
-
-    //    val corrD: Room = roomList.filter(room => room.name == "corrD").head
-    //
-    //    println(corrD.doorList)
-    //
-    //    val flames = new Flames(corrD, Random.nextInt(corrD.w-flamesImage.getWidth), Random.nextInt(corrD.h-flamesImage.getHeight), flamesImage)
-    //
-    //    corrD.flamesList += flames
-    //    flamesList += flames
   }
 
   def addRandomFlame(roomList: ListBuffer[Room]): Unit = {
@@ -111,7 +102,7 @@ class FlamesManager() {
                           val spotX = leadingToDoor.posX + i * 60
                           val spotY = leadingToDoor.posY + j * 60
 
-                          if (!Globals.isRectOccupied(leadingToDoor.currentRoom, spotX - 10, spotY - 10, newFlames.shape.getWidth + 20, newFlames.shape.getHeight + 20, newFlames)) {
+                          if (!Globals.isRectTraversable(leadingToDoor.currentRoom, spotX - 10, spotY - 10, newFlames.shape.getWidth + 20, newFlames.shape.getHeight + 20, newFlames)) {
 
                             val newRoom: Room = that.leadingToDoor.currentRoom
 

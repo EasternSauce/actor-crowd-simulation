@@ -13,8 +13,6 @@ import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 import scala.util.Random
 
 class Agent private(var name: String, var currentRoom: Room, val controlScheme: ControlScheme, var image: Image, var buildingPlanGraph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge]) extends Entity {
-
-
   override var shape: Shape = _
   override var debug: Boolean = _
 
@@ -22,8 +20,7 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
 
   var actor: ActorRef = _
 
-  var isFree: Boolean = _
-  var doorToEnter: Door = _
+  var intendedDoor: Door = _
 
   var visionModule: VisionModule = _
   var behaviorModule: BehaviorModule = _
@@ -31,13 +28,14 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
   var spatialModule: SpatialModule = _
 
   var avoidFireTimer: Timer = _
-
   var followTimer: Timer = _
 
   var followX: Float = _
   var followY: Float = _
   var followDistance: Float = _
   var followedAgent: Agent = _
+
+  var startingRoom: Room = _
 
 
   def setControls(controls: (Int, Int, Int, Int)): Unit = {
@@ -91,15 +89,10 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
   }
 
   override def changeRoom(entryDoor: Door, newX: Float, newY: Float): Unit = {
-    if (doorToEnter != entryDoor) {
+    if (intendedDoor != entryDoor) {
       if (controlScheme != ControlScheme.Manual) {
         return
       }
-    }
-
-
-    if (!spatialModule.mentalMapGraph.containsVertex(entryDoor.leadingToDoor.currentRoom)) {
-      spatialModule.addRoomToGraph(entryDoor.leadingToDoor.currentRoom)
     }
 
     followTimer.reset()
@@ -178,11 +171,10 @@ object Agent {
 
     agent.followTimer = new Timer(Configuration.AGENT_FOLLOW_TIMER)
 
-    agent.isFree = false
 
     agent.debug = false
 
-    agent.avoidFireTimer = new Timer(500)
+    agent.avoidFireTimer = new Timer(100)
     agent.avoidFireTimer.time = agent.avoidFireTimer.timeout + 1
 
     agent.behaviorModule = BehaviorModule(agent)
@@ -190,14 +182,16 @@ object Agent {
     agent.movementModule = MovementModule(agent)
     agent.spatialModule = SpatialModule(agent)
 
-    while (!agent.isFree) {
+    var isFree = false
+
+    while (!isFree) {
       agent.shape.setX(Random.nextInt(room.w - Globals.AGENT_SIZE))
       agent.shape.setY(Random.nextInt(room.h - Globals.AGENT_SIZE))
 
       val collisionDetails = Globals.manageCollisions(room, agent, 0, 0)
 
       if (!collisionDetails.colX && !collisionDetails.colY) {
-        agent.isFree = true
+        isFree = true
       }
     }
 
@@ -208,6 +202,8 @@ object Agent {
     agent.followedAgent = null
 
     agent.followTimer = new Timer(Configuration.AGENT_FOLLOW_TIMER)
+
+    agent.startingRoom = agent.currentRoom
 
 
     agent

@@ -28,7 +28,7 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
     var door: Door = agent.spatialModule.findDoorToEnterNext()
 
     if (door != null) {
-      agent.doorToEnter = door
+      agent.intendedDoor = door
 
       if (agent.controlScheme != ControlScheme.Manual) {
         agent.movementModule.moveTowards(door)

@@ -4,7 +4,6 @@ import akka.actor.{Actor, ActorLogging}
 import com.kamilkurp.behavior._
 import com.kamilkurp.building.Room
 import com.kamilkurp.entity.Entity
-import com.kamilkurp.flame.Flames
 
 import scala.collection.mutable
 
@@ -27,7 +26,7 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
   override def receive: Receive = {
     case AgentWithinVision(that: Agent) =>
 
-      if (agent.currentBehavior.name != LeaderBehavior.name) {
+      if (agent.currentBehavior.name != LeaderBehavior.name && agent.currentBehavior.name != AvoidFireBehavior.name) {
         if (that.currentBehavior.name == LeaderBehavior.name) {
           if (agent.followedAgent == null) {
             agent.followLeader(that)

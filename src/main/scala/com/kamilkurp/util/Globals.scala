@@ -4,23 +4,38 @@ import java.util.ConcurrentModificationException
 
 import com.kamilkurp.building.Room
 import com.kamilkurp.entity.Entity
-import org.jgrapht.Graph
-import org.jgrapht.graph.{DefaultEdge, DefaultWeightedEdge, SimpleGraph, DefaultDirectedWeightedGraph}
+import org.jgrapht.graph.{DefaultDirectedWeightedGraph, DefaultWeightedEdge}
 
 object Globals {
+  val AGENT_SIZE: Int = 40
+  val WINDOW_X: Int = 2560
+  val WINDOW_Y: Int = 1440
+  val SCALE_X: Float = 0.5f
+  val SCALE_Y: Float = 0.5f
+
   def copyGraph(graph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge]): DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge] = {
     val newGraph = new DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
 
-    val vertexIter: java.util.Iterator[Room] = graph.vertexSet().iterator()
-    while(vertexIter.hasNext) {
-      val room = vertexIter.next()
+    var vertexArray: Array[AnyRef] = null
+
+    while (vertexArray == null) {
+      try {
+        vertexArray = graph.vertexSet().toArray
+      } catch {
+        case _: ConcurrentModificationException =>
+          vertexArray = null
+      }
+    }
+
+    for (ref <- vertexArray) {
+      val room = ref.asInstanceOf[Room]
       newGraph.addVertex(room)
     }
 
 
     var edgeArray: Array[AnyRef] = null
 
-    while(edgeArray == null) {
+    while (edgeArray == null) {
       try {
         edgeArray = graph.edgeSet().toArray
       } catch {
@@ -38,12 +53,6 @@ object Globals {
 
     newGraph
   }
-
-  val AGENT_SIZE: Int = 40
-  val WINDOW_X: Int = 2560
-  val WINDOW_Y: Int = 1440
-  val SCALE_X: Float = 0.5f
-  val SCALE_Y: Float = 0.5f
 
   def manageCollisions(room: Room, entity: Entity, collisionVelocityX: Float, collisionVelocityY: Float): CollisionDetails = {
 
@@ -75,7 +84,7 @@ object Globals {
 
       var collided = false
 
-      if (intersectsX(entity, meetPoint.shape.getX, meetPoint.shape.getY, meetPoint.shape.getWidth, meetPoint.shape.getHeight,collisionVelocityX, collisionVelocityY)) {
+      if (intersectsX(entity, meetPoint.shape.getX, meetPoint.shape.getY, meetPoint.shape.getWidth, meetPoint.shape.getHeight, collisionVelocityX, collisionVelocityY)) {
         collisionDetails.colX = true
         collided = true
       }
@@ -101,7 +110,7 @@ object Globals {
 
       var collided = false
 
-      if (intersectsX(entity, flames.shape.getX, flames.shape.getY, flames.shape.getWidth, flames.shape.getHeight,collisionVelocityX, collisionVelocityY)) {
+      if (intersectsX(entity, flames.shape.getX, flames.shape.getY, flames.shape.getWidth, flames.shape.getHeight, collisionVelocityX, collisionVelocityY)) {
         collisionDetails.colX = true
         collided = true
 
@@ -126,27 +135,31 @@ object Globals {
 
     if (x < 0 || x > room.w - w) occupied = true
     if (y < 0 || y > room.h - h) occupied = true
-//
-//    if (occupied == true && entity.debug) {
-//      println("occupied by wall")
-//
-//    }
 
     room.agentList.foreach(agent => {
       if (intersects(agent, x, y, w, h, 0, 0)) {
 
-//        if (entity.debug) {
-//          println("occupied by " + agent.name)
-//        }
         occupied = true
       }
     })
 
     room.doorList.foreach(door => {
       if (intersects(door, x, y, w, h, 0, 0)) {
-//        if (entity.debug) {
-//          println("occupied by " + door.name)
-//        }
+        occupied = true
+      }
+    })
+
+    occupied
+  }
+
+  def isRectTraversable(room: Room, x: Float, y: Float, w: Float, h: Float, entity: Entity): Boolean = {
+    var occupied = false
+
+    if (x < 0 || x > room.w - w) occupied = true
+    if (y < 0 || y > room.h - h) occupied = true
+
+    room.doorList.foreach(door => {
+      if (intersects(door, x, y, w, h, 0, 0)) {
         occupied = true
       }
     })

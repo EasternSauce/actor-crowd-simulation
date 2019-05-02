@@ -1,19 +1,28 @@
 package com.kamilkurp.behavior
 
 import com.kamilkurp.agent.Agent
-import com.kamilkurp.building.Door
+import com.kamilkurp.building.{Door, Room}
 import com.kamilkurp.util.ControlScheme
 import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
 
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
   var doorToEnterNext: Door = _
 
+  var visited: mutable.Set[Room] = _
+
   override def init(): Unit = {
+
+    visited = mutable.Set[Room]()
+
+    visited += agent.currentRoom
+
     decideOnDoor()
+
   }
 
   def decideOnDoor(): Unit = {
@@ -30,7 +39,7 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
 
         if (leadingToRoom.name.startsWith("corr")) doorToCorrList += doorInRoom
 
-        if (leadingToRoom.meetPointList.nonEmpty || (leadingToRoom.name.startsWith("corr") && !agent.spatialModule.mentalMapGraph.containsVertex(leadingToRoom))) {
+        if (leadingToRoom.meetPointList.nonEmpty || (leadingToRoom.name.startsWith("corr") && !visited.contains(leadingToRoom))) {
           door = doorInRoom
         }
       }
@@ -46,7 +55,7 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
   def perform(delta: Int): Unit = {
 
     if (doorToEnterNext != null && agent.currentRoom.meetPointList.isEmpty) {
-      agent.doorToEnter = doorToEnterNext
+      agent.intendedDoor = doorToEnterNext
 
       if (agent.controlScheme != ControlScheme.Manual) {
         val normalVector = new Vector2f(doorToEnterNext.shape.getCenterX - agent.shape.getCenterX, doorToEnterNext.shape.getCenterY - agent.shape.getCenterY)
@@ -71,7 +80,10 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
   }
 
   override def afterChangeRoom(): Unit = {
+    visited += agent.currentRoom
+
     decideOnDoor()
+
   }
 
 }
