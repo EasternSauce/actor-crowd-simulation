@@ -27,4 +27,8 @@ object Configuration {
   val AGENT_IDLE_TIMER: Int = 500
   val AGENT_FOLLOW_TIMER: Int = 5000
 
+  val CAMERA_SPEED: Float = 3f
+
+  val ZOOM_SPEED: Float = 0.025f
+
 }

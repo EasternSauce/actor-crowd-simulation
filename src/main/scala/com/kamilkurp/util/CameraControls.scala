@@ -11,16 +11,16 @@ class CameraControls {
 
   def handleControls(gc: GameContainer, i: Int): Unit = {
     if (gc.getInput.isKeyDown(Input.KEY_DOWN)) {
-      CameraView.y = CameraView.y + (1.0f * i.toFloat)
+      CameraView.y = CameraView.y + (Configuration.CAMERA_SPEED * i.toFloat)
     }
     if (gc.getInput.isKeyDown(Input.KEY_UP)) {
-      CameraView.y = CameraView.y - (1.0f * i.toFloat)
+      CameraView.y = CameraView.y - (Configuration.CAMERA_SPEED * i.toFloat)
     }
     if (gc.getInput.isKeyDown(Input.KEY_RIGHT)) {
-      CameraView.x = CameraView.x + (1.0f * i.toFloat)
+      CameraView.x = CameraView.x + (Configuration.CAMERA_SPEED * i.toFloat)
     }
     if (gc.getInput.isKeyDown(Input.KEY_LEFT)) {
-      CameraView.x = CameraView.x - (1.0f * i.toFloat)
+      CameraView.x = CameraView.x - (Configuration.CAMERA_SPEED * i.toFloat)
     }
 
     if (gc.getInput.isKeyDown(Input.KEY_SUBTRACT)) {
@@ -29,7 +29,7 @@ class CameraControls {
       val centerX = CameraView.x + Globals.WINDOW_X * 1 / renderScale / 2
       val centerY = CameraView.y + Globals.WINDOW_Y * 1 / renderScale / 2
 
-      renderScale /= 1 + 0.005f
+      renderScale /= 1 + Configuration.ZOOM_SPEED
 
 
       CameraView.x = centerX - (Globals.WINDOW_X * 1 / renderScale / 2)
@@ -45,7 +45,7 @@ class CameraControls {
       val centerX = CameraView.x + Globals.WINDOW_X * 1 / renderScale / 2
       val centerY = CameraView.y + Globals.WINDOW_Y * 1 / renderScale / 2
 
-      renderScale *= 1 + 0.005f
+      renderScale *= 1 + Configuration.ZOOM_SPEED
 
 
       CameraView.x = centerX - (Globals.WINDOW_X * 1 / renderScale / 2)

@@ -31,17 +31,17 @@ class VisionModule private() {
       val rect = new Rectangle(x, y, 1200, 1)
       var polygon: Shape = new Polygon(rect.getPoints)
 
-      val radianAngle = agent.movementModule.viewAngle - 60 + i * 5
-      val t: Transform = Transform.createRotateTransform(Math.toRadians(radianAngle).toFloat, x, y)
+      val angle = agent.movementModule.viewAngle - 60 + i * 5
+      val t: Transform = Transform.createRotateTransform(Math.toRadians(angle).toFloat, x, y)
       polygon = polygon.transform(t)
 
       viewRayList(i) = polygon
 
       if (i == 0) {
-        firstRay = (rect, radianAngle)
+        firstRay = (rect, angle)
       }
       if (i == viewRayList.length - 1) {
-        lastRay = (rect, radianAngle)
+        lastRay = (rect, angle)
       }
     }
 
@@ -115,11 +115,6 @@ class VisionModule private() {
     else {
       colAvoidAngle = 60 - 5 * (largestClusterPos + largestClusterSize)
     }
-
-    if (largestClusterPos != -1) {
-      if (agent.name == "agent6") println(largestClusterPos + " " + largestClusterSize)
-    }
-
 
     agent.currentRoom.flamesList.foreach(fire =>
       viewRayList.foreach(rayShape =>

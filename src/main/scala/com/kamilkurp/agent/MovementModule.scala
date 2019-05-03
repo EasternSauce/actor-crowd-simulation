@@ -13,6 +13,7 @@ class MovementModule {
   var currentVelocityY: Float = _
   var changedVelocityX: Float = _
   var changedVelocityY: Float = _
+
   var changedVelocity: Boolean = _
   var walkAngle: Float = _
   var viewAngle: Float = _

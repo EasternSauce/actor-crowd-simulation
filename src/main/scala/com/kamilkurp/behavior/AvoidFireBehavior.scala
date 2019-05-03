@@ -42,11 +42,6 @@ class AvoidFireBehavior(agent: Agent, name: String, color: Color) extends Behavi
 
   override def perform(delta: Int): Unit = {
 
-
-    if (agent.debug) {
-      println(if (roomToStay == null) "null" else roomToStay.name)
-    }
-
     if (roomToStay == agent.currentRoom) {
       if (agent.currentRoom.flamesList.nonEmpty) {
         var pickedDoor = agent.spatialModule.findDoorToEnterNext()

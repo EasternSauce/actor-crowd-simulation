@@ -50,8 +50,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   var untilAlarmTimer: Timer = _
 
-  var zoomTimer: Timer = _
-
   var manualControlsManager: CameraControls = _
 
   var cameraControls: CameraControls = _
@@ -92,9 +90,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     untilAlarmTimer = new Timer(Configuration.UNTIL_ALARM_TIME)
     untilAlarmTimer.start()
 
-    zoomTimer = new Timer(1000)
-    zoomTimer.start()
-
     for (room <- roomList) {
       roomGraph.addVertex(room)
     }
@@ -119,8 +114,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       nameIndices.put(listOfNames(randomNameIndex), nameIndices(listOfNames(randomNameIndex)) + 1)
       val randomOffice = Random.nextInt(officeList.length)
       val room: Room = officeList(randomOffice)
-
-
       addAgent(randomName, room)
     }
 

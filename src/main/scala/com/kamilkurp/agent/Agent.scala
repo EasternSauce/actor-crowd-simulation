@@ -10,6 +10,7 @@ import org.jgrapht.graph.{DefaultDirectedWeightedGraph, DefaultWeightedEdge}
 import org.newdawn.slick.geom.{Shape, _}
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
+import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 class Agent private(var name: String, var currentRoom: Room, val controlScheme: ControlScheme, var image: Image, var buildingPlanGraph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge]) extends Entity {
@@ -36,6 +37,8 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
   var followedAgent: Agent = _
 
   var startingRoom: Room = _
+
+  var debugLineColors: ListBuffer[Color] = _
 
 
   def setControls(controls: (Int, Int, Int, Int)): Unit = {
@@ -174,7 +177,7 @@ object Agent {
 
     agent.debug = false
 
-    agent.avoidFireTimer = new Timer(100)
+    agent.avoidFireTimer = new Timer(5000)
     agent.avoidFireTimer.time = agent.avoidFireTimer.timeout + 1
 
     agent.behaviorModule = BehaviorModule(agent)
@@ -205,6 +208,7 @@ object Agent {
 
     agent.startingRoom = agent.currentRoom
 
+    agent.debugLineColors = new ListBuffer[Color]()
 
     agent
   }

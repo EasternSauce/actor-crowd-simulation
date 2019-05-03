@@ -1,13 +1,18 @@
 package com.kamilkurp.agent
 
+import java.util
+
 import com.kamilkurp.behavior.{FollowBehavior, LeaderBehavior}
 import com.kamilkurp.building.{Door, Room}
 import com.kamilkurp.util.Globals
 import org.jgrapht.graph.{DefaultDirectedWeightedGraph, DefaultWeightedEdge}
+import org.newdawn.slick.Color
 import org.newdawn.slick.geom.{Line, Shape, Transform}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import scala.compat.Platform.ConcurrentModificationException
+import scala.util.Random
 
 class SpatialModule private() {
 
@@ -37,16 +42,23 @@ class SpatialModule private() {
 
         val t1 = Transform.createRotateTransform(Math.toRadians(-10).toFloat, agent.shape.getCenterX, agent.shape.getCenterY)
         val t2 = Transform.createRotateTransform(Math.toRadians(10).toFloat, agent.shape.getCenterX, agent.shape.getCenterY)
-        var line = new Line(agent.shape.getCenterX, agent.shape.getCenterY, door.shape.getCenterX, door.shape.getCenterY)
+        val line = new Line(agent.shape.getCenterX, agent.shape.getCenterY, door.shape.getCenterX, door.shape.getCenterY)
         var lineLeft: Shape = new Line(agent.shape.getCenterX, agent.shape.getCenterY, door.shape.getCenterX, door.shape.getCenterY)
         lineLeft = lineLeft.transform(t1)
         var lineRight: Shape = new Line(agent.shape.getCenterX, agent.shape.getCenterY, door.shape.getCenterX, door.shape.getCenterY)
         lineRight = lineRight.transform(t2)
 
+
+
+        var foundFire = false
         for (flames <- agent.currentRoom.flamesList) {
-          if (flames.shape.intersects(line) || flames.shape.intersects(lineLeft) || flames.shape.intersects(lineRight)) {
-            removeEdge(agent.currentRoom, leadingToRoom)
+          if (!foundFire) {
+            if (flames.shape.intersects(line) || flames.shape.intersects(lineLeft) || flames.shape.intersects(lineRight)) {
+              foundFire = true
+              removeEdge(agent.currentRoom, leadingToRoom)
+            }
           }
+
         }
 
       }
@@ -95,15 +107,53 @@ class SpatialModule private() {
 
   def findDoorToEnterNext(): Door = {
 
-    var meetPointRoom: Room = null
+    var doorDistances: mutable.Map[Door, Float] = mutable.Map[Door, Float]()
 
-    val vertices: Array[AnyRef] = agent.buildingPlanGraph.vertexSet().toArray
-    for (ref <- vertices) {
-      val room = ref.asInstanceOf[Room]
-      if (room.meetPointList.nonEmpty) meetPointRoom = room
+    for (door <- agent.currentRoom.doorList) {
+      doorDistances.put(door, agent.getDistanceTo(door))
     }
 
-    doorLeadingToRoom(mentalMapGraph, meetPointRoom)
+    val maxDistance: Float = doorDistances.values.max
+
+
+    var meetPointRoomList: ListBuffer[Room] = new ListBuffer[Room]()
+    var pathLengthList: ListBuffer[Float] = new ListBuffer[Float]()
+
+    val vertices: Array[AnyRef] = agent.buildingPlanGraph.vertexSet().toArray
+
+    //for each meetpoint room
+    for (ref <- vertices) {
+      val room = ref.asInstanceOf[Room]
+      if (room.meetPointList.nonEmpty) {
+
+        meetPointRoomList += room
+        val path: util.List[Room] = shortestPath(mentalMapGraph, agent.currentRoom, room)
+
+        var doorDistanceFactor = 0f
+
+        for (door <- agent.currentRoom.doorList) {
+          if (path != null && path.size() > 1 && door.leadingToDoor.currentRoom == path.get(1)) {
+            doorDistanceFactor = agent.getDistanceTo(door)/maxDistance
+          }
+        }
+
+        if (path != null) {
+          val length: Int = path.size()
+          pathLengthList += length + doorDistanceFactor
+
+        }
+        else {
+          pathLengthList += Int.MaxValue
+        }
+
+      }
+    }
+
+    val index = pathLengthList.indexOf(pathLengthList.min)
+
+    val result = doorLeadingToRoom(mentalMapGraph, meetPointRoomList(index))
+
+    result
   }
 
   def doorLeadingToRoom(graph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge], targetRoom: Room): Door = {
@@ -133,7 +183,9 @@ class SpatialModule private() {
     val path = shortestPath(graphCopy, agent.currentRoom, targetRoom)
 
 
-    if (path == null) return null
+    if (path == null) {
+      return null
+    }
 
     for (door: Door <- agent.currentRoom.doorList) {
       // return NEXT room on path (second element)
@@ -156,17 +208,21 @@ class SpatialModule private() {
 
     var shortestPath: java.util.List[Room] = null
     try {
-      shortestPath = dijkstraShortestPath.getPath(agent.currentRoom, to).getVertexList
+      while(shortestPath == null) {
+        try{
+          shortestPath = dijkstraShortestPath.getPath(agent.currentRoom, to).getVertexList
+        } catch {
+          case _: ConcurrentModificationException =>
+            shortestPath = null
+        }
+      }
+
 
     }
     catch {
       case _: NullPointerException =>
-        if (agent.currentBehavior.name == FollowBehavior.name) {
-        }
         return null
       case _: IllegalArgumentException =>
-        if (agent.currentBehavior.name == FollowBehavior.name) {
-        }
         return null
     }
 
