@@ -2,5 +2,4 @@ long term:
 - variable speed (constant momentum) and personal maximum speed of agents
 - agent relations, agents searching for people they know
 - agents helping each other escape if agent empathy high
-- multiple building exits
 - multiple floors

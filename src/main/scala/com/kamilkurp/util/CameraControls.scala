@@ -6,7 +6,7 @@ import org.newdawn.slick.{GameContainer, Input}
 
 class CameraControls {
 
-  var renderScale: Float = 1.5f
+  var renderScale: Float = 1.0f
 
 
   def handleControls(gc: GameContainer, i: Int): Unit = {

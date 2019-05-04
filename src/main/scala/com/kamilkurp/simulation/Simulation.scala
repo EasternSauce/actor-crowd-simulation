@@ -6,12 +6,15 @@ import com.kamilkurp.behavior.{IdleBehavior, SearchExitBehavior}
 import com.kamilkurp.building.{Door, MeetPoint, Room}
 import com.kamilkurp.flame.FlamesManager
 import com.kamilkurp.stats.Statistics
+import com.kamilkurp.stats.Statistics.params
 import com.kamilkurp.util._
 import org.jgrapht.graph.{DefaultDirectedWeightedGraph, DefaultWeightedEdge}
 import org.newdawn.slick._
+import org.newdawn.slick.geom.{Point, Rectangle}
 import org.newdawn.slick.gui.TextField
 import org.newdawn.slick.opengl.SlickCallable
 import org.newdawn.slick.opengl.renderer.Renderer
+import org.w3c.dom.css.Rect
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -55,6 +58,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   var cameraControls: CameraControls = _
 
   var generalTimer: Timer = _
+
+  var selectedAgent: Agent = _
 
   override def init(gc: GameContainer): Unit = {
     doorImage = new Image(Configuration.DOOR_IMAGE_LOCATION)
@@ -121,13 +126,15 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     ControlScheme.tryAddManualAgent(roomList, actorSystem, agentImage, roomGraph)
 
     cameraControls = new CameraControls()
-    font = new TrueTypeFont(new java.awt.Font("Verdana", java.awt.Font.BOLD, (32 * 1 / cameraControls.renderScale).toInt), false)
+    font = new TrueTypeFont(new java.awt.Font("Verdana", java.awt.Font.BOLD, (24 * 1 / cameraControls.renderScale).toInt), false)
     textField = new TextField(gc, font, 0, (Globals.WINDOW_Y * 0.955f).toInt, Globals.WINDOW_X, (Globals.WINDOW_Y * 0.04f).toInt)
     textField.setBorderColor(Color.transparent)
     textField.setTextColor(Color.green)
 
     generalTimer = new Timer(0)
     generalTimer.start()
+
+    selectedAgent = null
   }
 
 
@@ -199,7 +206,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     cameraControls.handleControls(gc, i)
 
-
     roomList.foreach(room => {
       room.update(gc, i, cameraControls.renderScale)
     })
@@ -247,11 +253,48 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     flamesManager.handleFlamePropagation()
 
+    val input = gc.getInput
+    val xpos = input.getMouseX
+    val ypos = input.getMouseY
+
+    roomList.foreach(room => {
+      var roomRect: Rectangle = new Rectangle(room.x * cameraControls.renderScale,room.y * cameraControls.renderScale,room.w * cameraControls.renderScale,room.h * cameraControls.renderScale)
+      var point: Rectangle = new Rectangle(CameraView.x + 1 / cameraControls.renderScale * xpos, CameraView.y + 1 / cameraControls.renderScale * ypos, 5, 5)
+
+      if (roomRect.intersects(point)) {
+
+        for (agent <- room.agentList) {
+          var agentRect = new Rectangle((room.x + agent.shape.getX)* cameraControls.renderScale, (room.y + agent.shape.getY) * cameraControls.renderScale, agent.shape.getWidth * cameraControls.renderScale, agent.shape.getHeight * cameraControls.renderScale)
+
+          if (agentRect.intersects(point)) {
+            agent.mousedOver = true
+
+            if (gc.getInput.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON)) {
+              println("clicked")
+              if (selectedAgent != null) selectedAgent.selected = false
+              selectedAgent = agent
+              agent.selected = true
+            }
+          }
+        }
+      }
+
+      //g.fillRect(point.getX - CameraView.x, point.getY - CameraView.y, 300*1/cameraControls.renderScale, 300 * 1/cameraControls.renderScale)
+    })
 
     Statistics.params.put("Total agents", agentList.length.toString)
     Statistics.params.put("Total evacuated", agentList.filter(agent => agent.currentBehavior.name == "holdMeetPoint").toList.length.toString)
     Statistics.params.put("Time", (generalTimer.time / 1000f).toString)
 
+
+    if (selectedAgent != null) {
+      params.put("Agent name", selectedAgent.name)
+      params.put("Start room", selectedAgent.startingRoom.name)
+      params.put("Velocity x", selectedAgent.movementModule.currentVelocityX.toString)
+      params.put("Velocity y", selectedAgent.movementModule.currentVelocityY.toString)
+      params.put("Behavior", selectedAgent.currentBehavior.name)
+
+    }
   }
 
   override def render(gc: GameContainer, g: Graphics): Unit = {
@@ -279,13 +322,21 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     var i = 0
     for (param <- Statistics.params) {
-      font.drawString(textWindowX + 20 + 350 * Math.floor(i / 8).toFloat, textWindowY + 20 + 40 * (i % 8), param._1 + ": " + param._2, Color.green)
+      if (!param._2.equals("hide")) font.drawString(textWindowX + 20 + 500 * Math.floor(i / 8).toFloat, textWindowY + 20 + 40 * (i % 8), param._1 + ":", Color.green)
+      if (!param._2.equals("hide")) font.drawString(textWindowX + 270 + 500 * Math.floor(i / 8).toFloat, textWindowY + 20 + 40 * (i % 8), param._2, Color.green)
+
       i = i + 1
     }
 
     g.setColor(Color.green)
 
     textField.render(gc, g)
+
+
+
+    //for ()
+
+//    println("mouse pos: " + xpos + " " + ypos)
 
 
   }

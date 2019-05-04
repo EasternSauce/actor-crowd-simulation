@@ -14,6 +14,7 @@ import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 class Agent private(var name: String, var currentRoom: Room, val controlScheme: ControlScheme, var image: Image, var buildingPlanGraph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge]) extends Entity {
+
   override var shape: Shape = _
   override var debug: Boolean = _
 
@@ -38,7 +39,8 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
 
   var startingRoom: Room = _
 
-  var debugLineColors: ListBuffer[Color] = _
+  var mousedOver: Boolean = _
+  var selected: Boolean = _
 
 
   def setControls(controls: (Int, Int, Int, Int)): Unit = {
@@ -46,6 +48,8 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
   }
 
   def update(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
+
+    mousedOver = false
 
     visionModule.update(delta)
 
@@ -120,6 +124,16 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
 
   def draw(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
     g.drawImage(image, currentRoom.x + shape.getX - offsetX, currentRoom.y + shape.getY - offsetY)
+
+    if (selected) {
+      g.setColor(Color.green)
+      g.drawRect(currentRoom.x + shape.getX - offsetX - 50, currentRoom.y + shape.getY - offsetY - 50, shape.getWidth + 100, shape.getHeight + 100)
+    }
+    else if (mousedOver) {
+      g.setColor(Color.red)
+      g.drawRect(currentRoom.x + shape.getX - offsetX - 50, currentRoom.y + shape.getY - offsetY - 50, shape.getWidth + 100, shape.getHeight + 100)
+    }
+
 
     visionModule.draw(g, offsetX, offsetY)
   }
@@ -208,7 +222,8 @@ object Agent {
 
     agent.startingRoom = agent.currentRoom
 
-    agent.debugLineColors = new ListBuffer[Color]()
+    agent.mousedOver = false
+    agent.selected = false
 
     agent
   }
