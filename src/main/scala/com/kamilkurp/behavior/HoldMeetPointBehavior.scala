@@ -16,7 +16,11 @@ class HoldMeetPointBehavior(agent: Agent, name: String, color: Color) extends Be
     agent.movementModule.moveTowards(agent.followX, agent.followY)
   }
 
-  override def afterChangeRoom(): Unit = {
+  override def onChangeRoom(): Unit = {
+
+  }
+
+  override def onSpotFire(): Unit = {
 
   }
 }

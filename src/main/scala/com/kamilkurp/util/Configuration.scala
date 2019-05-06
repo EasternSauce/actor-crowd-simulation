@@ -15,7 +15,7 @@ object Configuration {
   val FLAME_PROPAGATION_SPEED: Float = 5
 
   val AGENT_SPEED: Float = 0.2f
-  val LEADER_PERCENTAGE: Float = 0.4f
+  val LEADER_PERCENTAGE: Float = 0f
   val AGENT_TURN_SPEED: Int = 12
 
   val AGENT_SLOW_TIMER: Int = 3000

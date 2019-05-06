@@ -113,7 +113,7 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
     shape.setX(newX)
     shape.setY(newY)
 
-    currentBehavior.afterChangeRoom()
+    currentBehavior.onChangeRoom()
   }
 
   def currentBehavior: Behavior = behaviorModule.currentBehavior

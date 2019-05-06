@@ -34,7 +34,11 @@ class IdleBehavior(agent: Agent, name: String, color: Color) extends Behavior(ag
     }
   }
 
-  override def afterChangeRoom(): Unit = {
+  override def onChangeRoom(): Unit = {
+
+  }
+
+  override def onSpotFire(): Unit = {
 
   }
 }

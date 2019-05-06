@@ -12,7 +12,11 @@ class StationaryBehavior(agent: Agent, name: String, color: Color) extends Behav
 
   }
 
-  override def afterChangeRoom(): Unit = {
+  override def onChangeRoom(): Unit = {
+
+  }
+
+  override def onSpotFire(): Unit = {
 
   }
 }

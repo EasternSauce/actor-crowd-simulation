@@ -8,5 +8,8 @@ abstract class Behavior(val agent: Agent, val name: String, val color: Color) {
 
   def perform(delta: Int): Unit
 
-  def afterChangeRoom(): Unit
+  def onChangeRoom(): Unit
+
+  def onSpotFire(): Unit
+
 }

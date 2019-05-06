@@ -56,10 +56,13 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
 
   }
 
-  override def afterChangeRoom(): Unit = {
+  override def onChangeRoom(): Unit = {
 
   }
 
+  override def onSpotFire(): Unit = {
+
+  }
 
 }
 

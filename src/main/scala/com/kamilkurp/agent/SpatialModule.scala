@@ -34,40 +34,6 @@ class SpatialModule private() {
     }
   }
 
-  def onSpottingFire(): Unit = {
-    if (agent.intendedDoor != null)
-
-      for (door <- agent.currentRoom.doorList) {
-        val leadingToRoom = door.leadingToDoor.currentRoom
-
-        val t1 = Transform.createRotateTransform(Math.toRadians(-10).toFloat, agent.shape.getCenterX, agent.shape.getCenterY)
-        val t2 = Transform.createRotateTransform(Math.toRadians(10).toFloat, agent.shape.getCenterX, agent.shape.getCenterY)
-        val line = new Line(agent.shape.getCenterX, agent.shape.getCenterY, door.shape.getCenterX, door.shape.getCenterY)
-        var lineLeft: Shape = new Line(agent.shape.getCenterX, agent.shape.getCenterY, door.shape.getCenterX, door.shape.getCenterY)
-        lineLeft = lineLeft.transform(t1)
-        var lineRight: Shape = new Line(agent.shape.getCenterX, agent.shape.getCenterY, door.shape.getCenterX, door.shape.getCenterY)
-        lineRight = lineRight.transform(t2)
-
-
-
-        var foundFire = false
-        for (flames <- agent.currentRoom.flamesList) {
-          if (!foundFire) {
-            if (flames.shape.intersects(line) || flames.shape.intersects(lineLeft) || flames.shape.intersects(lineRight)) {
-              foundFire = true
-              removeEdge(agent.currentRoom, leadingToRoom)
-            }
-          }
-
-        }
-
-      }
-
-    knownFireLocations += agent.currentRoom
-
-    if (agent.currentBehavior.name == LeaderBehavior.name) agent.intendedDoor = findDoorToEnterNext()
-  }
-
   def removeEdge(from: Room, to: Room): Unit = {
     val edgeArray = mentalMapGraph.edgeSet().toArray
 

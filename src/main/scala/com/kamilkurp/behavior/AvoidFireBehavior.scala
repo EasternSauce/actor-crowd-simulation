@@ -108,12 +108,16 @@ class AvoidFireBehavior(agent: Agent, name: String, color: Color) extends Behavi
     }
   }
 
-  override def afterChangeRoom(): Unit = {
+  override def onChangeRoom(): Unit = {
     if (roomToStay == agent.currentRoom) {
       agent.followX = agent.currentRoom.w / 2
       agent.followY = agent.currentRoom.h / 2
       agent.followDistance = 40
     }
+  }
+
+  override def onSpotFire(): Unit = {
+
   }
 }
 

@@ -26,30 +26,38 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
   }
 
   def decideOnDoor(): Unit = {
-    var door: Door = null
+    var doorCandidate: Door = null
 
-    door = agent.spatialModule.findDoorToEnterNext()
+    var exitCandidates: ListBuffer[Door] = new ListBuffer[Door]()
 
-    if (door == null) {
+    doorCandidate = agent.spatialModule.findDoorToEnterNext()
 
-      val doorToCorrList: ListBuffer[Door] = new ListBuffer[Door]
 
-      for (doorInRoom <- agent.currentRoom.doorList) {
-        val leadingToRoom = doorInRoom.leadingToDoor.currentRoom
+    val doorToCorrList: ListBuffer[Door] = new ListBuffer[Door]
 
-        if (leadingToRoom.name.startsWith("corr")) doorToCorrList += doorInRoom
+    for (doorInRoom <- agent.currentRoom.doorList) {
+      val leadingToRoom = doorInRoom.leadingToDoor.currentRoom
 
-        if (leadingToRoom.meetPointList.nonEmpty || (leadingToRoom.name.startsWith("corr") && !visited.contains(leadingToRoom))) {
-          door = doorInRoom
-        }
-      }
+      if (leadingToRoom.name.startsWith("corr")) doorToCorrList += doorInRoom
 
-      if (door == null) {
-        door = doorToCorrList(Random.nextInt(doorToCorrList.length))
+      if (!agent.spatialModule.knownFireLocations.contains(leadingToRoom) && leadingToRoom.meetPointList.nonEmpty || (leadingToRoom.name.startsWith("corr") && !visited.contains(leadingToRoom))) {
+        exitCandidates += doorInRoom
       }
     }
 
-    doorToEnterNext = door
+    if (doorCandidate == null) {
+      doorCandidate = doorToCorrList(Random.nextInt(doorToCorrList.length))
+    }
+
+
+    if (exitCandidates.isEmpty) {
+      doorToEnterNext = doorCandidate
+
+    }
+    else {
+      doorToEnterNext = exitCandidates(Random.nextInt(exitCandidates.size))
+    }
+
   }
 
   def perform(delta: Int): Unit = {
@@ -79,11 +87,15 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
     }
   }
 
-  override def afterChangeRoom(): Unit = {
+  override def onChangeRoom(): Unit = {
     visited += agent.currentRoom
 
     decideOnDoor()
 
+  }
+
+  override def onSpotFire(): Unit = {
+    decideOnDoor()
   }
 
 }
