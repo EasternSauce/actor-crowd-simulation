@@ -10,11 +10,10 @@ import com.kamilkurp.stats.Statistics.params
 import com.kamilkurp.util._
 import org.jgrapht.graph.{DefaultDirectedWeightedGraph, DefaultWeightedEdge}
 import org.newdawn.slick._
-import org.newdawn.slick.geom.{Point, Rectangle}
+import org.newdawn.slick.geom.Rectangle
 import org.newdawn.slick.gui.TextField
 import org.newdawn.slick.opengl.SlickCallable
 import org.newdawn.slick.opengl.renderer.Renderer
-import org.w3c.dom.css.Rect
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -258,19 +257,18 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     val ypos = input.getMouseY
 
     roomList.foreach(room => {
-      var roomRect: Rectangle = new Rectangle(room.x * cameraControls.renderScale,room.y * cameraControls.renderScale,room.w * cameraControls.renderScale,room.h * cameraControls.renderScale)
-      var point: Rectangle = new Rectangle(CameraView.x + 1 / cameraControls.renderScale * xpos, CameraView.y + 1 / cameraControls.renderScale * ypos, 5, 5)
+      val roomRect: Rectangle = new Rectangle(room.x, room.y, room.w, room.h)
+      val point: Rectangle = new Rectangle(CameraView.x + 1 / cameraControls.renderScale * xpos, CameraView.y + 1 / cameraControls.renderScale * ypos, 5, 5)
 
       if (roomRect.intersects(point)) {
 
         for (agent <- room.agentList) {
-          var agentRect = new Rectangle((room.x + agent.shape.getX)* cameraControls.renderScale, (room.y + agent.shape.getY) * cameraControls.renderScale, agent.shape.getWidth * cameraControls.renderScale, agent.shape.getHeight * cameraControls.renderScale)
+          var agentRect = new Rectangle(room.x + agent.shape.getX, room.y + agent.shape.getY, agent.shape.getWidth, agent.shape.getHeight)
 
           if (agentRect.intersects(point)) {
             agent.mousedOver = true
 
             if (gc.getInput.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON)) {
-              println("clicked")
               if (selectedAgent != null) selectedAgent.selected = false
               selectedAgent = agent
               agent.selected = true
@@ -278,8 +276,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
           }
         }
       }
-
-      //g.fillRect(point.getX - CameraView.x, point.getY - CameraView.y, 300*1/cameraControls.renderScale, 300 * 1/cameraControls.renderScale)
     })
 
     Statistics.params.put("Total agents", agentList.length.toString)
@@ -336,7 +332,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     //for ()
 
-//    println("mouse pos: " + xpos + " " + ypos)
+    //    println("mouse pos: " + xpos + " " + ypos)
 
 
   }
