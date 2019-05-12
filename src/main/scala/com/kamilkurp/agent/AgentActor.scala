@@ -49,6 +49,8 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
     case FireWithinVision() =>
       agent.spatialModule.knownFireLocations += agent.currentRoom
 
+      if (agent.selected) println(agent.name + " sees fire")
+
       agent.behaviorModule.currentBehavior.onSpotFire()
 
     case FireLocationInfo(fireLocations: mutable.Set[Room]) =>

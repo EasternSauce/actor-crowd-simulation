@@ -329,11 +329,5 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     textField.render(gc, g)
 
 
-
-    //for ()
-
-    //    println("mouse pos: " + xpos + " " + ypos)
-
-
   }
 }

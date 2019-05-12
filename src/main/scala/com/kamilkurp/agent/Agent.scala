@@ -42,6 +42,8 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
   var mousedOver: Boolean = _
   var selected: Boolean = _
 
+  var personalSpeed: Float = _
+
 
   def setControls(controls: (Int, Int, Int, Int)): Unit = {
     this.controls = controls
@@ -191,7 +193,7 @@ object Agent {
 
     agent.debug = false
 
-    agent.avoidFireTimer = new Timer(5000)
+    agent.avoidFireTimer = new Timer(300)
     agent.avoidFireTimer.time = agent.avoidFireTimer.timeout + 1
 
     agent.behaviorModule = BehaviorModule(agent)
@@ -224,6 +226,8 @@ object Agent {
 
     agent.mousedOver = false
     agent.selected = false
+
+    agent.personalSpeed = Configuration.AGENT_SPEED - 0.02f + Random.nextInt(5) * 0.01f
 
     agent
   }

@@ -46,8 +46,8 @@ class MovementModule {
     walkAngle = vector.getTheta.floatValue()
 
     if (!beingPushed) {
-      currentVelocityX = vector.x * Configuration.AGENT_SPEED * (1f - slow)
-      currentVelocityY = vector.y * Configuration.AGENT_SPEED * (1f - slow)
+      currentVelocityX = vector.x * agent.personalSpeed * (1f - slow)
+      currentVelocityY = vector.y * agent.personalSpeed * (1f - slow)
     }
 
   }
