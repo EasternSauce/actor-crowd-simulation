@@ -3,7 +3,7 @@ package com.kamilkurp.simulation
 import akka.actor.{ActorRef, ActorSystem, Props}
 import com.kamilkurp.agent.{Agent, AgentActor}
 import com.kamilkurp.behavior.{IdleBehavior, SearchExitBehavior}
-import com.kamilkurp.building.{Door, MeetPoint, Room}
+import com.kamilkurp.building.{Door, Floor, MeetPoint, Room}
 import com.kamilkurp.flame.FlamesManager
 import com.kamilkurp.stats.Statistics
 import com.kamilkurp.stats.Statistics.params
@@ -38,6 +38,9 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   var officeList: ListBuffer[Room] = _
   var agentList: ListBuffer[Agent] = _
   var actorList: ListBuffer[ActorRef] = _
+  var floorList: ListBuffer[Floor] = _
+
+  var currentFloor: Int = _
 
   var flamesManager: FlamesManager = _
 
@@ -71,6 +74,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     officeList = new ListBuffer[Room]()
     agentList = new ListBuffer[Agent]()
     actorList = new ListBuffer[ActorRef]()
+    floorList = new ListBuffer[Floor]()
 
     textFieldFocused = false
 
@@ -84,7 +88,18 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     gc.setAlwaysRender(true)
     gc.setUpdateOnlyWhenVisible(false)
 
-    loadBuildingPlan()
+    //load from file instead...
+    val floor0 = loadFloor("floor0.txt")
+    val floor1 = loadFloor("floor1.txt")
+    val floor2 = loadFloor("floor2.txt")
+
+
+    floorList += floor0
+    floorList += floor1
+    floorList += floor2
+
+
+    currentFloor = 0
 
     flamesManager = new FlamesManager()
     flamesManager.init(roomList)
@@ -151,7 +166,9 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     agent
   }
 
-  private def loadBuildingPlan(): Unit = {
+  private def loadFloor(fileName: String): Floor = {
+    val floor = Floor()
+
     val filename = Configuration.BUILDING_PLAN_LOCATION
     for (line <- Source.fromFile(filename).getLines) {
       if (!line.isEmpty) {
@@ -160,6 +177,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
         if (split(0) == "room") {
           val room = new Room(split(1), split(2).toInt, split(3).toInt, split(4).toInt, split(5).toInt)
           roomList += room
+          floor.roomList += room
           if (room.name.startsWith("room")) officeList += room
 
         }
@@ -168,7 +186,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
           var linkToDoor: Door = null
 
           if (split.length >= 6) {
-            roomList.foreach(that => {
+            floor.roomList.foreach(that => {
               if (that.name == split(5)) room = that
             })
           }
@@ -188,7 +206,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
           var room: Room = null
 
           if (split.length >= 5) {
-            roomList.foreach(that => {
+            floor.roomList.foreach(that => {
               if (that.name == split(4)) room = that
             })
           }
@@ -198,6 +216,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
         }
       }
     }
+
+    floor
   }
 
   override def update(gc: GameContainer, i: Int): Unit = {
@@ -205,27 +225,36 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     cameraControls.handleControls(gc, i)
 
-    roomList.foreach(room => {
+    if (gc.getInput.isKeyPressed(Input.KEY_PRIOR)) {
+      if (currentFloor > 0) currentFloor = currentFloor - 1
+    }
+    if (gc.getInput.isKeyPressed(Input.KEY_NEXT)) {
+      if (currentFloor < floorList.size - 1) currentFloor = currentFloor + 1
+    }
+
+    println(currentFloor)
+
+    floorList.foreach(floor => floor.roomList.foreach(room => {
       room.update(gc, i, cameraControls.renderScale)
-    })
+    }))
 
 
     if (gc.getInput.isKeyPressed(Input.KEY_ENTER)) {
       if (textFieldFocused) {
 
-        roomList.foreach(room => {
+        floorList.foreach(floor => floor.roomList.foreach(room => {
           room.agentList.filter(agent => agent.name == currentMonitored).foreach(agent => {
             agent.debug = false
           })
-        })
+        }))
 
         currentMonitored = textField.getText
 
-        roomList.foreach(room => {
+        floorList.foreach(floor => floor.roomList.foreach(room => {
           room.agentList.filter(agent => agent.name == currentMonitored).foreach(agent => {
             agent.debug = true
           })
-        })
+        }))
 
         textField.setFocus(false)
         textFieldFocused = false
@@ -256,7 +285,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     val xpos = input.getMouseX
     val ypos = input.getMouseY
 
-    roomList.foreach(room => {
+    floorList.foreach(floor => floor.roomList.foreach(room => {
       val roomRect: Rectangle = new Rectangle(room.x, room.y, room.w, room.h)
       val point: Rectangle = new Rectangle(CameraView.x + 1 / cameraControls.renderScale * xpos, CameraView.y + 1 / cameraControls.renderScale * ypos, 5, 5)
 
@@ -276,7 +305,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
           }
         }
       }
-    })
+    }))
 
     Statistics.params.put("Total agents", agentList.length.toString)
     Statistics.params.put("Total evacuated", agentList.filter(agent => agent.currentBehavior.name == "holdMeetPoint").toList.length.toString)
@@ -299,7 +328,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     Renderer.get().glPushMatrix()
 
     g.scale(cameraControls.renderScale, cameraControls.renderScale)
-    roomList.foreach(room => {
+    floorList(currentFloor).roomList.foreach(room => {
 
       room.render(g, doorImage, CameraView.x, CameraView.y)
     })

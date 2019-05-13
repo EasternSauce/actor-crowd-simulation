@@ -5,7 +5,7 @@ object Configuration {
   var AGENT_IMAGE_LOCATION: String = "character.png"
   var DOOR_IMAGE_LOCATION: String = "door.png"
   var FLAMES_IMAGE_LOCATION: String = "fire.png"
-  var BUILDING_PLAN_LOCATION: String = "building.txt"
+  var BUILDING_PLAN_LOCATION: String = "floor0.txt"
 
   var UNTIL_ALARM_TIME: Int = 5000
 

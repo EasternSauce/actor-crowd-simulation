@@ -1,0 +1,201 @@
+room corrA 1000 1000 3100 300
+
+room corrB 1000 1350 300 1200
+room corrC 2400 1350 300 1200
+room corrD 3800 1350 300 1200
+
+room corrE 1000 2600 3100 300
+
+room corrF 1000 2950 300 2000
+room corrG 3800 2950 300 2000
+
+room corrH 1000 5000 3100 300
+
+room corrI 1000 5350 300 1200
+room corrJ 2400 5350 300 1200
+room corrK 3800 5350 300 1200
+
+room corrL 1000 6600 3100 300
+
+room roomA 550 550 900 400
+room roomB 1500 550 1025 400
+room roomC 2575 550 1025 400
+room roomD 3650 550 900 400
+
+room roomE 550 1000 400 1100
+room roomF 4150 1000 400 1100
+
+room roomG 550 2150 400 1100
+room roomH 4150 2150 400 1100
+
+room roomI 550 3300 400 1300
+room roomJ 4150 3300 400 1300
+
+room roomK 550 4650 400 1100
+room roomL 4150 4650 400 1100
+
+room roomM 550 5800 400 1100
+room roomN 4150 5800 400 1100
+
+room roomO 550 6950 900 400
+room roomP 1500 6950 1025 400
+room roomR 2575 6950 1025 400
+room roomS 3650 6950 900 400
+
+room roomT 1350 1350 450 550
+room roomU 1900 1350 450 550
+room roomW 1350 2000 450 550
+room roomX 1900 2000 450 550
+
+room roomY 2750 1350 450 550
+room roomZ 3300 1350 450 550
+room roomAA 2750 2000 450 550
+room roomAB 3300 2000 450 550
+
+room roomAC 1350 2950 1100 400
+room roomAD 2650 2950 1100 400
+
+room roomAE 1350 3450 400 950
+room roomAF 3350 3450 400 950
+
+room roomAG 1350 4500 1100 400
+room roomAH 2650 4500 1100 400
+
+room roomAI 1350 5350 450 550
+room roomAJ 1900 5350 450 550
+room roomAK 1350 6000 450 550
+room roomAL 1900 6000 450 550
+
+room roomAM 2750 5350 450 550
+room roomAN 3300 5350 450 550
+room roomAO 2750 6000 450 550
+room roomAP 3300 6000 450 550
+
+door doorCorrA1 0 2138 5 corrA
+door doorCorrA2 0 2950 5 corrA
+door doorCorrA3 1 2935 252 corrA
+door doorCorrA4 0 2500 252 corrA
+door doorCorrA5 0 2000 252 corrA
+door doorCorrA6 0 1538 252 corrA
+door doorCorrA7 0 1100 252 corrA
+door doorCorrA8 0 570 252 corrA
+door doorCorrA9 0 135 252 corrA
+door doorCorrA10 0 135 5 corrA
+door doorCorrA11 0 938 5 corrA
+
+door doorCorrB1 0 135 5 corrB doorCorrA9
+door doorCorrB2 1 135 1152 corrB
+door doorCorrB3 0 5 990 corrB
+door doorCorrB4 0 5 350 corrB
+
+door doorCorrC1 0 135 5 corrC doorCorrA6
+door doorCorrC2 1 135 1152 corrC
+
+door doorCorrD1 0 135 5 corrD doorCorrA3
+door doorCorrD2 0 271 990 corrD
+door doorCorrD3 0 271 350 corrD
+door doorCorrD4 1 135 1152 corrD
+
+door doorCorrE1 0 1538 5 corrE doorCorrC2
+door doorCorrE2 0 2000 5 corrE
+door doorCorrE3 0 2500 5 corrE
+door doorCorrE4 0 2950 5 corrE doorCorrD4
+door doorCorrE5 1 2935 252 corrE
+door doorCorrE6 0 2138 252 corrE
+door doorCorrE7 0 938 252 corrE
+door doorCorrE8 0 135 252 corrE
+door doorCorrE9 0 135 5 corrE doorCorrB2
+door doorCorrE10 0 570 5 corrE
+door doorCorrE11 0 1100 5 corrE
+
+door doorCorrF1 0 135 5 corrF doorCorrE8
+door doorCorrF2 0 271 976 corrF
+door doorCorrF3 1 135 1952 corrF
+door doorCorrF4 0 5 976 corrF
+
+door doorCorrG1 0 135 5 corrG doorCorrE5
+door doorCorrG2 0 271 976 corrG
+door doorCorrG3 1 135 1952 corrG
+door doorCorrG4 0 5 976 corrG
+
+door doorCorrH1 0 2138 5 corrH
+door doorCorrH2 0 2950 5 corrH doorCorrG3
+door doorCorrH3 1 2935 252 corrH
+door doorCorrH4 0 2500 252 corrH
+door doorCorrH5 0 2000 252 corrH
+door doorCorrH6 0 1538 252 corrH
+door doorCorrH7 0 1100 252 corrH
+door doorCorrH8 0 570 252 corrH
+door doorCorrH9 0 135 252 corrH
+door doorCorrH10 0 135 5 corrH doorCorrF3
+door doorCorrH11 0 938 5 corrH
+
+door doorCorrI1 0 135 5 corrI doorCorrH9
+door doorCorrI2 1 135 1152 corrI
+door doorCorrI3 0 5 800 corrI
+door doorCorrI4 0 5 200 corrI
+
+door doorCorrJ1 0 135 5 corrJ doorCorrH6
+door doorCorrJ2 1 135 1152 corrJ
+
+door doorCorrK1 0 135 5 corrK doorCorrH3
+door doorCorrK2 0 271 200 corrK
+door doorCorrK3 0 271 800 corrK
+door doorCorrK4 1 135 1152 corrK
+
+door doorCorrL1 0 1538 5 corrL doorCorrJ2
+door doorCorrL2 0 2000 5 corrL
+door doorCorrL3 0 2500 5 corrL
+door doorCorrL4 0 2950 5 corrL doorCorrK4
+door doorCorrL5 1 2935 252 corrL
+door doorCorrL6 0 2138 252 corrL
+door doorCorrL7 0 938 252 corrL
+door doorCorrL8 0 135 252 corrL
+door doorCorrL9 0 135 5 corrL doorCorrI2
+door doorCorrL10 0 570 5 corrL
+door doorCorrL11 0 1100 5 corrL
+
+door doorRoomA 1 580 352 roomA doorCorrA10
+door doorRoomB 1 430 352 roomB doorCorrA11
+door doorRoomC 1 570 352 roomC doorCorrA1
+door doorRoomD 1 300 352 roomD doorCorrA2
+door doorRoomE 1 365 700 roomE doorCorrB4
+door doorRoomF 1 5 700 roomF doorCorrD3
+door doorRoomG 1 365 200 roomG doorCorrB3
+door doorRoomH 1 5 200 roomH doorCorrD2
+door doorRoomI 1 365 620 roomI doorCorrF4
+door doorRoomJ 1 5 620 roomJ doorCorrG2
+door doorRoomK 1 365 900 roomK doorCorrI4
+door doorRoomL 1 5 900 roomL doorCorrK2
+door doorRoomM 1 365 350 roomM doorCorrI3
+door doorRoomN 1 5 350 roomN doorCorrK3
+door doorRoomO 1 580 5 roomO doorCorrL8
+door doorRoomP 1 430 5 roomP doorCorrL7
+door doorRoomR 1 570 5 roomR doorCorrL6
+door doorRoomS 0 300 5 roomS doorCorrL5
+door doorRoomT 1 220 5 roomT doorCorrA8
+door doorRoomU 1 200 5 roomU doorCorrA7
+door doorRoomW 1 220 502 roomW doorCorrE10
+door doorRoomX 1 200 502 roomX doorCorrE11
+door doorRoomY 1 250 5 roomY doorCorrA5
+door doorRoomZ 1 200 5 roomZ doorCorrA4
+door doorRoomAA 1 250 502 roomAA doorCorrE2
+door doorRoomAB 1 200 502 roomAB doorCorrE3
+door doorRoomAB 1 200 502 roomAB doorCorrE3
+door doorRoomAC 1 580 5 roomAC doorCorrE7
+door doorRoomAD 1 480 5 roomAD doorCorrE6
+door doorRoomAE 1 5 470 roomAE doorCorrF2
+door doorRoomAF 1 371 470 roomAF doorCorrG4
+door doorRoomAG 1 580 352 roomAG doorCorrH11
+door doorRoomAH 1 480 352 roomAH doorCorrH1
+door doorRoomAI 1 220 5 roomAI doorCorrH8
+door doorRoomAJ 1 200 5 roomAJ doorCorrH7
+door doorRoomAK 1 220 502 roomAK doorCorrL10
+door doorRoomAL 1 200 502 roomAL doorCorrL11
+door doorRoomAM 1 250 5 roomAM doorCorrH5
+door doorRoomAN 1 200 5 roomAN doorCorrH4
+door doorRoomAO 1 250 502 roomAO doorCorrL2
+door doorRoomAP 1 200 502 roomAP doorCorrL3
+
+meet meet1 800 320 roomS
+meet meet2 200 320 roomO
