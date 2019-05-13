@@ -32,9 +32,9 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   var listOfNames: Array[String] = _
   var doorImage: Image = _
   var agentImage: Image = _
+  var stairsImage: Image = _
 
   var roomList: ListBuffer[Room] = _
-  var doorList: ListBuffer[Door] = _
   var officeList: ListBuffer[Room] = _
   var agentList: ListBuffer[Agent] = _
   var actorList: ListBuffer[ActorRef] = _
@@ -66,11 +66,11 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   override def init(gc: GameContainer): Unit = {
     doorImage = new Image(Configuration.DOOR_IMAGE_LOCATION)
     agentImage = new Image(Configuration.AGENT_IMAGE_LOCATION)
+    stairsImage = new Image("stairs.png")
 
     actorSystem = ActorSystem("crowd_sim_system")
     nameIndices = mutable.Map[String, Int]()
     roomList = new ListBuffer[Room]()
-    doorList = new ListBuffer[Door]()
     officeList = new ListBuffer[Room]()
     agentList = new ListBuffer[Agent]()
     actorList = new ListBuffer[ActorRef]()
@@ -88,16 +88,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     gc.setAlwaysRender(true)
     gc.setUpdateOnlyWhenVisible(false)
 
-    //load from file instead...
-    val floor0 = loadFloor("floor0.txt")
-    val floor1 = loadFloor("floor1.txt")
-    val floor2 = loadFloor("floor2.txt")
-
-
-    floorList += floor0
-    floorList += floor1
-    floorList += floor2
-
+    loadBuildingPlan("building.txt")
 
     currentFloor = 0
 
@@ -113,14 +104,15 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       roomGraph.addVertex(room)
     }
 
-    for (door <- doorList) {
+    floorList.foreach(floor => floor.doorList.foreach(door => {
       if (!roomGraph.containsEdge(door.currentRoom, door.leadingToDoor.currentRoom)) {
         val edge1: DefaultWeightedEdge = roomGraph.addEdge(door.currentRoom, door.leadingToDoor.currentRoom)
         roomGraph.setEdgeWeight(edge1, 1.0f)
         val edge2: DefaultWeightedEdge = roomGraph.addEdge(door.leadingToDoor.currentRoom, door.currentRoom)
         roomGraph.setEdgeWeight(edge2, 1.0f)
       }
-    }
+    }))
+
 
     for (name <- listOfNames) {
       nameIndices.put(name, 0)
@@ -166,11 +158,57 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     agent
   }
 
-  private def loadFloor(fileName: String): Floor = {
-    val floor = Floor()
+  private def loadBuildingPlan(fileName: String): Unit = {
+    for (line <- Source.fromFile(fileName).getLines) {
+      if (!line.isEmpty) {
+        val split: Array[String] = line.split(" ")
+        if (split(0) == "floor") {
+          floorList += loadFloor(split(1), split(2))
+        }
+      }
+    }
 
-    val filename = Configuration.BUILDING_PLAN_LOCATION
-    for (line <- Source.fromFile(filename).getLines) {
+    for (line <- Source.fromFile(fileName).getLines) {
+      if (!line.isEmpty) {
+        val split: Array[String] = line.split(" ")
+        if (split(0) == "stairs") {
+          var room: Room = null
+          var linkToDoor: Door = null
+
+          var floor: Floor = floorList.filter(floor => floor.name == split(1)).head
+          var targetFloor: Floor = null
+
+          if (split.length >= 7) {
+            floor.roomList.foreach(that => {
+              if (that.name == split(6)) room = that
+            })
+          }
+          if (split.length >= 9) {
+            targetFloor = floorList.filter(floor => floor.name == split(7)).head
+            targetFloor.doorList.foreach(that => {
+              if (that.name == split(8)) {
+
+                linkToDoor = that
+              }
+            })
+          }
+          val door = new Door(split(2), room, split(4).toInt, split(5).toInt, stairsImage)
+          if (linkToDoor != null) {
+            door.connectWith(linkToDoor)
+          }
+          if (split(3) == "1") {
+            room.evacuationDoor = door
+          }
+          floor.doorList += door
+        }
+      }
+    }
+  }
+
+  private def loadFloor(name: String, fileName: String): Floor = {
+    val floor = Floor(name)
+
+    for (line <- Source.fromFile(fileName).getLines) {
       if (!line.isEmpty) {
         val split: Array[String] = line.split(" ")
 
@@ -191,7 +229,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
             })
           }
           if (split.length >= 7) {
-            doorList.foreach(that => {
+            floor.doorList.foreach(that => {
               if (that.name == split(6)) linkToDoor = that
             })
           }
@@ -200,7 +238,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
           if (split(2) == "1") {
             room.evacuationDoor = door
           }
-          doorList += door
+          floor.doorList += door
         }
         else if (split(0) == "meet") {
           var room: Room = null
@@ -231,8 +269,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     if (gc.getInput.isKeyPressed(Input.KEY_NEXT)) {
       if (currentFloor < floorList.size - 1) currentFloor = currentFloor + 1
     }
-
-    println(currentFloor)
 
     floorList.foreach(floor => floor.roomList.foreach(room => {
       room.update(gc, i, cameraControls.renderScale)

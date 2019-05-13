@@ -1,3 +1,19 @@
-floor0.txt
-floor1.txt
-floor2.txt
+floor floor0 floor0.txt
+floor floor1 floor1.txt
+floor floor2 floor2.txt
+
+stairs floor2 stairsDownRoomS 1 480 352 roomS
+
+stairs floor1 stairsUpRoomS 1 120 352 roomS floor2 stairsDownRoomS
+stairs floor1 stairsDownRoomS 1 480 352 roomS
+
+stairs floor0 stairsUpRoomS 1 120 352 roomS floor1 stairsDownRoomS
+
+
+stairs floor2 stairsDownRoomO 1 480 352 roomO
+
+stairs floor1 stairsUpRoomO 1 120 352 roomO floor2 stairsDownRoomO
+stairs floor1 stairsDownRoomO 1 480 352 roomO
+
+stairs floor0 stairsUpRoomO 1 120 352 roomO floor1 stairsDownRoomO
+
