@@ -180,7 +180,7 @@ object VisionModule {
     visionModule.firstRay = (new Rectangle(0, 0, 0, 0), 0)
     visionModule.lastRay = (new Rectangle(0, 0, 0, 0), 0)
 
-    visionModule.visionTimer = new Timer(Configuration.AGENT_VISION_TIMER + Random.nextInt(300) - 150)
+    visionModule.visionTimer = new Timer(Configuration.agentVisionTimer + Random.nextInt(300) - 150)
     visionModule.visionTimer.start()
 
     visionModule.viewRayList = ListBuffer[Shape]()

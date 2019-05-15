@@ -43,7 +43,7 @@ object BehaviorModule {
 
     var startBehavior = IdleBehavior.name
 
-    if (Random.nextFloat() < Configuration.LEADER_PERCENTAGE) {
+    if (Random.nextFloat() < Configuration.leaderPercentage) {
       startBehavior = LeaderBehavior.name
     }
 

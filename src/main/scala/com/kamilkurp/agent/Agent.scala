@@ -173,7 +173,7 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
   def broadcast(msg: AgentMessage, timer: Timer): Unit = {
     if (timer.timedOut()) {
       currentRoom.agentList.foreach(that => {
-        if (getDistanceTo(that) < 400 && that != this) {
+        if (getDistanceTo(that) < Configuration.agentBroadcastDistance && that != this) {
           that.actor ! msg
         }
       })

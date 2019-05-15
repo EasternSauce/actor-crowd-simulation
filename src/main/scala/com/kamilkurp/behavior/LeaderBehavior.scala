@@ -12,7 +12,7 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
   var fireLocationInfoTimer: Timer = _
 
   override def init(): Unit = {
-    broadcastTimer = new Timer(Configuration.AGENT_BROADCAST_TIMER)
+    broadcastTimer = new Timer(Configuration.agentBroadcastTimer)
     broadcastTimer.start()
     fireLocationInfoTimer = new Timer(500)
     fireLocationInfoTimer.start()

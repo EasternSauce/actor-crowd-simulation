@@ -13,7 +13,7 @@ class FlamesManager() {
   var flamesList: ListBuffer[Flames] = _
 
   def init(roomList: ListBuffer[Room]): Unit = {
-    flamesPropagationTimer = new Timer((10000f / Configuration.FLAME_PROPAGATION_SPEED).toInt)
+    flamesPropagationTimer = new Timer((10000f / Configuration.flamePropagationSpeed).toInt)
     flamesPropagationTimer.start()
     flamesImage = new Image(Configuration.FLAMES_IMAGE_LOCATION)
     flamesList = new ListBuffer[Flames]()

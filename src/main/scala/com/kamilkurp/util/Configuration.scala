@@ -2,10 +2,14 @@ package com.kamilkurp.util
 
 object Configuration {
 
+
+
+
   var AGENT_IMAGE_LOCATION: String = "character.png"
   var DOOR_IMAGE_LOCATION: String = "door.png"
   var FLAMES_IMAGE_LOCATION: String = "fire.png"
-  var BUILDING_PLAN_LOCATION: String = "floor0.txt"
+  var STAIRS_IMAGE_LOCATION: String = "stairs.png"
+  var BUILDING_PLAN_LOCATION: String = "building.txt"
 
   var UNTIL_ALARM_TIME: Int = 5000
 
@@ -30,5 +34,18 @@ object Configuration {
   val CAMERA_SPEED: Float = 3f
 
   val ZOOM_SPEED: Float = 0.025f
+
+  var AGENT_BROADCAST_DISTANCE = 400
+
+  var untilAlarmTime: Int = UNTIL_ALARM_TIME
+  var buildingPlanLocation: String = BUILDING_PLAN_LOCATION
+  var numberOfAgents: Int = NUMBER_OF_AGENTS
+  var agentVisionTimer: Int = AGENT_VISION_TIMER
+  var agentTurnSpeed: Int = AGENT_TURN_SPEED
+  var agentBroadcastTimer: Int = AGENT_BROADCAST_TIMER
+  var leaderPercentage: Float = LEADER_PERCENTAGE
+  var flamePropagationSpeed: Float = FLAME_PROPAGATION_SPEED
+  var agentBroadcastDistance: Int = AGENT_BROADCAST_DISTANCE
+
 
 }

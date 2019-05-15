@@ -7,6 +7,7 @@ import com.kamilkurp.building.{Door, Floor, MeetPoint, Room}
 import com.kamilkurp.flame.FlamesManager
 import com.kamilkurp.stats.Statistics
 import com.kamilkurp.stats.Statistics.params
+import com.kamilkurp.util.Screen.Screen
 import com.kamilkurp.util._
 import org.jgrapht.graph.{DefaultDirectedWeightedGraph, DefaultWeightedEdge}
 import org.newdawn.slick._
@@ -27,6 +28,7 @@ object CameraView {
 }
 
 class Simulation(gameName: String) extends BasicGame(gameName) {
+
   var actorSystem: ActorSystem = _
   var nameIndices: mutable.Map[String, Int] = _
   var listOfNames: Array[String] = _
@@ -63,10 +65,27 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   var selectedAgent: Agent = _
 
+  var mainMenu: MainMenu = _
+
   override def init(gc: GameContainer): Unit = {
+    gc.setAlwaysRender(true)
+    gc.setUpdateOnlyWhenVisible(false)
+
+    cameraControls = new CameraControls()
+
+    mainMenu = MainMenu(gc, cameraControls.renderScale, this)
+
+    font = new TrueTypeFont(new java.awt.Font("Verdana", java.awt.Font.BOLD, (24 * 1 / cameraControls.renderScale).toInt), false)
+    textField = new TextField(gc, font, 0, (Globals.WINDOW_Y * 0.955f).toInt, Globals.WINDOW_X, (Globals.WINDOW_Y * 0.04f).toInt)
+    textField.setBorderColor(Color.transparent)
+    textField.setTextColor(Color.green)
+
+  }
+
+  def setup(): Unit = {
     doorImage = new Image(Configuration.DOOR_IMAGE_LOCATION)
     agentImage = new Image(Configuration.AGENT_IMAGE_LOCATION)
-    stairsImage = new Image("stairs.png")
+    stairsImage = new Image(Configuration.STAIRS_IMAGE_LOCATION)
 
     actorSystem = ActorSystem("crowd_sim_system")
     nameIndices = mutable.Map[String, Int]()
@@ -85,10 +104,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       "Lovie", "Theola", "Damion", "Petronila", "Corrinne",
       "Arica", "Alfonso", "Madalene", "Alvina", "Eliana", "Jarrod", "Thora")
 
-    gc.setAlwaysRender(true)
-    gc.setUpdateOnlyWhenVisible(false)
 
-    loadBuildingPlan("building.txt")
+    loadBuildingPlan(Configuration.buildingPlanLocation)
 
     currentFloor = 0
 
@@ -97,7 +114,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     manualControlsManager = new CameraControls()
 
-    untilAlarmTimer = new Timer(Configuration.UNTIL_ALARM_TIME)
+    untilAlarmTimer = new Timer(Configuration.untilAlarmTime)
     untilAlarmTimer.start()
 
     for (room <- roomList) {
@@ -119,7 +136,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     }
 
 
-    for (_ <- 0 until Configuration.NUMBER_OF_AGENTS) {
+    for (_ <- 0 until Configuration.numberOfAgents) {
       val randomNameIndex = Random.nextInt(listOfNames.length)
       val randomName = listOfNames(randomNameIndex) + nameIndices(listOfNames(randomNameIndex))
       nameIndices.put(listOfNames(randomNameIndex), nameIndices(listOfNames(randomNameIndex)) + 1)
@@ -131,11 +148,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     ControlScheme.tryAddManualAgent(roomList, actorSystem, agentImage, roomGraph)
 
-    cameraControls = new CameraControls()
-    font = new TrueTypeFont(new java.awt.Font("Verdana", java.awt.Font.BOLD, (24 * 1 / cameraControls.renderScale).toInt), false)
-    textField = new TextField(gc, font, 0, (Globals.WINDOW_Y * 0.955f).toInt, Globals.WINDOW_X, (Globals.WINDOW_Y * 0.04f).toInt)
-    textField.setBorderColor(Color.transparent)
-    textField.setTextColor(Color.green)
 
     generalTimer = new Timer(0)
     generalTimer.start()
@@ -259,139 +271,152 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   }
 
   override def update(gc: GameContainer, i: Int): Unit = {
-    Timer.updateTimers(i)
 
-    cameraControls.handleControls(gc, i)
-
-    if (gc.getInput.isKeyPressed(Input.KEY_PRIOR)) {
-      if (currentFloor > 0) currentFloor = currentFloor - 1
+    if (Screen.currentScreen == Screen.MainMenu) {
+      mainMenu.update(gc, i)
     }
-    if (gc.getInput.isKeyPressed(Input.KEY_NEXT)) {
-      if (currentFloor < floorList.size - 1) currentFloor = currentFloor + 1
-    }
+    else if (Screen.currentScreen == Screen.Simulation) {
+      Timer.updateTimers(i)
 
-    floorList.foreach(floor => floor.roomList.foreach(room => {
-      room.update(gc, i, cameraControls.renderScale)
-    }))
+      cameraControls.handleControls(gc, i)
 
-
-    if (gc.getInput.isKeyPressed(Input.KEY_ENTER)) {
-      if (textFieldFocused) {
-
-        floorList.foreach(floor => floor.roomList.foreach(room => {
-          room.agentList.filter(agent => agent.name == currentMonitored).foreach(agent => {
-            agent.debug = false
-          })
-        }))
-
-        currentMonitored = textField.getText
-
-        floorList.foreach(floor => floor.roomList.foreach(room => {
-          room.agentList.filter(agent => agent.name == currentMonitored).foreach(agent => {
-            agent.debug = true
-          })
-        }))
-
-        textField.setFocus(false)
-        textFieldFocused = false
+      if (gc.getInput.isKeyPressed(Input.KEY_PRIOR)) {
+        if (currentFloor > 0) currentFloor = currentFloor - 1
       }
-      else {
-        textField.setText("")
-        textField.setFocus(true)
-        textFieldFocused = true
+      if (gc.getInput.isKeyPressed(Input.KEY_NEXT)) {
+        if (currentFloor < floorList.size - 1) currentFloor = currentFloor + 1
       }
 
+      floorList.foreach(floor => floor.roomList.foreach(room => {
+        room.update(gc, i, cameraControls.renderScale)
+      }))
 
-    }
 
-    if (untilAlarmTimer.timedOut()) {
-      untilAlarmTimer.stop()
-      untilAlarmTimer.reset()
+      if (gc.getInput.isKeyPressed(Input.KEY_ENTER)) {
+        if (textFieldFocused) {
 
-      agentList.foreach(agent => {
-        if (agent.currentBehavior.name == IdleBehavior.name) {
-          agent.setBehavior(SearchExitBehavior.name)
+          floorList.foreach(floor => floor.roomList.foreach(room => {
+            room.agentList.filter(agent => agent.name == currentMonitored).foreach(agent => {
+              agent.debug = false
+            })
+          }))
+
+          currentMonitored = textField.getText
+
+          floorList.foreach(floor => floor.roomList.foreach(room => {
+            room.agentList.filter(agent => agent.name == currentMonitored).foreach(agent => {
+              agent.debug = true
+            })
+          }))
+
+          textField.setFocus(false)
+          textFieldFocused = false
         }
-      })
-    }
+        else {
+          textField.setText("")
+          textField.setFocus(true)
+          textFieldFocused = true
+        }
 
-    flamesManager.handleFlamePropagation()
 
-    val input = gc.getInput
-    val xpos = input.getMouseX
-    val ypos = input.getMouseY
+      }
 
-    floorList.foreach(floor => floor.roomList.foreach(room => {
-      val roomRect: Rectangle = new Rectangle(room.x, room.y, room.w, room.h)
-      val point: Rectangle = new Rectangle(CameraView.x + 1 / cameraControls.renderScale * xpos, CameraView.y + 1 / cameraControls.renderScale * ypos, 5, 5)
+      if (untilAlarmTimer.timedOut()) {
+        untilAlarmTimer.stop()
+        untilAlarmTimer.reset()
 
-      if (roomRect.intersects(point)) {
+        agentList.foreach(agent => {
+          if (agent.currentBehavior.name == IdleBehavior.name) {
+            agent.setBehavior(SearchExitBehavior.name)
+          }
+        })
+      }
 
-        for (agent <- room.agentList) {
-          var agentRect = new Rectangle(room.x + agent.shape.getX, room.y + agent.shape.getY, agent.shape.getWidth, agent.shape.getHeight)
+      flamesManager.handleFlamePropagation()
 
-          if (agentRect.intersects(point)) {
-            agent.mousedOver = true
+      val input = gc.getInput
+      val xpos = input.getMouseX
+      val ypos = input.getMouseY
 
-            if (gc.getInput.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON)) {
-              if (selectedAgent != null) selectedAgent.selected = false
-              selectedAgent = agent
-              agent.selected = true
+      floorList.foreach(floor => floor.roomList.foreach(room => {
+        val roomRect: Rectangle = new Rectangle(room.x, room.y, room.w, room.h)
+        val point: Rectangle = new Rectangle(CameraView.x + 1 / cameraControls.renderScale * xpos, CameraView.y + 1 / cameraControls.renderScale * ypos, 5, 5)
+
+        if (roomRect.intersects(point)) {
+
+          for (agent <- room.agentList) {
+            var agentRect = new Rectangle(room.x + agent.shape.getX, room.y + agent.shape.getY, agent.shape.getWidth, agent.shape.getHeight)
+
+            if (agentRect.intersects(point)) {
+              agent.mousedOver = true
+
+              if (gc.getInput.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON)) {
+                if (selectedAgent != null) selectedAgent.selected = false
+                selectedAgent = agent
+                agent.selected = true
+              }
             }
           }
         }
+      }))
+
+      Statistics.params.put("Total agents", agentList.length.toString)
+      Statistics.params.put("Total evacuated", agentList.filter(agent => agent.currentBehavior.name == "holdMeetPoint").toList.length.toString)
+      Statistics.params.put("Time", (generalTimer.time / 1000f).toString)
+
+
+      if (selectedAgent != null) {
+        params.put("Agent name", selectedAgent.name)
+        params.put("Start room", selectedAgent.startingRoom.name)
+        params.put("Velocity x", selectedAgent.movementModule.currentVelocityX.toString)
+        params.put("Velocity y", selectedAgent.movementModule.currentVelocityY.toString)
+        params.put("Behavior", selectedAgent.currentBehavior.name)
+
       }
-    }))
-
-    Statistics.params.put("Total agents", agentList.length.toString)
-    Statistics.params.put("Total evacuated", agentList.filter(agent => agent.currentBehavior.name == "holdMeetPoint").toList.length.toString)
-    Statistics.params.put("Time", (generalTimer.time / 1000f).toString)
-
-
-    if (selectedAgent != null) {
-      params.put("Agent name", selectedAgent.name)
-      params.put("Start room", selectedAgent.startingRoom.name)
-      params.put("Velocity x", selectedAgent.movementModule.currentVelocityX.toString)
-      params.put("Velocity y", selectedAgent.movementModule.currentVelocityY.toString)
-      params.put("Behavior", selectedAgent.currentBehavior.name)
-
     }
   }
 
   override def render(gc: GameContainer, g: Graphics): Unit = {
 
-    SlickCallable.enterSafeBlock()
-    Renderer.get().glPushMatrix()
+    if (Screen.currentScreen == Screen.MainMenu) {
+      mainMenu.draw(gc, g)
+    }
+    else if (Screen.currentScreen == Screen.Simulation) {
+      SlickCallable.enterSafeBlock()
+      Renderer.get().glPushMatrix()
 
-    g.scale(cameraControls.renderScale, cameraControls.renderScale)
-    floorList(currentFloor).roomList.foreach(room => {
+      g.scale(cameraControls.renderScale, cameraControls.renderScale)
+      floorList(currentFloor).roomList.foreach(room => {
 
-      room.render(g, doorImage, CameraView.x, CameraView.y)
-    })
-    g.setColor(Color.green)
-
-
-    Renderer.get().glPopMatrix()
-    SlickCallable.leaveSafeBlock()
-
-    val textWindowX: Int = 0
-    val textWindowY: Int = (Globals.WINDOW_Y * 0.7f).toInt
-
-    g.setColor(new Color(0, 0, 0, 0.7f))
-    g.fillRect(0, Globals.WINDOW_Y * 0.7f, Globals.WINDOW_X, Globals.WINDOW_Y * 0.25f)
+        room.render(g, doorImage, CameraView.x, CameraView.y)
+      })
+      g.setColor(Color.green)
 
 
-    var i = 0
-    for (param <- Statistics.params) {
-      if (!param._2.equals("hide")) font.drawString(textWindowX + 20 + 500 * Math.floor(i / 8).toFloat, textWindowY + 20 + 40 * (i % 8), param._1 + ":", Color.green)
-      if (!param._2.equals("hide")) font.drawString(textWindowX + 270 + 500 * Math.floor(i / 8).toFloat, textWindowY + 20 + 40 * (i % 8), param._2, Color.green)
+      Renderer.get().glPopMatrix()
+      SlickCallable.leaveSafeBlock()
 
-      i = i + 1
+      val textWindowX: Int = 0
+      val textWindowY: Int = (Globals.WINDOW_Y * 0.7f).toInt
+
+      g.setColor(new Color(0, 0, 0, 0.7f))
+      g.fillRect(0, Globals.WINDOW_Y * 0.7f, Globals.WINDOW_X, Globals.WINDOW_Y * 0.25f)
+
+
+      var i = 0
+      for (param <- Statistics.params) {
+        if (!param._2.equals("hide")) font.drawString(textWindowX + 20 + 500 * Math.floor(i / 8).toFloat, textWindowY + 20 + 40 * (i % 8), param._1 + ":", Color.green)
+        if (!param._2.equals("hide")) font.drawString(textWindowX + 270 + 500 * Math.floor(i / 8).toFloat, textWindowY + 20 + 40 * (i % 8), param._2, Color.green)
+
+        i = i + 1
+      }
+
+      g.setColor(Color.green)
+
+      textField.render(gc, g)
     }
 
-    g.setColor(Color.green)
 
-    textField.render(gc, g)
 
 
   }

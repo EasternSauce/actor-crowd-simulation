@@ -104,7 +104,7 @@ class MovementModule {
 
 
       def adjustViewAngle(clockwise: Boolean): Unit = {
-        val turnSpeed = Configuration.AGENT_TURN_SPEED
+        val turnSpeed = Configuration.agentTurnSpeed
         if (Math.abs(viewAngle - walkAngle) > turnSpeed && Math.abs((viewAngle + 180) % 360 - (walkAngle + 180) % 360) > turnSpeed) {
           if (clockwise) { // clockwise
             if (viewAngle + turnSpeed < 360) viewAngle += turnSpeed
