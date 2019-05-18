@@ -371,7 +371,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
         params.put("Velocity x", selectedAgent.movementModule.currentVelocityX.toString)
         params.put("Velocity y", selectedAgent.movementModule.currentVelocityY.toString)
         params.put("Behavior", selectedAgent.currentBehavior.name)
-
+        params.put("Stress level", selectedAgent.stressLevel.toString)
+        params.put("Stress resistance", selectedAgent.stressResistance.toString)
       }
     }
   }

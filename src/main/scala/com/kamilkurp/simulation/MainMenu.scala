@@ -91,8 +91,6 @@ object MainMenu {
       }
     }
 
-    //mainMenu.confirmButton.
-
     mainMenu.confirmButton.setText("                                      CONFIRM")
 
     mainMenu

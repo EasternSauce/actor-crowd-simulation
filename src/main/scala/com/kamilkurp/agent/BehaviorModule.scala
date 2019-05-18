@@ -40,6 +40,8 @@ object BehaviorModule {
     behaviorModule.behaviorMap += (SearchExitBehavior.name -> new SearchExitBehavior(agent, SearchExitBehavior.name, SearchExitBehavior.color))
     behaviorModule.behaviorMap += (AvoidFireBehavior.name -> new AvoidFireBehavior(agent, AvoidFireBehavior.name, AvoidFireBehavior.color))
     behaviorModule.behaviorMap += (StationaryBehavior.name -> new StationaryBehavior(agent, StationaryBehavior.name, StationaryBehavior.color))
+    behaviorModule.behaviorMap += (PanicBehavior.name -> new PanicBehavior(agent, PanicBehavior.name, PanicBehavior.color))
+
 
     var startBehavior = IdleBehavior.name
 

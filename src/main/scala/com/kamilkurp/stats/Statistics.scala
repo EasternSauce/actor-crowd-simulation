@@ -24,6 +24,10 @@ object Statistics {
   params.put("Velocity x", "")
   params.put("Velocity y", "")
   params.put("Behavior", "")
+  params.put("Stress level", "")
+  params.put("Stress resistance", "")
+
+
 
 
 

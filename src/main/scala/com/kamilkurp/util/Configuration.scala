@@ -13,7 +13,7 @@ object Configuration {
 
   var UNTIL_ALARM_TIME: Int = 5000
 
-  var NUMBER_OF_AGENTS: Int = 120
+  var NUMBER_OF_AGENTS: Int = 300
   val ADD_MANUAL_AGENT: Boolean = false
   val MANUAL_AGENT_NAME: String = "Player"
   val FLAME_PROPAGATION_SPEED: Float = 5

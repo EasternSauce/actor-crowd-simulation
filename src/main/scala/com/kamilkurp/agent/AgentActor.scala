@@ -48,7 +48,18 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
 
     case FireWithinVision() =>
       agent.spatialModule.knownFireLocations += agent.currentRoom
-      
+
+      if (agent.stressLevel + (1f / agent.stressResistance * 0.1f) <= 1f) {
+        agent.stressLevel = agent.stressLevel + (1f / agent.stressResistance * 0.1f)
+      }
+      else {
+        agent.stressLevel = 1f
+      }
+
+      if (agent.stressLevel >= 1f) {
+        agent.setBehavior(PanicBehavior.name)
+      }
+
       agent.behaviorModule.currentBehavior.onSpotFire()
 
     case FireLocationInfo(fireLocations: mutable.Set[Room]) =>

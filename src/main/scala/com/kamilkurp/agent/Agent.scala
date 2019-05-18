@@ -44,6 +44,10 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
 
   var personalSpeed: Float = _
 
+  var stressLevel: Float = _
+
+  var stressResistance: Float = _
+
 
   def setControls(controls: (Int, Int, Int, Int)): Unit = {
     this.controls = controls
@@ -228,6 +232,10 @@ object Agent {
     agent.selected = false
 
     agent.personalSpeed = Configuration.AGENT_SPEED - 0.02f + Random.nextInt(5) * 0.01f
+
+    agent.stressLevel = 0f
+
+    agent.stressResistance = Random.nextFloat()
 
     agent
   }
