@@ -1,9 +1,11 @@
 package com.kamilkurp.agent
 
+import com.kamilkurp.behavior.FollowBehavior
 import com.kamilkurp.util.{Configuration, Timer}
 import org.newdawn.slick.geom.{Polygon, Rectangle, Shape, Transform}
 import org.newdawn.slick.{Color, Graphics}
 
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
@@ -58,7 +60,40 @@ class VisionModule private() {
       viewRayColorList(i) = Color.green
     }
 
+    var followMap: mutable.Map[Agent, Int] = mutable.Map[Agent, Int]()
+
     agent.currentRoom.agentList.filter(c => c != agent).foreach(that => {
+
+      if (agent.currentBehavior.name == FollowBehavior.name) {
+        val followed = that.followedAgent
+
+        if (followed != null) {
+          if (!followMap.contains(followed)) followMap.put(followed, 1)
+          else followMap.put(followed, followMap(followed) + 1)
+        }
+
+
+        var mostFollowed: Agent = null
+        var mostFollowing: Int = 0
+
+        for (entry <- followMap) {
+          if (entry._2 == followMap.values.max) {
+            mostFollowed = entry._1
+            mostFollowing = entry._2
+          }
+        }
+
+        if (mostFollowed != null && mostFollowing > 2) {
+          if (agent.followedAgent != mostFollowed) {
+            agent.followedAgent = mostFollowed
+          }
+        }
+      }
+
+
+
+
+
       for (i <- viewRayList.indices) {
         if (that.shape.intersects(viewRayList(i))) {
           agent.actor ! AgentWithinVision(that)
@@ -69,6 +104,8 @@ class VisionModule private() {
         }
       }
     })
+
+
 
     agent.currentRoom.flamesList.foreach(that => {
       for (i <- viewRayList.indices) {
