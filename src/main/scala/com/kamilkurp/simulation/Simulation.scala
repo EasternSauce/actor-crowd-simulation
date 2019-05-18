@@ -107,7 +107,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     loadBuildingPlan(Configuration.buildingPlanLocation)
 
-    currentFloor = 0
+    currentFloor = floorList.length - 1
 
     flamesManager = new FlamesManager()
     flamesManager.init(roomList)
@@ -281,10 +281,10 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       cameraControls.handleControls(gc, i)
 
       if (gc.getInput.isKeyPressed(Input.KEY_PRIOR)) {
-        if (currentFloor > 0) currentFloor = currentFloor - 1
+        if (currentFloor < floorList.size - 1) currentFloor = currentFloor + 1
       }
       if (gc.getInput.isKeyPressed(Input.KEY_NEXT)) {
-        if (currentFloor < floorList.size - 1) currentFloor = currentFloor + 1
+        if (currentFloor > 0) currentFloor = currentFloor - 1
       }
 
       floorList.foreach(floor => floor.roomList.foreach(room => {

@@ -10,7 +10,6 @@ import org.jgrapht.graph.{DefaultDirectedWeightedGraph, DefaultWeightedEdge}
 import org.newdawn.slick.geom.{Shape, _}
 import org.newdawn.slick.{Color, GameContainer, Graphics, Image}
 
-import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 class Agent private(var name: String, var currentRoom: Room, val controlScheme: ControlScheme, var image: Image, var buildingPlanGraph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge]) extends Entity {
@@ -48,6 +47,8 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
 
   var stressResistance: Float = _
 
+  var unconscious: Boolean = _
+
 
   def setControls(controls: (Int, Int, Int, Int)): Unit = {
     this.controls = controls
@@ -57,9 +58,17 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
 
     mousedOver = false
 
-    visionModule.update(delta)
+    if (!unconscious) {
+      visionModule.update(delta)
 
-    movementModule.update(gc, delta, renderScale)
+      movementModule.update(gc, delta, renderScale)
+
+      for (flames <- currentRoom.flamesList) {
+        if (getDistanceTo(flames) < 70) {
+          unconscious = true
+        }
+      }
+    }
 
   }
 
@@ -129,7 +138,7 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
   }
 
   def draw(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
-    g.drawImage(image, currentRoom.x + shape.getX - offsetX, currentRoom.y + shape.getY - offsetY)
+
 
     if (selected) {
       g.setColor(Color.green)
@@ -140,8 +149,8 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
       g.drawRect(currentRoom.x + shape.getX - offsetX - 50, currentRoom.y + shape.getY - offsetY - 50, shape.getWidth + 100, shape.getHeight + 100)
     }
 
-
     visionModule.draw(g, offsetX, offsetY)
+    g.drawImage(image, currentRoom.x + shape.getX - offsetX, currentRoom.y + shape.getY - offsetY)
   }
 
   def drawName(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
@@ -161,6 +170,12 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
 
     }
     g.drawString(tag, currentRoom.x + shape.getX - 10 - offsetX, currentRoom.y + shape.getY - 25 - offsetY)
+
+    if (unconscious) {
+      g.setColor(Color.red)
+      g.drawString("[unconscious]", currentRoom.x + shape.getX - 10 - offsetX, currentRoom.y + shape.getY - 10 - offsetY)
+
+    }
 
   }
 
@@ -197,7 +212,7 @@ object Agent {
 
     agent.debug = false
 
-    agent.avoidFireTimer = new Timer(300)
+    agent.avoidFireTimer = new Timer(500)
     agent.avoidFireTimer.time = agent.avoidFireTimer.timeout + 1
 
     agent.behaviorModule = BehaviorModule(agent)
@@ -236,6 +251,9 @@ object Agent {
     agent.stressLevel = 0f
 
     agent.stressResistance = Random.nextFloat()
+
+
+    agent.unconscious = false
 
     agent
   }
