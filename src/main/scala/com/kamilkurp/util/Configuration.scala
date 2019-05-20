@@ -47,5 +47,5 @@ object Configuration {
   var flamePropagationSpeed: Float = FLAME_PROPAGATION_SPEED
   var agentBroadcastDistance: Int = AGENT_BROADCAST_DISTANCE
 
-
+//  var argument: String = ""
 }

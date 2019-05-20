@@ -1,5 +1,7 @@
 package com.kamilkurp.simulation
 
+import java.io.FileWriter
+
 import akka.actor.{ActorRef, ActorSystem, Props}
 import com.kamilkurp.agent.{Agent, AgentActor}
 import com.kamilkurp.behavior.{IdleBehavior, SearchExitBehavior}
@@ -74,6 +76,9 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     cameraControls = new CameraControls()
 
     mainMenu = MainMenu(gc, cameraControls.renderScale, this)
+    mainMenu.onConfirm()
+
+
 
     font = new TrueTypeFont(new java.awt.Font("Verdana", java.awt.Font.BOLD, (24 * 1 / cameraControls.renderScale).toInt), false)
     textField = new TextField(gc, font, 0, (Globals.WINDOW_Y * 0.955f).toInt, Globals.WINDOW_X, (Globals.WINDOW_Y * 0.04f).toInt)
@@ -110,7 +115,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     currentFloor = floorList.length - 1
 
     flamesManager = new FlamesManager()
-    flamesManager.init(roomList)
+    flamesManager.init(floorList)
 
     manualControlsManager = new CameraControls()
 
@@ -272,6 +277,21 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   override def update(gc: GameContainer, i: Int): Unit = {
 
+//    if (generalTimer.time > 60000) {
+//
+//      val total = agentList.length.toString
+//      val evacuated = agentList.count(agent => agent.currentBehavior.name == "holdMeetPoint").toString
+//      val unconscious = agentList.count(agent => agent.unconscious).toString
+//      val panicking = agentList.count(agent => agent.currentBehavior.name == "panic").toString
+//
+//      val fw = new FileWriter("output.txt", true) ;
+//      fw.write("\n" + Configuration.leaderPercentage.toString + "," + total + "," + evacuated + "," + unconscious + "," + panicking)
+//      fw.close()
+//
+//
+//      System.exit(0)
+//    }
+
     if (Screen.currentScreen == Screen.MainMenu) {
       mainMenu.update(gc, i)
     }
@@ -361,7 +381,9 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       }))
 
       Statistics.params.put("Total agents", agentList.length.toString)
-      Statistics.params.put("Total evacuated", agentList.filter(agent => agent.currentBehavior.name == "holdMeetPoint").toList.length.toString)
+      Statistics.params.put("Total evacuated", agentList.count(agent => agent.currentBehavior.name == "holdMeetPoint").toString)
+      Statistics.params.put("Total unconscious", agentList.count(agent => agent.unconscious).toString)
+      Statistics.params.put("Total in panic", agentList.count(agent => agent.currentBehavior.name == "panic").toString)
       Statistics.params.put("Time", (generalTimer.time / 1000f).toString)
 
 

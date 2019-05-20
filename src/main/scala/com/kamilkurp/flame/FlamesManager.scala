@@ -1,6 +1,6 @@
 package com.kamilkurp.flame
 
-import com.kamilkurp.building.Room
+import com.kamilkurp.building.{Floor, Room}
 import com.kamilkurp.util.{Configuration, Globals, Timer}
 import org.newdawn.slick.Image
 
@@ -12,23 +12,23 @@ class FlamesManager() {
   var flamesImage: Image = _
   var flamesList: ListBuffer[Flames] = _
 
-  def init(roomList: ListBuffer[Room]): Unit = {
+  def init(floorList: ListBuffer[Floor]): Unit = {
     flamesPropagationTimer = new Timer((10000f / Configuration.flamePropagationSpeed).toInt)
     flamesPropagationTimer.start()
     flamesImage = new Image(Configuration.FLAMES_IMAGE_LOCATION)
     flamesList = new ListBuffer[Flames]()
 
 
-    for (i <- 0 until 7) {
-      addRandomFlame(roomList)
-    }
+//    for (i <- 0 until 7) {
+//      addRandomFlame(roomList)
+//    }
 
-    //val room: Room = roomList.filter(room => room.name == "corrL").head
+    val room: Room = floorList(1).roomList.filter(room => room.name == "roomM").head
 
-//    val flames = new Flames(room, Random.nextInt(room.w - flamesImage.getWidth), Random.nextInt(room.h - flamesImage.getHeight), flamesImage)
-//
-//    room.flamesList += flames
-//    flamesList += flames
+    val flames = new Flames(room, Random.nextInt(room.w - flamesImage.getWidth), Random.nextInt(room.h - flamesImage.getHeight), flamesImage)
+
+    room.flamesList += flames
+    flamesList += flames
 
   }
 

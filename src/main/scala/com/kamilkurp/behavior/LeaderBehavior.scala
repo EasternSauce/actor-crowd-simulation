@@ -11,22 +11,26 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
   var broadcastTimer: Timer = _
   var fireLocationInfoTimer: Timer = _
 
+  var door: Door = _
   override def init(): Unit = {
     broadcastTimer = new Timer(Configuration.agentBroadcastTimer)
     broadcastTimer.start()
     fireLocationInfoTimer = new Timer(500)
     fireLocationInfoTimer.start()
+
   }
 
   override def onChangeRoom(): Unit = {
-
+    door = agent.spatialModule.findDoorToEnterNext()
   }
 
   override def perform(delta: Int): Unit = {
     agent.broadcast(AgentLeading(agent), broadcastTimer)
     agent.broadcast(FireLocationInfo(agent.spatialModule.knownFireLocations), fireLocationInfoTimer)
 
-    var door: Door = agent.spatialModule.findDoorToEnterNext()
+    if (door == null) {
+      door = agent.spatialModule.findDoorToEnterNext()
+    }
 
     if (door != null) {
       agent.intendedDoor = door
@@ -78,7 +82,7 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
 
       }
 
-    if (agent.currentBehavior.name == LeaderBehavior.name) agent.intendedDoor = agent.spatialModule.findDoorToEnterNext()
+    door = agent.spatialModule.findDoorToEnterNext()
   }
 }
 

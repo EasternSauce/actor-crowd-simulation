@@ -72,7 +72,6 @@ class SpatialModule private() {
   }
 
   def findDoorToEnterNext(): Door = {
-
     var doorDistances: mutable.Map[Door, Float] = mutable.Map[Door, Float]()
 
     for (door <- agent.currentRoom.doorList) {

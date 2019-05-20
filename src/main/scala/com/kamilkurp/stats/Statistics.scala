@@ -11,14 +11,14 @@ object Statistics {
 
   params.put("Total agents", "0")
   params.put("Total evacuated", "0")
+  Statistics.params.put("Total unconscious", "0")
+  Statistics.params.put("Total in panic", "0")
   params.put("Time", "0")
 
 
   params.put("padding1", "hide")
   params.put("padding2", "hide")
   params.put("padding3", "hide")
-  params.put("padding4", "hide")
-  params.put("padding5", "hide")
   params.put("Agent name", "")
   params.put("Start room", "")
   params.put("Velocity x", "")

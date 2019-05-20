@@ -40,6 +40,8 @@ class MainMenu private () {
     Configuration.agentTurnSpeed = params("agent turn speed").getText.toInt
     Configuration.agentVisionTimer = params("agent vision timer").getText.toInt
     Configuration.agentBroadcastDistance = params("agent broadcast distance").getText.toInt
+    //Configuration.leaderPercentage = Configuration.argument.toFloat
+
 
     simulation.setup()
   }
