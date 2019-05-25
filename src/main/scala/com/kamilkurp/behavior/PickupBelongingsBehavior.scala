@@ -33,16 +33,13 @@ class PickupBelongingsBehavior(agent: Agent, name: String, color: Color) extends
   }
 
   override def perform(delta: Int): Unit = {
-    println("im looking for belongings")
 
     if (nextDoor == null) {
       decideOnDoor()
     }
 
-    println("current room is " + agent.currentRoom.name + " and belongings room is " + belongingsRoom.name)
 
     if (agent.currentRoom == belongingsRoom) {
-      println("in correct room")
       if (agent.getDistanceTo(belongingsPosX, belongingsPosY) > 150) {
         agent.movementModule.moveTowards(belongingsPosX, belongingsPosY)
       }

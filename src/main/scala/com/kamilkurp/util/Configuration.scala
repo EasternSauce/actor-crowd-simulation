@@ -21,6 +21,7 @@ object Configuration {
   val AGENT_SPEED: Float = 0.2f
   val LEADER_PERCENTAGE: Float = 0.3f
   var PICKUP_BELONGINGS_PERCENTAGE: Float = 0.3f
+  var IGNORE_ALARM_PERCENTAGE: Float = 0.3f
   val AGENT_TURN_SPEED: Int = 12
 
   val AGENT_SLOW_TIMER: Int = 3000

@@ -48,6 +48,7 @@ object BehaviorModule {
     behaviorModule.behaviorMap += (StationaryBehavior.name -> new StationaryBehavior(agent, StationaryBehavior.name, StationaryBehavior.color))
     behaviorModule.behaviorMap += (PanicBehavior.name -> new PanicBehavior(agent, PanicBehavior.name, PanicBehavior.color))
     behaviorModule.behaviorMap += (PickupBelongingsBehavior.name -> new PickupBelongingsBehavior(agent, PickupBelongingsBehavior.name, PickupBelongingsBehavior.color))
+    behaviorModule.behaviorMap += (IgnoreAlarmBehavior.name -> new IgnoreAlarmBehavior(agent, IgnoreAlarmBehavior.name, IgnoreAlarmBehavior.color))
 
 
 

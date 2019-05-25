@@ -4,7 +4,7 @@ import java.io.FileWriter
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import com.kamilkurp.agent.{Agent, AgentActor}
-import com.kamilkurp.behavior.{IdleBehavior, SearchExitBehavior}
+import com.kamilkurp.behavior.{IdleBehavior, IgnoreAlarmBehavior, SearchExitBehavior}
 import com.kamilkurp.building.{Door, Floor, MeetPoint, Room}
 import com.kamilkurp.flame.FlamesManager
 import com.kamilkurp.stats.Statistics
@@ -352,7 +352,12 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
         agentList.foreach(agent => {
           if (agent.currentBehavior.name == IdleBehavior.name) {
-            agent.changeBehavior(SearchExitBehavior.name)
+            if (Random.nextFloat() < Configuration.IGNORE_ALARM_PERCENTAGE) {
+              agent.changeBehavior(IgnoreAlarmBehavior.name)
+            }
+            else {
+              agent.changeBehavior(SearchExitBehavior.name)
+            }
           }
         })
       }
