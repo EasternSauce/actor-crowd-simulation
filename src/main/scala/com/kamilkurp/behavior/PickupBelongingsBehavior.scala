@@ -1,55 +1,65 @@
 package com.kamilkurp.behavior
 
 import com.kamilkurp.agent.{Agent, AgentLeading, FireLocationInfo}
-import com.kamilkurp.building.Door
+import com.kamilkurp.building.{Door, Room}
 import com.kamilkurp.util.{Configuration, ControlScheme, Timer}
 import org.newdawn.slick.Color
 import org.newdawn.slick.geom.{Line, Shape, Transform}
 
-class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
+import scala.util.Random
 
-  var broadcastTimer: Timer = _
-  var fireLocationInfoTimer: Timer = _
+class PickupBelongingsBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
+  var belongingsRoom: Room = _
 
-  var door: Door = _
+  var belongingsPosX: Float = _
+  var belongingsPosY: Float = _
+
+  var nextDoor: Door = _
+
   override def init(): Unit = {
-    broadcastTimer = new Timer(Configuration.agentBroadcastTimer)
-    broadcastTimer.start()
-    fireLocationInfoTimer = new Timer(500)
-    fireLocationInfoTimer.start()
+    val knownRooms: Array[AnyRef] = agent.spatialModule.mentalMapGraph.vertexSet().toArray
+
+    val randomRoom: Room = knownRooms(Random.nextInt(knownRooms.length)).asInstanceOf[Room]
+
+    belongingsRoom = randomRoom
+
+    belongingsPosX = Random.nextInt(randomRoom.w)
+    belongingsPosY = Random.nextInt(randomRoom.h)
 
   }
 
   override def onChangeRoom(): Unit = {
-    door = agent.spatialModule.findDoorToEnterNext()
+    decideOnDoor()
   }
 
   override def perform(delta: Int): Unit = {
-    agent.broadcast(AgentLeading(agent), broadcastTimer)
-    agent.broadcast(FireLocationInfo(agent.spatialModule.knownFireLocations), fireLocationInfoTimer)
+    println("im looking for belongings")
 
-    if (door == null) {
-      door = agent.spatialModule.findDoorToEnterNext()
+    if (nextDoor == null) {
+      decideOnDoor()
     }
 
-    if (door != null) {
-      agent.intendedDoor = door
+    println("current room is " + agent.currentRoom.name + " and belongings room is " + belongingsRoom.name)
 
-      if (agent.controlScheme != ControlScheme.Manual) {
-        agent.movementModule.moveTowards(door)
-
+    if (agent.currentRoom == belongingsRoom) {
+      println("in correct room")
+      if (agent.getDistanceTo(belongingsPosX, belongingsPosY) > 150) {
+        agent.movementModule.moveTowards(belongingsPosX, belongingsPosY)
       }
-
-    }
-    else if (agent.currentRoom.meetPointList.nonEmpty) {
-      agent.followX = agent.currentRoom.meetPointList.head.shape.getCenterX
-      agent.followY = agent.currentRoom.meetPointList.head.shape.getCenterY
-
-      agent.changeBehavior(IdleBehavior.name)
+      else {
+        agent.changeBehavior(LeaderBehavior.name)
+      }
     }
     else {
-      agent.changeBehavior(AvoidFireBehavior.name)
+      if (nextDoor != null) {
+        agent.intendedDoor = nextDoor
+
+        if (agent.controlScheme != ControlScheme.Manual) {
+          agent.movementModule.moveTowards(nextDoor)
+        }
+      }
     }
+
   }
 
   override def onSpotFire(): Unit = {
@@ -82,12 +92,17 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
 
       }
 
-    door = agent.spatialModule.findDoorToEnterNext()
+    decideOnDoor()
+  }
+
+  def decideOnDoor(): Unit = {
+    nextDoor = agent.spatialModule.doorLeadingToRoom(agent.spatialModule.mentalMapGraph, belongingsRoom)
+
   }
 }
 
 
-object LeaderBehavior {
-  val name: String = "leader"
-  val color: Color = Color.red
+object PickupBelongingsBehavior {
+  val name: String = "pickupBelongings"
+  val color: Color = new Color(60,124,150)
 }

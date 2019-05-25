@@ -184,10 +184,13 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
     followX = leader.shape.getCenterX
     followY = leader.shape.getCenterY
     followDistance = 120
-    setBehavior(FollowBehavior.name)
+    changeBehavior(FollowBehavior.name)
   }
 
-  def setBehavior(behaviorName: String): Unit = behaviorModule.setBehavior(behaviorName)
+  def changeBehavior(behaviorName: String): Unit = {
+    behaviorModule.setBehavior(behaviorName)
+    behaviorModule.currentBehavior.init()
+  }
 
   def broadcast(msg: AgentMessage, timer: Timer): Unit = {
     if (timer.timedOut()) {
@@ -215,10 +218,14 @@ object Agent {
     agent.avoidFireTimer = new Timer(500)
     agent.avoidFireTimer.time = agent.avoidFireTimer.timeout + 1
 
-    agent.behaviorModule = BehaviorModule(agent)
     agent.visionModule = VisionModule(agent)
     agent.movementModule = MovementModule(agent)
     agent.spatialModule = SpatialModule(agent)
+    agent.behaviorModule = BehaviorModule(agent)
+
+
+    agent.behaviorModule.setBehavior(agent.behaviorModule.startBehavior)
+
 
     var isFree = false
 
@@ -254,6 +261,13 @@ object Agent {
 
 
     agent.unconscious = false
+
+
+    agent.spatialModule.setupMentalMap()
+
+
+    agent.behaviorModule.currentBehavior.init()
+
 
     agent
   }

@@ -11,10 +11,14 @@ class BehaviorModule private() {
   private var _currentBehavior: String = _
 
   private var agent: Agent = _
+  var startBehavior: String = _
 
 
   def setBehavior(behaviorName: String): Unit = {
     _currentBehavior = behaviorName
+  }
+
+  def initBehavior(behaviorName: String): Unit = {
     behaviorMap(behaviorName).init()
   }
 
@@ -31,6 +35,8 @@ object BehaviorModule {
 
     behaviorModule.agent = agent
 
+    behaviorModule.startBehavior = IdleBehavior.name
+
     behaviorModule.behaviorMap = mutable.HashMap.empty[String, Behavior]
 
     behaviorModule.behaviorMap += (FollowBehavior.name -> new FollowBehavior(agent, FollowBehavior.name, FollowBehavior.color))
@@ -41,19 +47,24 @@ object BehaviorModule {
     behaviorModule.behaviorMap += (AvoidFireBehavior.name -> new AvoidFireBehavior(agent, AvoidFireBehavior.name, AvoidFireBehavior.color))
     behaviorModule.behaviorMap += (StationaryBehavior.name -> new StationaryBehavior(agent, StationaryBehavior.name, StationaryBehavior.color))
     behaviorModule.behaviorMap += (PanicBehavior.name -> new PanicBehavior(agent, PanicBehavior.name, PanicBehavior.color))
+    behaviorModule.behaviorMap += (PickupBelongingsBehavior.name -> new PickupBelongingsBehavior(agent, PickupBelongingsBehavior.name, PickupBelongingsBehavior.color))
 
 
-    var startBehavior = IdleBehavior.name
+
 
     if (Random.nextFloat() < Configuration.leaderPercentage) {
-      startBehavior = LeaderBehavior.name
+      if (Random.nextFloat() < Configuration.PICKUP_BELONGINGS_PERCENTAGE) {
+        behaviorModule.startBehavior = PickupBelongingsBehavior.name
+      }
+      else {
+        behaviorModule.startBehavior = LeaderBehavior.name
+      }
     }
 
     if (agent.name == Configuration.MANUAL_AGENT_NAME) {
-      startBehavior = LeaderBehavior.name
+      behaviorModule.startBehavior = LeaderBehavior.name
     }
 
-    behaviorModule.setBehavior(startBehavior)
 
     behaviorModule
   }

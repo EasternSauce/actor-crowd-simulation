@@ -27,7 +27,7 @@ class IdleBehavior(agent: Agent, name: String, color: Color) extends Behavior(ag
         agent.followX = agent.currentRoom.meetPointList.head.shape.getCenterX
         agent.followY = agent.currentRoom.meetPointList.head.shape.getCenterY
 
-        agent.setBehavior(HoldMeetPointBehavior.name)
+        agent.changeBehavior(HoldMeetPointBehavior.name)
       }
 
 

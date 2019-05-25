@@ -83,7 +83,7 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
       agent.followY = agent.currentRoom.meetPointList.head.shape.getCenterY
 
 
-      agent.setBehavior(IdleBehavior.name)
+      agent.changeBehavior(IdleBehavior.name)
     }
   }
 

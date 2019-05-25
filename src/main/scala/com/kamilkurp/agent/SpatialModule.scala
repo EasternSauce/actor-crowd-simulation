@@ -2,7 +2,7 @@ package com.kamilkurp.agent
 
 import java.util
 
-import com.kamilkurp.behavior.{FollowBehavior, LeaderBehavior}
+import com.kamilkurp.behavior.{FollowBehavior, LeaderBehavior, PickupBelongingsBehavior}
 import com.kamilkurp.building.{Door, Room}
 import com.kamilkurp.util.Globals
 import org.jgrapht.graph.{DefaultDirectedWeightedGraph, DefaultWeightedEdge}
@@ -193,6 +193,17 @@ class SpatialModule private() {
 
     shortestPath
   }
+
+  def setupMentalMap(): Unit = {
+    if (agent.currentBehavior.name == LeaderBehavior.name || agent.currentBehavior.name == PickupBelongingsBehavior.name) {
+      mentalMapGraph = Globals.copyGraph(agent.buildingPlanGraph)
+    }
+    else {
+      mentalMapGraph = new DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
+      addRoomToGraph(agent.currentRoom)
+
+    }
+  }
 }
 
 object SpatialModule {
@@ -203,14 +214,7 @@ object SpatialModule {
 
     spatialModule.knownFireLocations = mutable.Set()
 
-    if (agent.currentBehavior.name == LeaderBehavior.name) {
-      spatialModule.mentalMapGraph = Globals.copyGraph(agent.buildingPlanGraph)
-    }
-    else {
-      spatialModule.mentalMapGraph = new DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
-      spatialModule.addRoomToGraph(agent.currentRoom)
 
-    }
 
     spatialModule
   }

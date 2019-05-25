@@ -14,7 +14,7 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
   def perform(delta: Int): Unit = {
     if (agent.followTimer.timedOut()) {
       agent.followTimer.stop()
-      agent.setBehavior(SearchExitBehavior.name)
+      agent.changeBehavior(SearchExitBehavior.name)
       agent.followedAgent = null
       return
     }
@@ -50,7 +50,7 @@ class FollowBehavior(agent: Agent, name: String, color: Color) extends Behavior(
       agent.followX = agent.currentRoom.meetPointList.head.shape.getCenterX
       agent.followY = agent.currentRoom.meetPointList.head.shape.getCenterY
 
-      agent.setBehavior(IdleBehavior.name)
+      agent.changeBehavior(IdleBehavior.name)
     }
 
 

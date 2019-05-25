@@ -294,6 +294,11 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     if (Screen.currentScreen == Screen.MainMenu) {
       mainMenu.update(gc, i)
+
+      if (gc.getInput.isKeyPressed(Input.KEY_ENTER)) {
+        Screen.currentScreen = Screen.Simulation
+        mainMenu.onConfirm()
+      }
     }
     else if (Screen.currentScreen == Screen.Simulation) {
       Timer.updateTimers(i)
@@ -347,7 +352,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
         agentList.foreach(agent => {
           if (agent.currentBehavior.name == IdleBehavior.name) {
-            agent.setBehavior(SearchExitBehavior.name)
+            agent.changeBehavior(SearchExitBehavior.name)
           }
         })
       }

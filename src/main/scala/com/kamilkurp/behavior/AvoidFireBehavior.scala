@@ -100,7 +100,7 @@ class AvoidFireBehavior(agent: Agent, name: String, color: Color) extends Behavi
       agent.followX = agent.currentRoom.meetPointList.head.shape.getCenterX
       agent.followY = agent.currentRoom.meetPointList.head.shape.getCenterY
 
-      agent.setBehavior(IdleBehavior.name)
+      agent.changeBehavior(IdleBehavior.name)
     }
     else {
       pickRoomToStay()
