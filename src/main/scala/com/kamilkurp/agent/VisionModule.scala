@@ -67,7 +67,7 @@ class VisionModule private() {
       if (agent.currentBehavior.name == FollowBehavior.name) {
         val followed = that.followedAgent
 
-        if (followed != null) {
+        if (followed != null && agent.getDistanceTo(that) < 400) {
           if (!followMap.contains(followed)) followMap.put(followed, 1)
           else followMap.put(followed, followMap(followed) + 1)
         }
@@ -83,7 +83,7 @@ class VisionModule private() {
           }
         }
 
-        if (mostFollowed != null && mostFollowing > 2) {
+        if (mostFollowed != null && mostFollowing > 4) {
           if (agent.followedAgent != mostFollowed) {
             agent.followedAgent = mostFollowed
           }

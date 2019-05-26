@@ -3,8 +3,6 @@ package com.kamilkurp.util
 object Configuration {
 
 
-
-
   var AGENT_IMAGE_LOCATION: String = "character.png"
   var DOOR_IMAGE_LOCATION: String = "door.png"
   var FLAMES_IMAGE_LOCATION: String = "fire.png"
@@ -22,7 +20,9 @@ object Configuration {
   val LEADER_PERCENTAGE: Float = 0.3f
   var PICKUP_BELONGINGS_PERCENTAGE: Float = 0.3f
   var IGNORE_ALARM_PERCENTAGE: Float = 0.3f
+  var RUNNER_PERCENTAGE: Float = 0.5f
   val AGENT_TURN_SPEED: Int = 12
+  var CHANCE_TO_TRIP: Float = 0.1f
 
   val AGENT_SLOW_TIMER: Int = 3000
   val AGENT_LOOK_TIMER: Int = 50

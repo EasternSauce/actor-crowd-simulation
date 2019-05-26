@@ -31,6 +31,7 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
   var avoidFireTimer: Timer = _
   var followTimer: Timer = _
 
+
   var followX: Float = _
   var followY: Float = _
   var followDistance: Float = _
@@ -55,6 +56,8 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
   }
 
   def update(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
+
+
 
     mousedOver = false
 
@@ -157,6 +160,9 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
     g.setColor(Color.pink)
     if (movementModule.beingPushed) {
       g.setColor(Color.blue)
+    }
+    if (movementModule.isTripped) {
+      g.setColor(Color.yellow)
     }
     g.drawString(name, currentRoom.x + shape.getX - 10 - offsetX, currentRoom.y + shape.getY - 40 - offsetY)
     g.setColor(currentBehavior.color)

@@ -29,6 +29,13 @@ class MovementModule {
   var lookTimer: Timer = _
   private var agent: Agent = _
 
+
+  var runTimer: Timer = _
+  var isRunning: Boolean = _
+  var runningEventTimer: Timer = _
+  var isTripped: Boolean = _
+  var trippedTimer: Timer = _
+
   def moveTowards(x: Float, y: Float): Unit = {
     goTo(x, y)
   }
@@ -45,9 +52,13 @@ class MovementModule {
 
     walkAngle = vector.getTheta.floatValue()
 
-    if (!beingPushed) {
-      currentVelocityX = vector.x * agent.personalSpeed * (1f - slow)
-      currentVelocityY = vector.y * agent.personalSpeed * (1f - slow)
+    if (!beingPushed && !isTripped) {
+      var speed = agent.personalSpeed
+
+      if (isRunning) speed = speed * 1.5f
+
+      currentVelocityX = vector.x * speed * (1f - slow)
+      currentVelocityY = vector.y * speed * (1f - slow)
     }
 
   }
@@ -62,6 +73,35 @@ class MovementModule {
   }
 
   def update(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
+    if (runningEventTimer.timedOut()) {
+      if (isRunning) {
+        if (Random.nextFloat() < Configuration.CHANCE_TO_TRIP) {
+          isTripped = true
+          trippedTimer.start()
+        }
+      }
+
+      if (Random.nextFloat() < Configuration.RUNNER_PERCENTAGE) {
+        isRunning = true
+        runTimer.start()
+      }
+
+      runningEventTimer.reset()
+    }
+
+    if (trippedTimer.timedOut()) {
+      trippedTimer.stop()
+      trippedTimer.reset()
+      isTripped = false
+    }
+
+    if (runTimer.timedOut()) {
+      runTimer.stop()
+      runTimer.reset()
+      isRunning = false
+      stopMoving()
+    }
+
     if (changedVelocity) {
       changedVelocity = false
       currentVelocityX = changedVelocityX
@@ -230,6 +270,14 @@ object MovementModule {
     movementModule.lookTimer = new Timer(Configuration.AGENT_LOOK_TIMER)
     movementModule.slowTimer.start()
     movementModule.lookTimer.start()
+
+    movementModule.runTimer = new Timer(5000 + Random.nextInt(3000))
+    movementModule.isRunning = false
+    movementModule.runningEventTimer = new Timer(2000 + Random.nextInt(1000))
+    movementModule.isTripped = false
+    movementModule.trippedTimer = new Timer(5000 + Random.nextInt(5000))
+
+    movementModule.runningEventTimer.start()
 
     movementModule
   }
