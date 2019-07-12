@@ -80,7 +80,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
 
 
-    font = new TrueTypeFont(new java.awt.Font("Verdana", java.awt.Font.BOLD, (24 * 1 / cameraControls.renderScale).toInt), false)
+    font = new TrueTypeFont(new java.awt.Font("Verdana", java.awt.Font.BOLD, (12 * 1 / cameraControls.renderScale).toInt), false)
     textField = new TextField(gc, font, 0, (Globals.WINDOW_Y * 0.955f).toInt, Globals.WINDOW_X, (Globals.WINDOW_Y * 0.04f).toInt)
     textField.setBorderColor(Color.transparent)
     textField.setTextColor(Color.green)
@@ -342,8 +342,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
           textField.setFocus(true)
           textFieldFocused = true
         }
-
-
       }
 
       if (untilAlarmTimer.timedOut()) {
@@ -438,8 +436,8 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
       var i = 0
       for (param <- Statistics.params) {
-        if (!param._2.equals("hide")) font.drawString(textWindowX + 20 + 500 * Math.floor(i / 8).toFloat, textWindowY + 20 + 40 * (i % 8), param._1 + ":", Color.green)
-        if (!param._2.equals("hide")) font.drawString(textWindowX + 270 + 500 * Math.floor(i / 8).toFloat, textWindowY + 20 + 40 * (i % 8), param._2, Color.green)
+        if (!param._2.equals("hide")) font.drawString(textWindowX + 20 + 200 * Math.floor(i / 8).toFloat, textWindowY + 20 + 18 * (i % 8), param._1 + ":", Color.green)
+        if (!param._2.equals("hide")) font.drawString(textWindowX + 150 + 200 * Math.floor(i / 8).toFloat, textWindowY + 20 + 18 * (i % 8), param._2, Color.green)
 
         i = i + 1
       }

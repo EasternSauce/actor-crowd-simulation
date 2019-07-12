@@ -11,8 +11,10 @@ import scala.util.Random
 class MovementModule {
   var currentVelocityX: Float = _
   var currentVelocityY: Float = _
-  var changedVelocityX: Float = _
-  var changedVelocityY: Float = _
+  var intendedVelocityX: Float = _
+  var intendedVelocityY: Float = _
+
+  var acceleration: Float = _
 
   var changedVelocity: Boolean = _
   var walkAngle: Float = _
@@ -20,11 +22,7 @@ class MovementModule {
   var slow: Float = _
   var beingPushed: Boolean = _
   var pushedTimer: Timer = _
-  var checkProgressTimer: Timer = _
-  var pastPositionX: Float = _
-  var pastPositionY: Float = _
-  var goAroundObstacle: Boolean = _
-  var goAroundAngle: Float = _
+
   var slowTimer: Timer = _
   var lookTimer: Timer = _
   private var agent: Agent = _
@@ -44,10 +42,6 @@ class MovementModule {
     val vector = new Vector2f(x - agent.shape.getCenterX, y - agent.shape.getCenterY)
     vector.normalise()
 
-    //    if (goAroundObstacle) {
-    //      vector.setTheta(vector.getTheta + goAroundAngle)
-    //    }
-
     vector.setTheta(vector.getTheta + agent.visionModule.colAvoidAngle * 1.5f)
 
     walkAngle = vector.getTheta.floatValue()
@@ -57,8 +51,10 @@ class MovementModule {
 
       if (isRunning) speed = speed * 1.5f
 
-      currentVelocityX = vector.x * speed * (1f - slow)
-      currentVelocityY = vector.y * speed * (1f - slow)
+      intendedVelocityX = vector.x * speed * (1f - slow)
+      intendedVelocityY = vector.y * speed * (1f - slow)
+      changedVelocity = true
+
     }
 
   }
@@ -104,24 +100,35 @@ class MovementModule {
 
     if (changedVelocity) {
       changedVelocity = false
-      currentVelocityX = changedVelocityX
-      currentVelocityY = changedVelocityY
-    }
 
-    if (checkProgressTimer.timedOut()) {
-      checkProgressTimer.reset()
-
-      val progress = agent.getDistanceTo(pastPositionX, pastPositionY)
-
-
-      if (progress < 60) {
-        goAroundObstacle = true
-        goAroundAngle = Random.nextInt(60) - 30
+      if (currentVelocityX < intendedVelocityX) {
+        currentVelocityX += acceleration
+        if (currentVelocityX > intendedVelocityX) {
+          currentVelocityX = intendedVelocityX
+        }
       }
-      else goAroundObstacle = false
 
-      pastPositionX = agent.shape.getX
-      pastPositionY = agent.shape.getY
+      if (currentVelocityX > intendedVelocityX) {
+        currentVelocityX -= acceleration
+        if (currentVelocityX < intendedVelocityX) {
+          currentVelocityX = intendedVelocityX
+        }
+      }
+
+      if (currentVelocityY < intendedVelocityY) {
+        currentVelocityY += acceleration
+        if (currentVelocityY > intendedVelocityY) {
+          currentVelocityY = intendedVelocityY
+        }
+      }
+
+      if (currentVelocityY > intendedVelocityY) {
+        currentVelocityY -= acceleration
+        if (currentVelocityY < intendedVelocityY) {
+          currentVelocityY = intendedVelocityY
+        }
+      }
+
     }
 
     if (lookTimer.timedOut() && walkAngle != viewAngle) {
@@ -200,8 +207,8 @@ class MovementModule {
 
         vector.setTheta(vector.getTheta + Random.nextInt(30) - 15)
 
-        pushed.movementModule.changedVelocityX = vector.x
-        pushed.movementModule.changedVelocityY = vector.y
+        pushed.movementModule.intendedVelocityX = vector.x
+        pushed.movementModule.intendedVelocityY = vector.y
         pushed.movementModule.changedVelocity = true
 
         pushed.movementModule.walkAngle = vector.getTheta.toFloat
@@ -219,8 +226,8 @@ class MovementModule {
 
         vector.setTheta(vector.getTheta + Random.nextInt(30) - 15)
 
-        pushed.movementModule.changedVelocityX = vector.x
-        pushed.movementModule.changedVelocityY = vector.y
+        pushed.movementModule.intendedVelocityX = vector.x
+        pushed.movementModule.intendedVelocityY = vector.y
         pushed.movementModule.changedVelocity = true
 
         pushed.movementModule.walkAngle = vector.getTheta.toFloat
@@ -242,11 +249,13 @@ object MovementModule {
 
     movementModule.agent = agent
 
+    movementModule.acceleration = Configuration.AGENT_ACCELERATION
+
     movementModule.currentVelocityX = 0.0f
     movementModule.currentVelocityY = 0.0f
 
-    movementModule.changedVelocityX = 0.0f
-    movementModule.changedVelocityY = 0.0f
+    movementModule.intendedVelocityX = 0.0f
+    movementModule.intendedVelocityY = 0.0f
     movementModule.changedVelocity = false
 
     movementModule.walkAngle = 0.0f
@@ -256,15 +265,6 @@ object MovementModule {
     movementModule.beingPushed = false
 
     movementModule.pushedTimer = new Timer(500)
-
-    movementModule.checkProgressTimer = new Timer(2000)
-    movementModule.checkProgressTimer.start()
-
-    movementModule.pastPositionX = 0
-    movementModule.pastPositionY = 0
-
-    movementModule.goAroundObstacle = false
-    movementModule.goAroundAngle = 0
 
     movementModule.slowTimer = new Timer(Configuration.AGENT_SLOW_TIMER)
     movementModule.lookTimer = new Timer(Configuration.AGENT_LOOK_TIMER)

@@ -8,8 +8,8 @@ import org.jgrapht.graph.{DefaultDirectedWeightedGraph, DefaultWeightedEdge}
 
 object Globals {
   val AGENT_SIZE: Int = 40
-  val WINDOW_X: Int = 2560
-  val WINDOW_Y: Int = 1440
+  val WINDOW_X: Int = 800
+  val WINDOW_Y: Int = 600
   val SCALE_X: Float = 0.5f
   val SCALE_Y: Float = 0.5f
 

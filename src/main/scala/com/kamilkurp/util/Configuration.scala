@@ -17,6 +17,7 @@ object Configuration {
   val FLAME_PROPAGATION_SPEED: Float = 5
 
   val AGENT_SPEED: Float = 0.2f
+  val AGENT_ACCELERATION: Float = 0.005f
   val LEADER_PERCENTAGE: Float = 0.3f
   var PICKUP_BELONGINGS_PERCENTAGE: Float = 0.3f
   var IGNORE_ALARM_PERCENTAGE: Float = 0.3f

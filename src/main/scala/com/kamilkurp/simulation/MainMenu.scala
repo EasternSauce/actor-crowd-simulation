@@ -47,12 +47,12 @@ class MainMenu private () {
   }
 
   def addField(text: String, value: String, gc: GameContainer): Unit = {
-    val textField = new TextField(gc, font, 800, currentH, 700, 100)
+    val textField = new TextField(gc, font, 400, currentH, 200, 30)
     params.put(text, textField)
     textField.setText(value)
     textField.setCursorPos(textField.getText.length)
 
-    currentH = currentH + 120
+    currentH = currentH + 30
   }
 }
 
@@ -63,7 +63,7 @@ object MainMenu {
 
     mainMenu.simulation = simulation
 
-    mainMenu.font = new TrueTypeFont(new java.awt.Font("Verdana", java.awt.Font.BOLD, (40 * 1 / renderScale).toInt), false)
+    mainMenu.font = new TrueTypeFont(new java.awt.Font("Verdana", java.awt.Font.BOLD, (16 * 1 / renderScale).toInt), false)
 
     mainMenu.params = mutable.LinkedHashMap[String, TextField]()
 
@@ -77,7 +77,7 @@ object MainMenu {
     mainMenu.addField("agent vision timer", Configuration.agentVisionTimer.toString, gc)
     mainMenu.addField("agent broadcast distance", Configuration.agentBroadcastDistance.toString, gc)
 
-    mainMenu.confirmButton = new TextField(gc, mainMenu.font, 100, mainMenu.currentH+50, 1350, 100) {
+    mainMenu.confirmButton = new TextField(gc, mainMenu.font, 100, mainMenu.currentH+30, 500, 30) {
       override def mousePressed(button: Int, x: Int, y: Int): Unit = {
         super.mousePressed(button, x, y)
 

@@ -88,8 +88,8 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
 
     //temporary solution, move evacuated outside map
     if (entity.getClass == classOf[MeetPoint]) {
-      shape.setX(1000)
-      shape.setY(1000)
+      shape.setX(10000)
+      shape.setY(10000)
       currentRoom.agentList -= this
     }
 
@@ -141,8 +141,6 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
   }
 
   def draw(g: Graphics, offsetX: Float, offsetY: Float): Unit = {
-
-
     if (selected) {
       g.setColor(Color.green)
       g.drawRect(currentRoom.x + shape.getX - offsetX - 50, currentRoom.y + shape.getY - offsetY - 50, shape.getWidth + 100, shape.getHeight + 100)
