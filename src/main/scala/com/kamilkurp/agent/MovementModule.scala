@@ -151,7 +151,7 @@ class MovementModule {
 
 
       def adjustViewAngle(clockwise: Boolean): Unit = {
-        val turnSpeed = Configuration.agentTurnSpeed
+        val turnSpeed = Configuration.agentTurnSpeed * Configuration.simulationSpeed
         if (Math.abs(viewAngle - walkAngle) > turnSpeed && Math.abs((viewAngle + 180) % 360 - (walkAngle + 180) % 360) > turnSpeed) {
           if (clockwise) { // clockwise
             if (viewAngle + turnSpeed < 360) viewAngle += turnSpeed
@@ -188,8 +188,8 @@ class MovementModule {
       ControlScheme.handleManualControls(agent, gc, delta, renderScale)
     }
 
-    val collisionVelocityX = currentVelocityX * delta
-    val collisionVelocityY = currentVelocityY * delta
+    val collisionVelocityX = currentVelocityX * delta * Configuration.simulationSpeed
+    val collisionVelocityY = currentVelocityY * delta * Configuration.simulationSpeed
     val collisionDetails = Globals.manageCollisions(agent.currentRoom, agent, collisionVelocityX, collisionVelocityY)
     if (!collisionDetails.colX) {
       agent.shape.setX(agent.shape.getX + collisionVelocityX)

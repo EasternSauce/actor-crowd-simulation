@@ -14,12 +14,16 @@ import scala.util.Random
 
 class Agent private(var name: String, var currentRoom: Room, val controlScheme: ControlScheme, var image: Image, var buildingPlanGraph: DefaultDirectedWeightedGraph[Room, DefaultWeightedEdge]) extends Entity {
 
+
   override var shape: Shape = _
   override var debug: Boolean = _
 
   var controls: (Int, Int, Int, Int) = _
 
   var actor: ActorRef = _
+
+  var startingPosX: Float = _
+  var startingPosY: Float = _
 
   var intendedDoor: Door = _
 
@@ -243,6 +247,9 @@ object Agent {
         isFree = true
       }
     }
+
+    agent.startingPosX = agent.shape.getX
+    agent.startingPosY = agent.shape.getY
 
     agent.followX = 0
     agent.followY = 0

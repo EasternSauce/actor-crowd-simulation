@@ -32,7 +32,7 @@ object Timer {
 
   def updateTimers(delta: Int): Unit = {
     for (timer <- timerList) {
-      if (timer.running) timer.time += delta
+      if (timer.running) timer.time += delta * Configuration.simulationSpeed.toInt
 
     }
   }

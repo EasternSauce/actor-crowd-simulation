@@ -9,6 +9,8 @@ object Configuration {
   var STAIRS_IMAGE_LOCATION: String = "stairs.png"
   var BUILDING_PLAN_LOCATION: String = "building.txt"
 
+  var SIMULATION_SPEED: Float = 1.0f
+
   var UNTIL_ALARM_TIME: Int = 5000
 
   var NUMBER_OF_AGENTS: Int = 250
@@ -49,6 +51,8 @@ object Configuration {
   var leaderPercentage: Float = LEADER_PERCENTAGE
   var flamePropagationSpeed: Float = FLAME_PROPAGATION_SPEED
   var agentBroadcastDistance: Int = AGENT_BROADCAST_DISTANCE
+  var simulationSpeed: Float = SIMULATION_SPEED
 
-//  var argument: String = ""
+
+  //  var argument: String = ""
 }

@@ -292,6 +292,21 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 //      System.exit(0)
 //    }
 
+    if (gc.getInput.isKeyPressed(Input.KEY_F3)) {
+      reset()
+    }
+
+    if (gc.getInput.isKeyPressed(Input.KEY_G)) {
+      Configuration.simulationSpeed *= 2.0f
+    }
+
+    if (gc.getInput.isKeyPressed(Input.KEY_H)) {
+      Configuration.simulationSpeed /= 2.0f
+      println(Configuration.simulationSpeed)
+    }
+
+
+
     if (Screen.currentScreen == Screen.MainMenu) {
       mainMenu.update(gc, i)
 
@@ -447,8 +462,18 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       textField.render(gc, g)
     }
 
+  }
 
+  def reset(): Unit = {
+    setup()
 
-
+//    agentList.foreach(agent => {
+//      agent.currentRoom.removeAgent(agent)
+//      agent.startingRoom.addAgent(agent)
+//
+//      agent.currentRoom = agent.startingRoom
+//      agent.shape.setX(agent.startingPosX)
+//      agent.shape.setY(agent.startingPosY)
+//    })
   }
 }
