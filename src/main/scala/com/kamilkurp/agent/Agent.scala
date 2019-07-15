@@ -179,6 +179,12 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
     }
     g.drawString(tag, currentRoom.x + shape.getX - 10 - offsetX, currentRoom.y + shape.getY - 25 - offsetY)
 
+    if (movementModule.isTripped) {
+      g.setColor(Color.red)
+      g.drawString("[tripped]", currentRoom.x + shape.getX - 10 - offsetX, currentRoom.y + shape.getY - 5 - offsetY)
+    }
+
+
     if (unconscious) {
       g.setColor(Color.red)
       g.drawString("[unconscious]", currentRoom.x + shape.getX - 10 - offsetX, currentRoom.y + shape.getY - 10 - offsetY)

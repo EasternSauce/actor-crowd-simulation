@@ -207,8 +207,8 @@ class MovementModule {
 
         vector.setTheta(vector.getTheta + Random.nextInt(30) - 15)
 
-        pushed.movementModule.intendedVelocityX = vector.x
-        pushed.movementModule.intendedVelocityY = vector.y
+        pushed.movementModule.currentVelocityX = pusher.movementModule.intendedVelocityX
+        pushed.movementModule.currentVelocityY = pusher.movementModule.intendedVelocityY
         pushed.movementModule.changedVelocity = true
 
         pushed.movementModule.walkAngle = vector.getTheta.toFloat
@@ -226,8 +226,8 @@ class MovementModule {
 
         vector.setTheta(vector.getTheta + Random.nextInt(30) - 15)
 
-        pushed.movementModule.intendedVelocityX = vector.x
-        pushed.movementModule.intendedVelocityY = vector.y
+        pushed.movementModule.currentVelocityX = pusher.movementModule.intendedVelocityX
+        pushed.movementModule.currentVelocityY = pusher.movementModule.intendedVelocityY
         pushed.movementModule.changedVelocity = true
 
         pushed.movementModule.walkAngle = vector.getTheta.toFloat

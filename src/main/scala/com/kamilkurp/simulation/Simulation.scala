@@ -297,11 +297,11 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     }
 
     if (gc.getInput.isKeyPressed(Input.KEY_G)) {
-      Configuration.simulationSpeed *= 2.0f
+      Configuration.simulationSpeed /= 2.0f
     }
 
     if (gc.getInput.isKeyPressed(Input.KEY_H)) {
-      Configuration.simulationSpeed /= 2.0f
+      Configuration.simulationSpeed *= 2.0f
       println(Configuration.simulationSpeed)
     }
 
