@@ -35,6 +35,7 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
       }
 
       if (that.movementModule.isTripped) {
+        agent.helpingAgent = that
         agent.changeBehavior(HelpBehavior.name)
       }
 
