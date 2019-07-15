@@ -102,28 +102,28 @@ class MovementModule {
       changedVelocity = false
 
       if (currentVelocityX < intendedVelocityX) {
-        currentVelocityX += acceleration
+        currentVelocityX += acceleration * Configuration.simulationSpeed
         if (currentVelocityX > intendedVelocityX) {
           currentVelocityX = intendedVelocityX
         }
       }
 
       if (currentVelocityX > intendedVelocityX) {
-        currentVelocityX -= acceleration
+        currentVelocityX -= acceleration * Configuration.simulationSpeed
         if (currentVelocityX < intendedVelocityX) {
           currentVelocityX = intendedVelocityX
         }
       }
 
       if (currentVelocityY < intendedVelocityY) {
-        currentVelocityY += acceleration
+        currentVelocityY += acceleration * Configuration.simulationSpeed
         if (currentVelocityY > intendedVelocityY) {
           currentVelocityY = intendedVelocityY
         }
       }
 
       if (currentVelocityY > intendedVelocityY) {
-        currentVelocityY -= acceleration
+        currentVelocityY -= acceleration * Configuration.simulationSpeed
         if (currentVelocityY < intendedVelocityY) {
           currentVelocityY = intendedVelocityY
         }

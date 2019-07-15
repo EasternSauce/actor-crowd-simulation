@@ -69,6 +69,10 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   var mainMenu: MainMenu = _
 
+  var autoMode: Boolean = _
+
+  var currentSimulation: Int = _
+
   override def init(gc: GameContainer): Unit = {
     gc.setAlwaysRender(true)
     gc.setUpdateOnlyWhenVisible(false)
@@ -77,6 +81,10 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
     mainMenu = MainMenu(gc, cameraControls.renderScale, this)
     mainMenu.onConfirm()
+
+    autoMode = false
+
+    currentSimulation = 0
 
 
 
@@ -277,20 +285,25 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   override def update(gc: GameContainer, i: Int): Unit = {
 
-//    if (generalTimer.time > 60000) {
-//
-//      val total = agentList.length.toString
-//      val evacuated = agentList.count(agent => agent.currentBehavior.name == "holdMeetPoint").toString
-//      val unconscious = agentList.count(agent => agent.unconscious).toString
-//      val panicking = agentList.count(agent => agent.currentBehavior.name == "panic").toString
-//
-//      val fw = new FileWriter("output.txt", true) ;
-//      fw.write("\n" + Configuration.leaderPercentage.toString + "," + total + "," + evacuated + "," + unconscious + "," + panicking)
-//      fw.close()
-//
-//
-//      System.exit(0)
-//    }
+    if (currentSimulation >= 10) {
+      System.exit(0)
+    }
+
+    if (generalTimer.time > 120000) {
+
+      currentSimulation += 1
+
+      val total = agentList.length.toString
+      val evacuated = agentList.count(agent => agent.currentBehavior.name == "holdMeetPoint").toString
+      val unconscious = agentList.count(agent => agent.unconscious).toString
+      val panicking = agentList.count(agent => agent.currentBehavior.name == "panic").toString
+
+      val fw = new FileWriter("output.txt", true) ;
+      fw.write("\n" + Configuration.leaderPercentage.toString + "," + total + "," + evacuated + "," + unconscious + "," + panicking)
+      fw.close()
+
+      reset()
+    }
 
     if (gc.getInput.isKeyPressed(Input.KEY_F3)) {
       reset()

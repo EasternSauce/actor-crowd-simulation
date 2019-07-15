@@ -13,6 +13,7 @@ class MainMenu private () {
   var font: Font = _
   var currentH: Int = 100
   var confirmButton: TextField = _
+  var autoButton: TextField = _
   var simulation: Simulation = _
 
   def update(gc: GameContainer, delta: Int): Unit = {
@@ -28,6 +29,7 @@ class MainMenu private () {
       textField.render(gc, g)
     })
     confirmButton.render(gc, g)
+    autoButton.render(gc, g)
   }
 
   def onConfirm(): Unit = {
@@ -94,6 +96,27 @@ object MainMenu {
     }
 
     mainMenu.confirmButton.setText("                                      CONFIRM")
+
+    mainMenu.autoButton = new TextField(gc, mainMenu.font, 100, mainMenu.currentH+80, 500, 30) {
+      override def mousePressed(button: Int, x: Int, y: Int): Unit = {
+        super.mousePressed(button, x, y)
+
+        if (button == Input.MOUSE_LEFT_BUTTON) {
+          val rect: Rectangle = new Rectangle(getX, getY, getWidth, getHeight)
+          val mouseRect: Rectangle = new Rectangle(x, y, 1, 1)
+          if (rect.intersects(mouseRect)) {
+            Screen.currentScreen = Screen.Simulation
+            mainMenu.onConfirm()
+            simulation.autoMode = true
+          }
+        }
+
+      }
+    }
+
+    mainMenu.autoButton.setText("                                      AUTOMATIC SIMULATION")
+
+
 
     mainMenu
   }
