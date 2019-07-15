@@ -298,7 +298,7 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       val unconscious = agentList.count(agent => agent.unconscious).toString
       val panicking = agentList.count(agent => agent.currentBehavior.name == "panic").toString
 
-      val fw = new FileWriter("output.txt", true) ;
+      val fw = new FileWriter("output.txt", true)
       fw.write("\n" + Configuration.leaderPercentage.toString + "," + total + "," + evacuated + "," + unconscious + "," + panicking)
       fw.close()
 

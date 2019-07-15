@@ -10,6 +10,8 @@ class BehaviorModule private() {
   private var behaviorMap: mutable.HashMap[String, Behavior] = _
   private var _currentBehavior: String = _
 
+  var previousBehavior: String = _
+
   private var agent: Agent = _
   var startBehavior: String = _
 
@@ -37,6 +39,8 @@ object BehaviorModule {
 
     behaviorModule.startBehavior = IdleBehavior.name
 
+    behaviorModule.previousBehavior = null
+
     behaviorModule.behaviorMap = mutable.HashMap.empty[String, Behavior]
 
     behaviorModule.behaviorMap += (FollowBehavior.name -> new FollowBehavior(agent, FollowBehavior.name, FollowBehavior.color))
@@ -49,6 +53,7 @@ object BehaviorModule {
     behaviorModule.behaviorMap += (PanicBehavior.name -> new PanicBehavior(agent, PanicBehavior.name, PanicBehavior.color))
     behaviorModule.behaviorMap += (PickupBelongingsBehavior.name -> new PickupBelongingsBehavior(agent, PickupBelongingsBehavior.name, PickupBelongingsBehavior.color))
     behaviorModule.behaviorMap += (IgnoreAlarmBehavior.name -> new IgnoreAlarmBehavior(agent, IgnoreAlarmBehavior.name, IgnoreAlarmBehavior.color))
+    behaviorModule.behaviorMap += (HelpBehavior.name -> new HelpBehavior(agent, HelpBehavior.name, HelpBehavior.color))
 
 
 

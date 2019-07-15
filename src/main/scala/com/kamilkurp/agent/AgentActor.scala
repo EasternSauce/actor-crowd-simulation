@@ -34,6 +34,10 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
         }
       }
 
+      if (that.movementModule.isTripped) {
+        agent.changeBehavior(HelpBehavior.name)
+      }
+
     case AgentLeading(that) =>
       if (agent.currentBehavior.name == IdleBehavior.name || agent.currentBehavior.name == SearchExitBehavior.name || agent.currentBehavior.name == FollowBehavior.name) {
         if (agent.currentBehavior.name != LeaderBehavior.name && agent.currentBehavior.name != PickupBelongingsBehavior.name) {

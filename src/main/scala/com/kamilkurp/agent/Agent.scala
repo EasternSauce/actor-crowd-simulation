@@ -54,6 +54,10 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
 
   var unconscious: Boolean = _
 
+  var empathyLevel: Float = _
+
+  var helpingAgent: Agent = _
+
 
   def setControls(controls: (Int, Int, Int, Int)): Unit = {
     this.controls = controls
@@ -202,6 +206,7 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
   }
 
   def changeBehavior(behaviorName: String): Unit = {
+    behaviorModule.previousBehavior = currentBehavior.name
     behaviorModule.setBehavior(behaviorName)
     behaviorModule.currentBehavior.init()
   }
@@ -276,6 +281,8 @@ object Agent {
 
     agent.stressResistance = Random.nextFloat()
 
+    agent.empathyLevel = Random.nextFloat()
+
 
     agent.unconscious = false
 
@@ -285,6 +292,7 @@ object Agent {
 
     agent.behaviorModule.currentBehavior.init()
 
+    agent.helpingAgent = null
 
     agent
   }
