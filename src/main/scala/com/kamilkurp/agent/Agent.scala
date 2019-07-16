@@ -34,6 +34,7 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
 
   var avoidFireTimer: Timer = _
   var followTimer: Timer = _
+  var helpingTimer: Timer = _
 
 
   var followX: Float = _
@@ -56,8 +57,7 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
 
   var empathyLevel: Float = _
 
-  var helpingAgent: Agent = _
-
+  var helpedAgent: Agent = _
 
   def setControls(controls: (Int, Int, Int, Int)): Unit = {
     this.controls = controls
@@ -206,7 +206,7 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
   }
 
   def changeBehavior(behaviorName: String): Unit = {
-    behaviorModule.previousBehavior = currentBehavior.name
+    if (currentBehavior.name != HelpBehavior.name) behaviorModule.previousBehavior = currentBehavior.name
     behaviorModule.setBehavior(behaviorName)
     behaviorModule.currentBehavior.init()
   }
@@ -221,6 +221,22 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
       timer.reset()
     }
   }
+
+  def helpOtherAgent(that: Agent): Unit = {
+    if (helpingTimer.timedOut()) {
+      if (that.movementModule.isTripped && empathyLevel > Random.nextFloat()) {
+        helpedAgent = that
+        changeBehavior(HelpBehavior.name)
+        that.onBeingHelped()
+        helpingTimer.reset()
+      }
+    }
+  }
+
+  def onBeingHelped(): Unit = {
+    movementModule.trippedTimer.time += 1500
+  }
+
 }
 
 object Agent {
@@ -281,7 +297,7 @@ object Agent {
 
     agent.stressResistance = Random.nextFloat()
 
-    agent.empathyLevel = Random.nextFloat()
+    agent.empathyLevel = Random.nextFloat() / 10
 
 
     agent.unconscious = false
@@ -292,7 +308,10 @@ object Agent {
 
     agent.behaviorModule.currentBehavior.init()
 
-    agent.helpingAgent = null
+    agent.helpedAgent = null
+
+    agent.helpingTimer = new Timer(5000)
+    agent.helpingTimer.start()
 
     agent
   }

@@ -4,8 +4,10 @@ import akka.actor.{Actor, ActorLogging}
 import com.kamilkurp.behavior._
 import com.kamilkurp.building.Room
 import com.kamilkurp.entity.Entity
+import com.kamilkurp.util.Timer
 
 import scala.collection.mutable
+import scala.util.Random
 
 abstract class AgentMessage
 
@@ -22,7 +24,6 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
 
   val char: Agent = agent
 
-
   override def receive: Receive = {
     case AgentWithinVision(that: Agent) =>
 
@@ -34,10 +35,8 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
         }
       }
 
-      if (that.movementModule.isTripped) {
-        agent.helpingAgent = that
-        agent.changeBehavior(HelpBehavior.name)
-      }
+      agent.helpOtherAgent(that)
+
 
     case AgentLeading(that) =>
       if (agent.currentBehavior.name == IdleBehavior.name || agent.currentBehavior.name == SearchExitBehavior.name || agent.currentBehavior.name == FollowBehavior.name) {

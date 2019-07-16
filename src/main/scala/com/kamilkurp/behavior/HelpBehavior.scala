@@ -9,16 +9,19 @@ class HelpBehavior(agent: Agent, name: String, color: Color) extends Behavior(ag
   }
 
   override def perform(delta: Int): Unit = {
-    if (!agent.movementModule.beingPushed && agent.helpingAgent != null) {
-      if (agent.helpingAgent.currentRoom == agent.currentRoom) {
-        agent.movementModule.moveTowards(agent.helpingAgent.shape.getCenterX, agent.helpingAgent.shape.getCenterY)
+    if (!agent.movementModule.beingPushed && agent.helpedAgent != null) {
+      if (agent.helpedAgent.currentRoom == agent.currentRoom) {
+        if (agent.getDistanceTo(agent.helpedAgent.shape.getCenterX, agent.helpedAgent.shape.getCenterY) > 30) {
+          agent.movementModule.moveTowards(agent.helpedAgent.shape.getCenterX, agent.helpedAgent.shape.getCenterY)
+
+        }
       }
       else {
         agent.movementModule.stopMoving()
       }
     }
 
-    if (!agent.helpingAgent.movementModule.isTripped) {
+    if (!agent.helpedAgent.movementModule.isTripped) {
       agent.changeBehavior(agent.behaviorModule.previousBehavior)
     }
   }
