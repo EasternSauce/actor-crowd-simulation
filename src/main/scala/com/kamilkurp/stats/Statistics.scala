@@ -28,8 +28,4 @@ object Statistics {
   params.put("Stress resistance", "")
 
 
-
-
-
-
 }

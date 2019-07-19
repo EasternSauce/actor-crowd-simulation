@@ -56,8 +56,6 @@ object BehaviorModule {
     behaviorModule.behaviorMap += (HelpBehavior.name -> new HelpBehavior(agent, HelpBehavior.name, HelpBehavior.color))
 
 
-
-
     if (Random.nextFloat() < Configuration.leaderPercentage) {
       if (Random.nextFloat() < Configuration.PICKUP_BELONGINGS_PERCENTAGE) {
         behaviorModule.startBehavior = PickupBelongingsBehavior.name

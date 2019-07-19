@@ -6,7 +6,6 @@ import com.kamilkurp.util.ControlScheme
 import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
 
-import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 class PanicBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {

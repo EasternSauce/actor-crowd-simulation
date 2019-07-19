@@ -4,10 +4,8 @@ import akka.actor.{Actor, ActorLogging}
 import com.kamilkurp.behavior._
 import com.kamilkurp.building.Room
 import com.kamilkurp.entity.Entity
-import com.kamilkurp.util.Timer
 
 import scala.collection.mutable
-import scala.util.Random
 
 abstract class AgentMessage
 

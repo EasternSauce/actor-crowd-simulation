@@ -1,13 +1,13 @@
 package com.kamilkurp.simulation
 
-import com.kamilkurp.util.{Configuration, Globals, Screen}
-import org.newdawn.slick.gui.TextField
+import com.kamilkurp.util.{Configuration, Screen}
 import org.newdawn.slick._
 import org.newdawn.slick.geom.Rectangle
+import org.newdawn.slick.gui.TextField
 
 import scala.collection.mutable
 
-class MainMenu private () {
+class MainMenu private() {
 
   var params: mutable.LinkedHashMap[String, TextField] = _
   var font: Font = _
@@ -79,7 +79,7 @@ object MainMenu {
     mainMenu.addField("agent vision timer", Configuration.agentVisionTimer.toString, gc)
     mainMenu.addField("agent broadcast distance", Configuration.agentBroadcastDistance.toString, gc)
 
-    mainMenu.confirmButton = new TextField(gc, mainMenu.font, 100, mainMenu.currentH+30, 500, 30) {
+    mainMenu.confirmButton = new TextField(gc, mainMenu.font, 100, mainMenu.currentH + 30, 500, 30) {
       override def mousePressed(button: Int, x: Int, y: Int): Unit = {
         super.mousePressed(button, x, y)
 
@@ -97,7 +97,7 @@ object MainMenu {
 
     mainMenu.confirmButton.setText("                                      CONFIRM")
 
-    mainMenu.autoButton = new TextField(gc, mainMenu.font, 100, mainMenu.currentH+80, 500, 30) {
+    mainMenu.autoButton = new TextField(gc, mainMenu.font, 100, mainMenu.currentH + 80, 500, 30) {
       override def mousePressed(button: Int, x: Int, y: Int): Unit = {
         super.mousePressed(button, x, y)
 
@@ -115,7 +115,6 @@ object MainMenu {
     }
 
     mainMenu.autoButton.setText("                                      AUTOMATIC SIMULATION")
-
 
 
     mainMenu

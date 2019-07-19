@@ -1,8 +1,8 @@
 package com.kamilkurp.behavior
 
-import com.kamilkurp.agent.{Agent, AgentLeading, FireLocationInfo}
+import com.kamilkurp.agent.Agent
 import com.kamilkurp.building.{Door, Room}
-import com.kamilkurp.util.{Configuration, ControlScheme, Timer}
+import com.kamilkurp.util.ControlScheme
 import org.newdawn.slick.Color
 import org.newdawn.slick.geom.{Line, Shape, Transform}
 
@@ -75,7 +75,6 @@ class PickupBelongingsBehavior(agent: Agent, name: String, color: Color) extends
         lineRight = lineRight.transform(t2)
 
 
-
         var foundFire = false
         for (flames <- agent.currentRoom.flamesList) {
           if (!foundFire) {
@@ -101,5 +100,5 @@ class PickupBelongingsBehavior(agent: Agent, name: String, color: Color) extends
 
 object PickupBelongingsBehavior {
   val name: String = "pickupBelongings"
-  val color: Color = new Color(60,124,150)
+  val color: Color = new Color(60, 124, 150)
 }

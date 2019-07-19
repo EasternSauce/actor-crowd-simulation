@@ -91,9 +91,6 @@ class VisionModule private() {
       }
 
 
-
-
-
       for (i <- viewRayList.indices) {
         if (that.shape.intersects(viewRayList(i))) {
           agent.actor ! AgentWithinVision(that)
@@ -104,7 +101,6 @@ class VisionModule private() {
         }
       }
     })
-
 
 
     agent.currentRoom.flamesList.foreach(that => {

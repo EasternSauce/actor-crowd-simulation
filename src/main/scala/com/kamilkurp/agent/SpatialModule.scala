@@ -6,13 +6,10 @@ import com.kamilkurp.behavior.{FollowBehavior, LeaderBehavior, PickupBelongingsB
 import com.kamilkurp.building.{Door, Room}
 import com.kamilkurp.util.Globals
 import org.jgrapht.graph.{DefaultDirectedWeightedGraph, DefaultWeightedEdge}
-import org.newdawn.slick.Color
-import org.newdawn.slick.geom.{Line, Shape, Transform}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.compat.Platform.ConcurrentModificationException
-import scala.util.Random
 
 class SpatialModule private() {
 
@@ -98,7 +95,7 @@ class SpatialModule private() {
 
         for (door <- agent.currentRoom.doorList) {
           if (path != null && path.size() > 1 && door.leadingToDoor.currentRoom == path.get(1)) {
-            doorDistanceFactor = agent.getDistanceTo(door)/maxDistance
+            doorDistanceFactor = agent.getDistanceTo(door) / maxDistance
           }
         }
 
@@ -173,8 +170,8 @@ class SpatialModule private() {
 
     var shortestPath: java.util.List[Room] = null
     try {
-      while(shortestPath == null) {
-        try{
+      while (shortestPath == null) {
+        try {
           shortestPath = dijkstraShortestPath.getPath(agent.currentRoom, to).getVertexList
         } catch {
           case _: ConcurrentModificationException =>
@@ -213,7 +210,6 @@ object SpatialModule {
     spatialModule.agent = agent
 
     spatialModule.knownFireLocations = mutable.Set()
-
 
 
     spatialModule

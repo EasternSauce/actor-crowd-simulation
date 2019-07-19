@@ -51,5 +51,5 @@ class IgnoreAlarmBehavior(agent: Agent, name: String, color: Color) extends Beha
 
 object IgnoreAlarmBehavior {
   val name: String = "ignoreAlarm"
-  val color: Color = new Color(24,100,200)
+  val color: Color = new Color(24, 100, 200)
 }

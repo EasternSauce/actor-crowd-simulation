@@ -66,7 +66,6 @@ class Agent private(var name: String, var currentRoom: Room, val controlScheme: 
   def update(gc: GameContainer, delta: Int, renderScale: Float): Unit = {
 
 
-
     mousedOver = false
 
     if (!unconscious) {

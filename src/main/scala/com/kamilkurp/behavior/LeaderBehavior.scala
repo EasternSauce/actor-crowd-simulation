@@ -12,6 +12,7 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
   var fireLocationInfoTimer: Timer = _
 
   var door: Door = _
+
   override def init(): Unit = {
     broadcastTimer = new Timer(Configuration.agentBroadcastTimer)
     broadcastTimer.start()
@@ -66,7 +67,6 @@ class LeaderBehavior(agent: Agent, name: String, color: Color) extends Behavior(
         lineLeft = lineLeft.transform(t1)
         var lineRight: Shape = new Line(agent.shape.getCenterX, agent.shape.getCenterY, door.shape.getCenterX, door.shape.getCenterY)
         lineRight = lineRight.transform(t2)
-
 
 
         var foundFire = false

@@ -38,5 +38,5 @@ class HelpBehavior(agent: Agent, name: String, color: Color) extends Behavior(ag
 
 object HelpBehavior {
   val name: String = "help"
-  val color: Color = new Color(242,195,50)
+  val color: Color = new Color(242, 195, 50)
 }

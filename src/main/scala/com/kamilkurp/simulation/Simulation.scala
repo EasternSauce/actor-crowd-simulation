@@ -9,7 +9,6 @@ import com.kamilkurp.building.{Door, Floor, MeetPoint, Room}
 import com.kamilkurp.flame.FlamesManager
 import com.kamilkurp.stats.Statistics
 import com.kamilkurp.stats.Statistics.params
-import com.kamilkurp.util.Screen.Screen
 import com.kamilkurp.util._
 import org.jgrapht.graph.{DefaultDirectedWeightedGraph, DefaultWeightedEdge}
 import org.newdawn.slick._
@@ -85,7 +84,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     autoMode = false
 
     currentSimulation = 0
-
 
 
     font = new TrueTypeFont(new java.awt.Font("Verdana", java.awt.Font.BOLD, (12 * 1 / cameraControls.renderScale).toInt), false)
@@ -319,7 +317,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     }
 
 
-
     if (Screen.currentScreen == Screen.MainMenu) {
       mainMenu.update(gc, i)
 
@@ -480,13 +477,13 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   def reset(): Unit = {
     setup()
 
-//    agentList.foreach(agent => {
-//      agent.currentRoom.removeAgent(agent)
-//      agent.startingRoom.addAgent(agent)
-//
-//      agent.currentRoom = agent.startingRoom
-//      agent.shape.setX(agent.startingPosX)
-//      agent.shape.setY(agent.startingPosY)
-//    })
+    //    agentList.foreach(agent => {
+    //      agent.currentRoom.removeAgent(agent)
+    //      agent.startingRoom.addAgent(agent)
+    //
+    //      agent.currentRoom = agent.startingRoom
+    //      agent.shape.setX(agent.startingPosX)
+    //      agent.shape.setY(agent.startingPosY)
+    //    })
   }
 }

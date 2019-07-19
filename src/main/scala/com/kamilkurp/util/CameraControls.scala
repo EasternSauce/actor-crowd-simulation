@@ -36,10 +36,8 @@ class CameraControls {
       CameraView.y = centerY - (Globals.WINDOW_Y * 1 / renderScale / 2)
 
 
-
     }
     if (gc.getInput.isKeyDown(Input.KEY_ADD)) {
-
 
 
       val centerX = CameraView.x + Globals.WINDOW_X * 1 / renderScale / 2
