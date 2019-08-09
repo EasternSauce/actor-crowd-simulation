@@ -1,5 +1,6 @@
 package com.kamilkurp.simulation
 
+import com.kamilkurp.simulation.Main.args
 import com.kamilkurp.util.{Configuration, Screen}
 import org.newdawn.slick._
 import org.newdawn.slick.geom.Rectangle
@@ -42,10 +43,7 @@ class MainMenu private() {
     Configuration.agentTurnSpeed = params("agent turn speed").getText.toInt
     Configuration.agentVisionTimer = params("agent vision timer").getText.toInt
     Configuration.agentBroadcastDistance = params("agent broadcast distance").getText.toInt
-    //Configuration.leaderPercentage = Configuration.argument.toFloat
 
-
-    simulation.setup()
   }
 
   def addField(text: String, value: String, gc: GameContainer): Unit = {
@@ -89,6 +87,8 @@ object MainMenu {
           if (rect.intersects(mouseRect)) {
             Screen.currentScreen = Screen.Simulation
             mainMenu.onConfirm()
+            simulation.setup()
+
           }
         }
 
@@ -107,7 +107,16 @@ object MainMenu {
           if (rect.intersects(mouseRect)) {
             Screen.currentScreen = Screen.Simulation
             mainMenu.onConfirm()
+
+            Configuration.empathyLevel = Configuration.autoValues(Configuration.autoCurrent)/100f
+            Configuration.autoCurrent += 1
+
+
+
             simulation.autoMode = true
+            simulation.setup()
+
+
           }
         }
 

@@ -8,7 +8,7 @@ import org.newdawn.slick.geom.{Line, Shape, Transform}
 
 import scala.util.Random
 
-class PickupBelongingsBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
+class RetrieveBelongingsBehavior(agent: Agent, name: String, color: Color) extends Behavior(agent, name, color) {
   var belongingsRoom: Room = _
 
   var belongingsPosX: Float = _
@@ -98,7 +98,7 @@ class PickupBelongingsBehavior(agent: Agent, name: String, color: Color) extends
 }
 
 
-object PickupBelongingsBehavior {
-  val name: String = "pickupBelongings"
+object RetrieveBelongingsBehavior {
+  val name: String = "retrieveBelongings"
   val color: Color = new Color(60, 124, 150)
 }

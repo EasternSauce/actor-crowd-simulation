@@ -51,18 +51,24 @@ object BehaviorModule {
     behaviorModule.behaviorMap += (AvoidFireBehavior.name -> new AvoidFireBehavior(agent, AvoidFireBehavior.name, AvoidFireBehavior.color))
     behaviorModule.behaviorMap += (StationaryBehavior.name -> new StationaryBehavior(agent, StationaryBehavior.name, StationaryBehavior.color))
     behaviorModule.behaviorMap += (PanicBehavior.name -> new PanicBehavior(agent, PanicBehavior.name, PanicBehavior.color))
-    behaviorModule.behaviorMap += (PickupBelongingsBehavior.name -> new PickupBelongingsBehavior(agent, PickupBelongingsBehavior.name, PickupBelongingsBehavior.color))
+    behaviorModule.behaviorMap += (RetrieveBelongingsBehavior.name -> new RetrieveBelongingsBehavior(agent, RetrieveBelongingsBehavior.name, RetrieveBelongingsBehavior.color))
     behaviorModule.behaviorMap += (IgnoreAlarmBehavior.name -> new IgnoreAlarmBehavior(agent, IgnoreAlarmBehavior.name, IgnoreAlarmBehavior.color))
     behaviorModule.behaviorMap += (HelpBehavior.name -> new HelpBehavior(agent, HelpBehavior.name, HelpBehavior.color))
 
 
-    if (Random.nextFloat() < Configuration.leaderPercentage) {
-      if (Random.nextFloat() < Configuration.PICKUP_BELONGINGS_PERCENTAGE) {
-        behaviorModule.startBehavior = PickupBelongingsBehavior.name
+    val random = Random.nextFloat()
+    println("random: " + random + " leader percent: " + Configuration.leaderPercentage)
+    if (random < Configuration.leaderPercentage) {
+      println("leader")
+      if (Random.nextFloat() < Configuration.RETRIEVE_BELONGINGS_PERCENTAGE) {
+        behaviorModule.startBehavior = RetrieveBelongingsBehavior.name
       }
       else {
         behaviorModule.startBehavior = LeaderBehavior.name
       }
+    }
+    else {
+      println("non leader")
     }
 
     if (agent.name == Configuration.MANUAL_AGENT_NAME) {

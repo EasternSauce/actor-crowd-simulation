@@ -70,8 +70,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   var autoMode: Boolean = _
 
-  var currentSimulation: Int = _
-
   override def init(gc: GameContainer): Unit = {
     gc.setAlwaysRender(true)
     gc.setUpdateOnlyWhenVisible(false)
@@ -82,9 +80,6 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
     mainMenu.onConfirm()
 
     autoMode = false
-
-    currentSimulation = 0
-
 
     font = new TrueTypeFont(new java.awt.Font("Verdana", java.awt.Font.BOLD, (12 * 1 / cameraControls.renderScale).toInt), false)
     textField = new TextField(gc, font, 0, (Globals.WINDOW_Y * 0.955f).toInt, Globals.WINDOW_X, (Globals.WINDOW_Y * 0.04f).toInt)
@@ -283,38 +278,10 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
 
   override def update(gc: GameContainer, i: Int): Unit = {
 
-    if (currentSimulation >= 10) {
+    if (Configuration.autoCurrent >= Configuration.autoValues.size) {
       System.exit(0)
     }
 
-    if (generalTimer.time > 120000) {
-
-      currentSimulation += 1
-
-      val total = agentList.length.toString
-      val evacuated = agentList.count(agent => agent.currentBehavior.name == "holdMeetPoint").toString
-      val unconscious = agentList.count(agent => agent.unconscious).toString
-      val panicking = agentList.count(agent => agent.currentBehavior.name == "panic").toString
-
-      val fw = new FileWriter("output.txt", true)
-      fw.write("\n" + Configuration.leaderPercentage.toString + "," + total + "," + evacuated + "," + unconscious + "," + panicking)
-      fw.close()
-
-      reset()
-    }
-
-    if (gc.getInput.isKeyPressed(Input.KEY_F3)) {
-      reset()
-    }
-
-    if (gc.getInput.isKeyPressed(Input.KEY_G)) {
-      Configuration.simulationSpeed /= 2.0f
-    }
-
-    if (gc.getInput.isKeyPressed(Input.KEY_H)) {
-      Configuration.simulationSpeed *= 2.0f
-      println(Configuration.simulationSpeed)
-    }
 
 
     if (Screen.currentScreen == Screen.MainMenu) {
@@ -326,6 +293,45 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
       }
     }
     else if (Screen.currentScreen == Screen.Simulation) {
+
+      if (generalTimer.time > 120000) {
+
+        Configuration.leaderPercentage = 0.1f//Configuration.autoValues(Configuration.autoCurrent)/100f
+        Configuration.stressResistance = 0.5f
+        Configuration.empathyLevel = Configuration.autoValues(Configuration.autoCurrent)/100f
+        Configuration.autoCurrentRepetition += 1
+
+        if (Configuration.autoCurrentRepetition == 10) {
+          Configuration.autoCurrentRepetition = 0
+          Configuration.autoCurrent += 1
+        }
+
+        val total = agentList.length.toString
+        val evacuated = agentList.count(agent => agent.currentBehavior.name == "holdMeetPoint").toString
+        val unconscious = agentList.count(agent => agent.unconscious).toString
+        val panicking = agentList.count(agent => agent.currentBehavior.name == "panic").toString
+
+        val fw = new FileWriter("output.txt", true)
+        fw.write("\n" + Configuration.leaderPercentage.toString + "," + total + "," + evacuated + "," + unconscious + "," + panicking)
+        fw.close()
+
+        reset()
+      }
+
+      if (gc.getInput.isKeyPressed(Input.KEY_F3)) {
+        reset()
+      }
+
+      if (gc.getInput.isKeyPressed(Input.KEY_G)) {
+        Configuration.simulationSpeed /= 2.0f
+      }
+
+      if (gc.getInput.isKeyPressed(Input.KEY_H)) {
+        Configuration.simulationSpeed *= 2.0f
+        println(Configuration.simulationSpeed)
+      }
+
+
       Timer.updateTimers(i)
 
       cameraControls.handleControls(gc, i)
@@ -477,13 +483,5 @@ class Simulation(gameName: String) extends BasicGame(gameName) {
   def reset(): Unit = {
     setup()
 
-    //    agentList.foreach(agent => {
-    //      agent.currentRoom.removeAgent(agent)
-    //      agent.startingRoom.addAgent(agent)
-    //
-    //      agent.currentRoom = agent.startingRoom
-    //      agent.shape.setX(agent.startingPosX)
-    //      agent.shape.setY(agent.startingPosY)
-    //    })
   }
 }

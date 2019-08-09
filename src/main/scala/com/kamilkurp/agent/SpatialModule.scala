@@ -2,7 +2,7 @@ package com.kamilkurp.agent
 
 import java.util
 
-import com.kamilkurp.behavior.{FollowBehavior, LeaderBehavior, PickupBelongingsBehavior}
+import com.kamilkurp.behavior.{FollowBehavior, LeaderBehavior, RetrieveBelongingsBehavior}
 import com.kamilkurp.building.{Door, Room}
 import com.kamilkurp.util.Globals
 import org.jgrapht.graph.{DefaultDirectedWeightedGraph, DefaultWeightedEdge}
@@ -192,7 +192,7 @@ class SpatialModule private() {
   }
 
   def setupMentalMap(): Unit = {
-    if (agent.currentBehavior.name == LeaderBehavior.name || agent.currentBehavior.name == PickupBelongingsBehavior.name) {
+    if (agent.currentBehavior.name == LeaderBehavior.name || agent.currentBehavior.name == RetrieveBelongingsBehavior.name) {
       mentalMapGraph = Globals.copyGraph(agent.buildingPlanGraph)
     }
     else {

@@ -18,10 +18,10 @@ object Configuration {
   val MANUAL_AGENT_NAME: String = "Player"
   val FLAME_PROPAGATION_SPEED: Float = 5
 
-  val AGENT_SPEED: Float = 0.2f
+  val AGENT_SPEED: Float = 0.08f
   val AGENT_ACCELERATION: Float = 0.005f
   val LEADER_PERCENTAGE: Float = 0.3f
-  var PICKUP_BELONGINGS_PERCENTAGE: Float = 0.3f
+  var RETRIEVE_BELONGINGS_PERCENTAGE: Float = 0.3f
   var IGNORE_ALARM_PERCENTAGE: Float = 0.3f
   var RUNNER_PERCENTAGE: Float = 0.5f
   val AGENT_TURN_SPEED: Int = 12
@@ -52,7 +52,11 @@ object Configuration {
   var flamePropagationSpeed: Float = FLAME_PROPAGATION_SPEED
   var agentBroadcastDistance: Int = AGENT_BROADCAST_DISTANCE
   var simulationSpeed: Float = SIMULATION_SPEED
+  var stressResistance: Float = 0
+  var  empathyLevel: Float = 0
 
-
-  //  var argument: String = ""
+  var autoValues: Range = 0 to 100 by 10
+  var autoCurrent: Int = 0
+  var autoCurrentValue: Int = 0
+  var autoCurrentRepetition: Int = 0
 }

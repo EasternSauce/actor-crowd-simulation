@@ -273,7 +273,7 @@ object MovementModule {
 
     movementModule.runTimer = new Timer(5000 + Random.nextInt(3000))
     movementModule.isRunning = false
-    movementModule.runningEventTimer = new Timer(2000 + Random.nextInt(1000))
+    movementModule.runningEventTimer = new Timer(5000 + Random.nextInt(3000))
     movementModule.isTripped = false
     movementModule.trippedTimer = new Timer(5000 + Random.nextInt(5000))
 

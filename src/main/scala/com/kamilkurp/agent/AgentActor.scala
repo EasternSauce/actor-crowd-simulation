@@ -25,7 +25,7 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
   override def receive: Receive = {
     case AgentWithinVision(that: Agent) =>
 
-      if (agent.currentBehavior.name != LeaderBehavior.name && agent.currentBehavior.name != AvoidFireBehavior.name && agent.currentBehavior.name != PickupBelongingsBehavior.name) {
+      if (agent.currentBehavior.name != LeaderBehavior.name && agent.currentBehavior.name != AvoidFireBehavior.name && agent.currentBehavior.name != RetrieveBelongingsBehavior.name) {
         if (that.currentBehavior.name == LeaderBehavior.name) {
           if (agent.followedAgent == null) {
             agent.followLeader(that)
@@ -38,7 +38,7 @@ class AgentActor(val name: String, val agent: Agent) extends Actor with ActorLog
 
     case AgentLeading(that) =>
       if (agent.currentBehavior.name == IdleBehavior.name || agent.currentBehavior.name == SearchExitBehavior.name || agent.currentBehavior.name == FollowBehavior.name) {
-        if (agent.currentBehavior.name != LeaderBehavior.name && agent.currentBehavior.name != PickupBelongingsBehavior.name) {
+        if (agent.currentBehavior.name != LeaderBehavior.name && agent.currentBehavior.name != RetrieveBelongingsBehavior.name) {
           if (that.currentBehavior.name == LeaderBehavior.name) {
             if (agent.followedAgent == null) {
               agent.followLeader(that)

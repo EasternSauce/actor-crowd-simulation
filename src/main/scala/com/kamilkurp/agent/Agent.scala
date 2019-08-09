@@ -294,9 +294,9 @@ object Agent {
 
     agent.stressLevel = 0f
 
-    agent.stressResistance = Random.nextFloat()
+    agent.stressResistance = Configuration.stressResistance//Random.nextFloat()
 
-    agent.empathyLevel = Random.nextFloat() / 10
+    agent.empathyLevel = Configuration.empathyLevel//Random.nextFloat() / 10
 
 
     agent.unconscious = false

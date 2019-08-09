@@ -23,7 +23,7 @@ class FlamesManager() {
     //      addRandomFlame(roomList)
     //    }
 
-    val room: Room = floorList(1).roomList.filter(room => room.name == "roomM").head
+    val room: Room = floorList(0).roomList.filter(room => room.name == "roomM").head
 
     val flames = new Flames(room, Random.nextInt(room.w - flamesImage.getWidth), Random.nextInt(room.h - flamesImage.getHeight), flamesImage)
 

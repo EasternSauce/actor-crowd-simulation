@@ -28,7 +28,7 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
   def decideOnDoor(): Unit = {
     var doorCandidate: Door = null
 
-    var exitCandidates: ListBuffer[Door] = new ListBuffer[Door]()
+    var visitCandidates: ListBuffer[Door] = new ListBuffer[Door]()
 
     doorCandidate = agent.spatialModule.findDoorToEnterNext()
 
@@ -41,21 +41,18 @@ class SearchExitBehavior(agent: Agent, name: String, color: Color) extends Behav
       if (leadingToRoom.name.startsWith("corr")) doorToCorrList += doorInRoom
 
       if (!agent.spatialModule.knownFireLocations.contains(leadingToRoom) && leadingToRoom.meetPointList.nonEmpty || (leadingToRoom.name.startsWith("corr") && !visited.contains(leadingToRoom))) {
-        exitCandidates += doorInRoom
+        visitCandidates += doorInRoom
       }
     }
 
-    if (doorCandidate == null) {
-      doorCandidate = doorToCorrList(Random.nextInt(doorToCorrList.length))
-    }
-
-
-    if (exitCandidates.isEmpty) {
+    if (doorCandidate != null) {
       doorToEnterNext = doorCandidate
-
+    }
+    else if (visitCandidates.nonEmpty){
+      doorToEnterNext = visitCandidates(Random.nextInt(visitCandidates.size))
     }
     else {
-      doorToEnterNext = exitCandidates(Random.nextInt(exitCandidates.size))
+      doorToEnterNext = doorToCorrList(Random.nextInt(doorToCorrList.length))
     }
 
   }
